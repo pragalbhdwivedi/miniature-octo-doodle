@@ -122,3 +122,8 @@ A documented architecture is not implementation evidence.
   because the deliberate Docker failure mock left a nonzero native exit status.
   The suite now clears that status only after all assertions pass. This was a
   test-runner issue, not a successful host/browser check.
+- Corrected code at `2ba5246` passed Linux PR CI
+  [run 36489200561](https://github.com/pragalbhdwivedi/miniature-octo-doodle/actions/runs/36489200561):
+  YAML/security checks, configuration/storage regressions and Compose syntax.
+  All 28 pre-existing workload identities were matched to running containers
+  after Desktop restart; original volumes were also verified present.
