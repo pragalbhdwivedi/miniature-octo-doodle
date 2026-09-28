@@ -94,4 +94,8 @@ Docker Compose is the first operational target. Kubernetes definitions are maint
 
 ## Status
 
-See `PROJECT_STATE.md` and `docs/BUILD_STATUS.md`.
+Phase 1 core implementation is on `feat/phase1-core`: pinned Compose images,
+guarded Windows startup, health checks and provider templates. See
+[Quick Start](docs/QUICK_START.md), [PROJECT_STATE.md](PROJECT_STATE.md) and
+[tested build evidence](docs/BUILD_STATUS.md). Provider inference remains pending
+by user instruction; no optional component is installed by this project.

@@ -32,9 +32,17 @@ jobs:
               print('OK', p)
           PY
 
+      - name: Core safety contract
+        run: python scripts/validate-repository.py
+
+      - name: Configuration and storage guard regressions
+        shell: pwsh
+        run: ./scripts/test-config.ps1
+
       - name: Validate Docker Compose syntax
         shell: bash
         run: |
-          cp .env.example .env
+          pwsh -File scripts/init-env.ps1
+          pwsh -File scripts/render-config.ps1
           trap 'rm -f .env' EXIT
-          docker compose --env-file .env.example config >/dev/null
+          docker compose config --quiet

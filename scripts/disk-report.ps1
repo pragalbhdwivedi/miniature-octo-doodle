@@ -1,5 +1,7 @@
 param()
 
+$ErrorActionPreference = 'Stop'
+
 Write-Host "Host disk"
 Get-PSDrive -PSProvider FileSystem |
   Select-Object Name,
@@ -10,6 +12,7 @@ Get-PSDrive -PSProvider FileSystem |
 Write-Host ""
 Write-Host "Docker disk usage"
 docker system df
+if ($LASTEXITCODE -ne 0) { throw "Docker usage report failed (exit $LASTEXITCODE)." }
 
 Write-Host ""
 Write-Host "This script reports usage only. It does not delete anything."
