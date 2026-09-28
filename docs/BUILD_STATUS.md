@@ -113,3 +113,12 @@ A documented architecture is not implementation evidence.
   Local Python/PyYAML validation environment is ignored; reflected in host samples.
 - Phase 2 budgets/routing/fallbacks, Phase 3 recovery, Kubernetes and optional modules
   remain NOT STARTED for this project.
+
+## Repository delivery and CI
+
+- Draft PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6)
+  contains the implementation; `main` remains at the refreshed baseline.
+- Initial Linux CI run `36489059799` passed every regression assertion but failed
+  because the deliberate Docker failure mock left a nonzero native exit status.
+  The suite now clears that status only after all assertions pass. This was a
+  test-runner issue, not a successful host/browser check.

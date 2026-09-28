@@ -10,6 +10,7 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 **Phase 1: core deployed; host/browser access BLOCKED**
 
 Implementation branch: `feat/phase1-core`, based on refreshed `main` at `ba7a6bb`.
+Review: draft PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6).
 See `docs/BUILD_STATUS.md` for measured results; provider requests are pending by user instruction.
 
 ## Hardware baseline

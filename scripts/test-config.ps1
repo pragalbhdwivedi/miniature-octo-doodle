@@ -58,3 +58,5 @@ try {
   Remove-Item -LiteralPath $resolved -Recurse -Force
 }
 Write-Host 'Configuration regression checks passed; no network or provider calls made.'
+# The deliberate Docker-failure mock must not become the CI runner's exit code.
+$global:LASTEXITCODE = 0
