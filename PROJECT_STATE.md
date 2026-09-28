@@ -7,7 +7,7 @@
 Modular local/cloud AI coding platform with a single AI gateway, browser UI, optional agent memory/code graph, and future multi-agent orchestration.
 
 ## Current phase
-**Phase 1: core deployed; host/browser access BLOCKED**
+**Phase 1: PARTIAL; localhost fixed and tested, browser validation pending**
 
 Implementation branch: `feat/phase1-core`, based on refreshed `main` at `ba7a6bb`.
 Review: draft PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6).
@@ -35,23 +35,32 @@ Open WebUI 0.11.4 slim. Internal database, authentication, WebUI login and
 gateway model discovery tests passed, including after an authorized Docker
 Desktop restart. Existing unrelated workloads and volumes were preserved.
 
-Windows HTTP and Edge access to 127.0.0.1:3000/4000 still time out after restart.
-Docker reports loopback publication, but no matching Windows listener was found.
-Root cause is unresolved; WSL mirrored networking is present but not proven causal.
-The subsystem is not marked complete on container health alone.
+Windows HTTP access was restored on 2026-09-29 by switching the host's WSL
+networking from mirrored to NAT and restarting WSL/Docker. Mirrored mode still
+failed after a full WSL restart. Full core tests now pass via 127.0.0.1 and
+localhost, including admin login and UI-to-gateway discovery. The exact upstream
+defect is unresolved. The backed-up change and rollback procedure are recorded
+in `docs/TROUBLESHOOTING.md`; no firewall or Compose exposure changes were needed.
+
+Browser validation is pending: this session's browser tool reports Edge
+unavailable, and its in-app browser fails to attach. HTTP tests do not establish
+browser rendering. Phase 1 stays PARTIAL until browser acceptance passes.
 
 ## Implemented, not fully validated
 - Pinned core Compose, persistent volumes, health checks, local-only publication.
 - Guarded preflight/startup, random local secrets, restricted WebUI inference key.
 - OpenAI/Gemini configuration with independently configurable model IDs/aliases.
 - Empty-provider startup tested; cloud inference intentionally pending by user instruction.
-- Latest storage sample: 59.21 GiB free on C:; core image sizes sum to 2.68 GiB.
+- Latest storage sample: 59.11 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Diagnose Docker Desktop/WSL localhost forwarding and pass host/browser tests.
-Then configure and validate providers only when requested. Budgets, recovery,
-Kubernetes and optional modules remain later phases. No reboot, firewall changes,
-WSL network-mode change or data deletion was performed.
+Complete actual browser validation using an available browser tool or the
+requested alternate headless Edge method. Then configure and validate providers
+only when requested. Budgets, recovery, Kubernetes and optional modules remain
+later phases. NAT applies to all WSL2 distributions; direct WSL LAN access and
+Linux-to-Windows localhost semantics change. All 31 running workload identities
+and six volumes were preserved; unrelated applications were not functionally tested.
+No reboot, firewall changes or data deletion was performed.
 
 ## Deferred / optional
 - Anthropic / Claude

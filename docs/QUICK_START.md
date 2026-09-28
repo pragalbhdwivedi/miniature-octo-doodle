@@ -1,8 +1,8 @@
 # Quick Start
 
-Phase 1 core is implemented. All three containers and their internal integration
-checks passed on 2026-09-29. Windows localhost/browser access is BLOCKED by a
-Docker Desktop forwarding issue; provider inference is pending by instruction.
+Phase 1 core is implemented. All three containers and their internal and Windows
+integration checks passed on 2026-09-29 after the host switched WSL to NAT.
+Actual browser acceptance remains pending; provider inference is pending by instruction.
 See [BUILD_STATUS.md](BUILD_STATUS.md) for the precise validation boundary.
 
 ## Setup

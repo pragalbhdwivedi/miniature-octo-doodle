@@ -6,11 +6,12 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
 |---|---|---|
 | Repository bootstrap | COMPLETE | Initial source-of-truth files committed |
 | Preflight tooling | COMPLETE | Target-machine checks passed 2026-09-29; details below |
-| Docker Compose core | PARTIAL | Three services healthy; internal tests pass; Windows/browser access blocked |
+| Docker Compose core | PARTIAL | Three services healthy; internal and Windows tests pass; browser acceptance pending |
 | PostgreSQL | COMPLETE | 16.15 Alpine healthy; SQL query confirms LiteLLM schema; state survives restart/recreation |
-| LiteLLM | PARTIAL | 1.103.0 healthy; DB/auth/key controls pass internally; host endpoint blocked |
-| Open WebUI | PARTIAL | 0.11.4 slim healthy; internal login and gateway discovery pass; browser blocked |
-| Host/browser access | BLOCKED | HTTP and Edge timeout on 127.0.0.1:3000/4000 before/after authorized Desktop restart |
+| LiteLLM core | COMPLETE | 1.103.0 healthy; DB/auth/key controls pass internally and from Windows; provider inference pending separately |
+| Open WebUI | PARTIAL | 0.11.4 slim healthy; Windows login and gateway discovery pass; browser acceptance pending |
+| Host HTTP access | COMPLETE | WSL NAT restored both 127.0.0.1 and localhost on 3000/4000; full smoke test passed |
+| Browser acceptance | BLOCKED | Browser tool cannot attach: Edge unavailable; in-app webview initialization times out; alternate Edge test requested |
 | OpenAI provider | PARTIAL | Configurable template/render tests pass; no key or inference test by instruction |
 | Gemini provider | PARTIAL | Configurable template/render tests pass; no key or inference test by instruction |
 | Routing / fallback | NOT STARTED | |
@@ -127,3 +128,42 @@ A documented architecture is not implementation evidence.
   YAML/security checks, configuration/storage regressions and Compose syntax.
   All 28 pre-existing workload identities were matched to running containers
   after Desktop restart; original volumes were also verified present.
+
+## Milestone 2 follow-up - localhost forwarding (2026-09-29)
+
+- Refreshed GitHub/main and PR #6 before work; continued `feat/phase1-core`.
+- Desktop 4.92.0 / Engine 29.8.0, Windows 26200.9550, WSL 2.7.14.0 /
+  kernel 6.18.33.2. Existing `.wslconfig` selected mirrored networking.
+- Corrected earlier diagnosis: WSL's shared network namespace had listening
+  sockets, although Windows did not list listeners. Ubuntu connections also
+  timed out. Header-only inspection saw correct-port SYNs reach `loopback0`
+  without replies. No demonstrated checksum or reverse-path-drop cause.
+- Failed remedies: previous Desktop restart/recreation, temporary checksum
+  offload change (restored), and a complete WSL restart with mirrored mode.
+- At approximately 03:48 IST, backed up `.wslconfig` outside Git, changed only
+  `networkingMode` to `nat`, stopped Docker, shut down WSL and started Docker.
+  `wslinfo --networking-mode` confirmed `nat`. Waited for application health;
+  early empty HTTP replies during startup were not counted as passing tests.
+- PASSED full `manage.ps1 test`: Windows gateway health 200, unauthenticated
+  listing denied, master/inference-key listing accepted, inference-key
+  administration denied, WebUI health/HTML 200, existing admin sign-in and
+  gateway model discovery. Both model lists empty as expected; no inference.
+  Added and passed explicit `localhost` hostname checks alongside 127.0.0.1.
+- Windows listeners now show only 127.0.0.1:3000/4000. PostgreSQL remains
+  unpublished. Container safety, secret scoping and internal checks all pass.
+- All 31 pre-change running workloads (including 28 unrelated workloads,
+  matching Kubernetes names without restart counters) returned; all six volumes
+  remain. Ubuntu DNS resolution passed. Unrelated application functionality,
+  remote LAN access, host reboot and rollback remain untested.
+- No images/models/dependencies installed for recovery. Global Docker usage
+  unchanged at 19 images / 7.464 GB and six volumes / 214.2 MB, 31 running of 55
+  total containers. Free C: 59.11 GiB; small host fluctuations are not an
+  attributable recovery footprint. Backup is a tiny local configuration file.
+- Browser acceptance is NOT claimed: Edge is unavailable through this session's
+  browser tool; both visible and background in-app tabs timed out attaching the
+  webview before navigation. Permission requested for alternate installed Edge
+  validation. This is a browser-tool blocker, distinct from the repaired HTTP path.
+- Static repository YAML/security validation and `git diff --check` passed.
+- Next: complete browser acceptance. Phase 1 remains PARTIAL; provider inference
+  remains pending by instruction. No optional component installed. See
+  [the recovery/rollback procedure](TROUBLESHOOTING.md) for the global NAT scope.

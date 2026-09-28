@@ -53,6 +53,7 @@ if ($ContainerOnly) {
 }
 $masterHeaders = @{Authorization="Bearer $($values.LITELLM_MASTER_KEY)"}
 Assert-True ((Get-HttpStatus 'http://127.0.0.1:4000/health/liveliness') -eq 200) 'Gateway liveness returns 200'
+Assert-True ((Get-HttpStatus 'http://localhost:4000/health/liveliness') -eq 200) 'Gateway localhost name returns 200'
 Assert-True ((Get-HttpStatus 'http://127.0.0.1:4000/v1/models') -in @(401,403)) 'Unauthenticated model access denied'
 try {
   $models = Invoke-RestMethod 'http://127.0.0.1:4000/v1/models' -Headers $masterHeaders -TimeoutSec 20
@@ -69,6 +70,7 @@ if ($Stage -eq 'all') {
   Assert-True ((Get-HttpStatus 'http://127.0.0.1:4000/key/list' $uiHeaders) -in @(401,403)) 'WebUI inference key denied key administration'
   Assert-True ((Get-HttpStatus 'http://127.0.0.1:3000/health') -eq 200) 'WebUI health returns 200'
   Assert-True ((Get-HttpStatus 'http://127.0.0.1:3000') -eq 200) 'WebUI HTML returns 200'
+  Assert-True ((Get-HttpStatus 'http://localhost:3000') -eq 200) 'WebUI localhost name returns 200'
   try {
     $body = @{email=$values.WEBUI_ADMIN_EMAIL; password=$values.WEBUI_ADMIN_PASSWORD} | ConvertTo-Json
     $login = Invoke-RestMethod 'http://127.0.0.1:3000/api/v1/auths/signin' -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 20
