@@ -1,0 +1,69 @@
+components:
+  - id: litellm
+    name: LiteLLM
+    category: gateway
+    default_enabled: true
+    status: core
+    docker_profile: core
+  - id: postgres
+    name: PostgreSQL
+    category: database
+    default_enabled: true
+    status: core
+    docker_profile: core
+  - id: open-webui
+    name: Open WebUI
+    category: ui
+    default_enabled: true
+    status: core
+    docker_profile: core
+  - id: openai
+    name: OpenAI
+    category: provider
+    default_enabled: true
+    status: configure
+  - id: gemini
+    name: Gemini
+    category: provider
+    default_enabled: true
+    status: configure
+  - id: claude
+    name: Anthropic Claude
+    category: provider
+    default_enabled: false
+    status: optional
+  - id: omniroute
+    name: OmniRoute
+    category: provider-aggregator
+    default_enabled: false
+    status: optional
+    docker_profile: free-providers
+  - id: ollama
+    name: Ollama
+    category: local-ai
+    default_enabled: false
+    status: optional
+    docker_profile: local-ai
+  - id: openviking
+    name: OpenViking
+    category: memory
+    default_enabled: false
+    status: optional
+    docker_profile: memory
+  - id: graphify
+    name: Graphify
+    category: code-graph
+    default_enabled: false
+    status: optional
+    docker_profile: graph
+  - id: coding-agent
+    name: Coding Agent
+    category: agent
+    default_enabled: false
+    status: optional
+    docker_profile: coding-agent
+  - id: agent-controller
+    name: Agent Controller
+    category: orchestration
+    default_enabled: false
+    status: planned
