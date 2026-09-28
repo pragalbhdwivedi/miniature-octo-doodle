@@ -1,0 +1,16 @@
+# Template only. ChatGPT Work must verify current LiteLLM syntax and provider model IDs
+# before promoting this file to an active runtime config.
+#
+# Provider credentials must come from environment variables.
+#
+# Intended aliases:
+# - coding-fast
+# - coding-standard
+# - coding-hard
+# - architecture
+# - review
+# - documentation
+# - local-private
+#
+# The local-private alias MUST NOT have a cloud fallback.
+model_list: []
