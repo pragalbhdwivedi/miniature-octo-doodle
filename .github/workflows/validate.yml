@@ -32,7 +32,9 @@ jobs:
               print('OK', p)
           PY
 
-      - name: Validate Docker Compose syntax when possible
+      - name: Validate Docker Compose syntax
         shell: bash
         run: |
+          cp .env.example .env
+          trap 'rm -f .env' EXIT
           docker compose --env-file .env.example config >/dev/null
