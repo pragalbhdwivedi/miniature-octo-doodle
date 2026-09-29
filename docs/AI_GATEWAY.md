@@ -7,7 +7,7 @@ Applications should use a single OpenAI-compatible endpoint exposed by LiteLLM i
 
 ## Decision path
 
-The planned control path is:
+The control path is (Jev remains disabled pending live evaluation):
 
 ```text
 request
@@ -50,6 +50,10 @@ Examples:
 - local-private
 
 Provider/model mappings remain configurable.
+
+The six cloud capability aliases and two legacy provider aliases are implemented
+in Phase 2. `local-private` fails closed and is not advertised. See
+[tested policy operations](PHASE2_POLICY.md) for mappings and limitations.
 
 ## Routing principle
 Aliases express intent. Provider-specific model identifiers are implementation details and must be verified at deployment time.

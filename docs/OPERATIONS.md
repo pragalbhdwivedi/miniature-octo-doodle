@@ -21,6 +21,11 @@ disk checks before pulling only the pinned core images. Preserve the database
 password, LiteLLM salt and WebUI secret across restarts.
 
 `scripts/test-config.ps1` runs isolated configuration/storage regressions.
+`scripts/policy-status.ps1` reports the UTC allowance/debit and secret-free attempt
+counts. `python -m unittest discover -s tests -v` tests policy/Jev contracts and
+atomic budget races. `scripts/test-policy-runtime.ps1` tests the pinned gateway
+against synthetic loopback providers, including outage/quota, streaming and
+concurrency. It never calls a live provider. See [policy operations](PHASE2_POLICY.md).
 `python scripts/validate-repository.py` uses `requirements-ci.txt` to validate
 YAML and the core security contract. CI also validates Compose syntax; CI does
 not establish Windows deployment or cloud provider readiness.

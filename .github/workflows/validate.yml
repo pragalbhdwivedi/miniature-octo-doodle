@@ -35,6 +35,9 @@ jobs:
       - name: Core safety contract
         run: python scripts/validate-repository.py
 
+      - name: Deterministic routing and budget regressions
+        run: python -m unittest discover -s tests -v
+
       - name: Configuration and storage guard regressions
         shell: pwsh
         run: ./scripts/test-config.ps1

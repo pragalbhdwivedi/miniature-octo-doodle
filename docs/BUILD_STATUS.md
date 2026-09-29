@@ -8,16 +8,16 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
 | Preflight tooling | COMPLETE | Target-machine checks passed 2026-09-29; details below |
 | Docker Compose core | COMPLETE | Three services healthy; internal, Windows, live provider and Edge browser tests pass |
 | PostgreSQL | COMPLETE | 16.15 Alpine healthy; SQL query confirms LiteLLM schema; state survives restart/recreation |
-| LiteLLM core | COMPLETE | 1.103.0 healthy; DB/auth/key controls pass internally and from Windows; provider inference pending separately |
+| LiteLLM core | COMPLETE | 1.103.0 healthy; DB/auth/key controls, live inference and policy callback execution pass |
 | Open WebUI | COMPLETE | 0.11.4 slim healthy; login, model selection and rendered responses from both providers pass in Edge |
 | Host HTTP access | COMPLETE | WSL NAT restored both 127.0.0.1 and localhost on 3000/4000; full smoke test passed |
 | Browser acceptance | COMPLETE | Edge sign-in and temporary chat responses passed 2026-09-29; no alternate browser method needed |
 | OpenAI provider | COMPLETE | gpt-5.4-mini via openai-chat: live gateway HTTP 200/exact OK and browser response passed |
 | Gemini provider | COMPLETE | gemini-3.1-flash-lite via gemini-chat: live gateway HTTP 200/exact OK and browser response passed |
-| Deterministic policy layer | NOT STARTED | Phase 2 design documented; runtime not implemented |
-| TypeSafe Jev decision layer | NOT STARTED | Phase 2 evaluation target documented; no API/runtime integration yet |
-| Routing / fallback | NOT STARTED | |
-| Budget controls | NOT STARTED | |
+| Deterministic policy layer | COMPLETE | Local text-only scope; declared classification, provider restrictions, tools/approval denies tested before upstream execution |
+| TypeSafe Jev decision layer | PARTIAL | Offline Choice/authority contracts tested; live evaluation/calibration pending key; runtime disabled |
+| Routing / fallback | COMPLETE | Eight cloud aliases; one approved fallback; native 503/429 tests and live capability/browser validation |
+| Budget controls | COMPLETE | US$100/month UTC conservative admission ledger; atomic race, zero/exhausted budget, concurrency, rollover and restart persistence tested |
 | Backup / restore | NOT STARTED | |
 | Kubernetes base | NOT STARTED | |
 | Kubernetes Ingress | NOT STARTED | |
@@ -30,6 +30,74 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
 | Agent Controller | NOT STARTED | Planned |
 
 A documented architecture is not implementation evidence.
+
+## Milestone 4 - 2026-09-29, 13:15 IST
+
+- Refreshed GitHub, reviewed PR #6 and its checks/diff against the repository
+  instructions, reran core/configuration validation and found no blocking review
+  issue. Marked ready and merged with the reviewed head pinned; main merge commit
+  `301e3a13a021fedfaa8418759661736fe784fb33`.
+- Started `feat/phase2-policy` from that main commit. Incorporated the updated
+  design in PR #7 (`8e3f324`) with a history-preserving merge; PR #7 itself remains
+  open. No optional research-catalogue component was installed.
+- Implemented the LiteLLM deterministic callbacks, six capability aliases,
+  ordered single fallback, text/tool/provider/data-class/approval restrictions,
+  durable SQLite admission debits, concurrency leases and secret-free provenance.
+  See [policy operations](PHASE2_POLICY.md) and [ADR 0007](adr/0007-phase2-local-policy-ledger.md).
+- User supplied amount **US$100**; implemented/stated a UTC calendar-month period.
+  Local configuration uses 100; committed template uses zero. Conservative
+  debits reserve both permitted attempts and are never refunded. They are not
+  invoice totals or an account-wide provider cap.
+- PASSED 12 offline policy tests with labelled policy/Jev subcases: deny precedence,
+  key policy floors, restricted providers, unapproved fields/tools/models, request
+  limits, ordered attempts, concurrent budget race, UTC rollover, restart/lease
+  semantics, live lease renewal, zero budget and secret-free ledger content. A 40-request concurrent
+  reservation test admitted exactly the ten requests fitting its allowance.
+- PASSED pinned-image HTTP fault suite against isolated synthetic OpenAI/Gemini
+  protocols: primary success, HTTP 503/429 fallback exactly once, provider restriction
+  during failure, local/private isolation with zero upstream calls, empty WebUI tools,
+  streaming and slot release, four active requests/fifth denied, forged admission
+  token rejection without releasing another slot, and exhausted-budget denial.
+  No live provider was used by this suite; it creates no additional container/image.
+- PASSED renderer/storage regressions, including absent/one/both providers,
+  capability alias collision and unreviewed model pricing rejection. Repository
+  security/YAML checks, Compose syntax and diff whitespace checks passed.
+- Deployed only the gateway and WebUI configuration updates, preserving accounts,
+  provider secrets, inference key, PostgreSQL and existing volumes. Added the
+  `policy-data` volume. All three core services healthy; full Windows/internal
+  authentication/model discovery and both localhost spellings pass with eight aliases.
+- Bounded live scripted probes returned HTTP 200/exact `OK`: `coding-standard`
+  2.57 s, 14/4 prompt/completion tokens; `coding-fast` 2.70 s, 14/4 tokens. The latter
+  used the approved fallback, so it was not counted as Gemini-primary proof.
+  A separate `gemini-chat` probe passed in 3.42 s with 9/1 tokens. Each used a
+  64-token output cap. The initial fallback's upstream error category was not
+  retained; synthetic 429/503 evidence is separate.
+- PASSED Edge temporary chat through the policy: `coding-fast` rendered
+  `PHASE2_OK`; `coding-standard` rendered `STANDARD_OK`. Screenshot is local/ignored
+  `tmp/phase2-browser-validation.png`. WebUI also generated follow-up suggestions;
+  scripted token counts do not include those requests or browser traffic.
+- Real failures found and corrected: SQLite context managers did not close Windows
+  handles; LiteLLM enriches the shallow request-metadata snapshot; WebUI sends an
+  empty tools field and also injects native builtin tools by default. Connections
+  now close, policy validates preserved caller metadata, empty tools are stripped,
+  actual tool definitions remain denied, and WebUI defaults to legacy mode with
+  no tools configured. Fault and browser tests above passed after these corrections.
+- Ledger debit survived gateway recreation (0.240400 USD before/after a
+  recreation, before browser tests). At 13:15 IST it showed 1.437320 USD conservative
+  debit and zero active requests. This is intentionally much higher than expected
+  billing. Attempt outcomes `pending` include earlier records and streaming
+  attempts lacking a deployment-success callback; they are not a billing result.
+- Storage: ledger 28,672 bytes; C: free 59.72 GiB. Global Docker sample: 22 images /
+  7.554 GB, seven volumes / 213.6 MB, 31 running of 55 containers. This task pulled
+  no images/models; differences in global image/cache counts include unrelated
+  concurrent host activity and are not attributed to Phase 2. Only project gateway
+  and UI were recreated; unrelated application functionality was not retested.
+- **Phase 2 remains PARTIAL.** The user has no Jev key and explicitly left live
+  evaluation pending. TypeSafe Choice parsing, malformed/outage/low-confidence and
+  authority boundaries have synthetic contract evidence only. Live accuracy,
+  calibration, domain thresholds and provider evaluation spend remain pending.
+  No runtime Jev call is enabled. Phase 3 backup/restore, reboot/crash recovery,
+  distributed/load testing and optional modules are not claimed complete.
 
 ## Phase 2 design checkpoint - 2026-09-29
 

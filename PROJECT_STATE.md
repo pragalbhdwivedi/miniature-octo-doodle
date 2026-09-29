@@ -7,10 +7,12 @@
 Modular local/cloud AI coding platform with a single AI gateway, browser UI, optional agent memory/code graph, and future multi-agent orchestration.
 
 ## Current phase
-**Phase 1: COMPLETE on the target machine; PR review/merge pending**
+**Phase 1: COMPLETE and merged. Phase 2: PARTIAL; deterministic core deployed, live Jev evaluation pending.**
 
-Implementation branch: `feat/phase1-core`, based on refreshed `main` at `ba7a6bb`.
-Review: draft PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6).
+PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
+and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
+Phase 2 branch: `feat/phase2-policy`, based on that main commit and incorporating
+the updated design from PR #7 without replacing its history.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
 ## Hardware baseline
@@ -57,8 +59,10 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Review PR #6, then implement Phase 2 deterministic policy, TypeSafe Jev synthetic evaluation, gateway aliases, routing/fallback policy, budgets and local-private isolation. These controls are not yet implemented;
-Phase 1 completion is not production or recovery certification. Recovery,
+Review the Phase 2 implementation PR. Live Jev evaluation/calibration stays pending
+the user's TypeSafe key and a separately bounded synthetic evaluation. The next
+implementation milestone after Phase 2 acceptance is Phase 3 backup/restore,
+including the new policy ledger. Local validation is not production or recovery certification. Recovery,
 Kubernetes and optional modules remain later phases. NAT applies to all WSL2
 distributions; direct WSL LAN access and
 Linux-to-Windows localhost semantics change. All 31 running workload identities
@@ -69,9 +73,19 @@ No reboot, firewall changes or data deletion was performed.
 - TypeSafe Jev is the selected structured decision-layer evaluation target.
 - Deterministic policy remains authoritative for data classes, provider allowlists, tools, spend limits and human approval.
 - LiteLLM remains the mandatory execution gateway.
-- Jev is **not installed or tested yet**; no TypeSafe API key or runtime state is present in this repository.
-- Low-confidence/outage behavior must fail to deterministic routing or human review.
-- Provider fallback must never broaden data exposure.
+- Jev Choice parsing and authority/failure contracts are tested with synthetic fixtures.
+  Live Jev requests, accuracy, domain evaluation and calibration are **pending** by
+  user instruction; a blank local key field exists but is not passed to containers.
+- Six capability aliases plus the two legacy aliases are deployed. Native HTTP
+  outage/quota fallback, provider restrictions, private/local-only denial, streaming,
+  atomic budgets and concurrency tests pass. No local provider is installed.
+- The local allowance is US$100 per UTC calendar month, using conservative
+  admission debits rather than billed spend. Fresh installs default to zero.
+- Policy ledger survives gateway recreation. WebUI's default avoids automatic
+  native builtin-tool injection; actual tool definitions remain denied.
+- Core host/auth/model-discovery checks and a live capability browser response pass.
+- See `docs/PHASE2_POLICY.md` for the declarative classification boundary, supported
+  text-only requests, cost ceilings and remaining validation limits.
 - The discussion catalogue is in `docs/MODELS_AND_SKILLS.md`.
 
 ## Deferred / optional

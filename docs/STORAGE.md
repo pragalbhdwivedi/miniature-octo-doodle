@@ -50,3 +50,11 @@ stack. Docker logs rotate at 10 MB x 3 per container. No prune/volume deletion o
 VHDX relocation/compaction is performed. See BUILD_STATUS for actual image,
 volume and host free-space measurements; host disk delta includes concurrent
 activity and is not a precise measure of this project's physical allocation.
+
+## Phase 2 increment
+
+No additional image or model was pulled for Phase 2. The gateway adds the small
+`policy-data` SQLite volume; its initial ledger is 28,672 bytes. No existing volume
+was replaced. Preserve its monthly debits during Phase 3 recovery work. Current
+host/global Docker measurements are recorded in BUILD_STATUS, separately from
+this project's attributable footprint.

@@ -1,5 +1,6 @@
 """Static safety contract for the default core deployment (no runtime claim)."""
 from pathlib import Path
+import json
 import subprocess
 import yaml
 
@@ -22,10 +23,15 @@ for name, service in compose['services'].items():
     assert all('docker.sock' not in volume for volume in service.get('volumes', []))
 assert not compose['services']['postgres'].get('ports')
 assert compose['networks']['database']['internal'] is True
+gateway = compose['services']['litellm']
+assert 'policy-data:/app/policy-data' in gateway['volumes']
+assert 'GATEWAY_MONTHLY_BUDGET_USD' in gateway['environment']
+assert 'TYPESAFE_API_KEY' not in gateway['environment']
 ui = compose['services']['open-webui']['environment']
 assert ui['OPENAI_API_BASE_URL'] == 'http://litellm:4000/v1'
 assert 'WEBUI_GATEWAY_KEY' in ui['OPENAI_API_KEY']
 assert not {'GEMINI_API_KEY', 'LITELLM_MASTER_KEY', 'POSTGRES_PASSWORD'} & ui.keys()
+assert json.loads(ui['DEFAULT_MODEL_PARAMS']) == {'function_calling': 'legacy'}
 assert all(ui[key] == 'False' for key in ('ENABLE_OLLAMA_API', 'ENABLE_DIRECT_CONNECTIONS', 'ENABLE_DIRECT_INTEGRATIONS', 'ENABLE_CODE_EXECUTION', 'ENABLE_CODE_INTERPRETER', 'ENABLE_EVALUATION_ARENA_MODELS', 'ENABLE_COMMUNITY_SHARING', 'ENABLE_SIGNUP'))
 for line in (root / '.env.example').read_text().splitlines():
     if '_IMAGE=' in line and not line.startswith('#'):

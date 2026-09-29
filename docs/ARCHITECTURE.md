@@ -98,7 +98,10 @@ LiteLLM -> PostgreSQL for gateway state
 Open WebUI -> its persistent SQLite volume for UI state
 ```
 
-The Phase 1 runtime above is already validated on the target machine in PR #6. The deterministic policy/Jev decision plane is a documented Phase 2 target and is **not installed or tested yet**.
+The Phase 1 runtime is validated and PR #6 is merged. Phase 2 adds deterministic
+policy as LiteLLM callbacks, plus a persistent `policy-data` SQLite admission ledger.
+It requires no additional service/image. Jev live execution remains disabled;
+only its offline decision contract is tested. See [ADR 0007](adr/0007-phase2-local-policy-ledger.md).
 
 ## Core principle
 Document the full architecture now, install components only when they are needed and disk capacity allows it.
@@ -111,4 +114,6 @@ inference key; provider keys and the master key remain in LiteLLM. The database
 network is internal and PostgreSQL has no host port. UI/gateway ports bind to
 127.0.0.1. See [ADR 0005](adr/0005-lean-authenticated-core.md).
 
-The full Agent Controller, policy, Jev and optional local/provider-aggregation layers are targets, not deployed service claims.
+The full Agent Controller, live Jev and optional local/provider-aggregation layers
+remain targets. The current policy only admits public/synthetic text to the two
+configured cloud providers; private/local-only inputs fail closed.

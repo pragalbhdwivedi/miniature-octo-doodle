@@ -20,6 +20,8 @@ model runtime is installed. The slim UI does not provide local embeddings,
 speech or document-processing engines.
 
 PostgreSQL uses `postgres-data`; WebUI keeps its SQLite state in `open-webui-data`.
+Phase 2 gateway admission/provenance uses `policy-data`; preserve this volume
+across restarts and include it in future backup/restore validation.
 Compose prefixes volumes with the project name. The database network is internal.
 Only LiteLLM and PostgreSQL join it; WebUI reaches LiteLLM on the core network.
 

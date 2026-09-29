@@ -107,9 +107,12 @@ Docker Compose is the first operational target. Kubernetes definitions are maint
 
 ## Status
 
-Phase 1 core implementation is on `feat/phase1-core`: pinned Compose images,
-guarded Windows startup, health checks and provider templates. See
+Phase 1 is validated and merged through PR #6. Phase 2 adds deterministic
+policy, capability aliases, bounded fallbacks and a persistent monthly admission
+budget on `feat/phase2-policy`, incorporating the design from PR #7. See
 [Quick Start](docs/QUICK_START.md), [PROJECT_STATE.md](PROJECT_STATE.md) and
 [tested build evidence](docs/BUILD_STATUS.md). Both providers and Edge browser
-chat are validated on the target machine; PR review/merge remains pending.
-No optional component is installed by this project. Phase 2 now includes a synthetic-only TypeSafe Jev evaluation before any Jev-backed routing is enabled. See [Models and Skills](docs/MODELS_AND_SKILLS.md).
+chat are validated on the target machine. See [policy operations](docs/PHASE2_POLICY.md)
+for limits and budget semantics. New installations default to zero spending.
+Phase 2 remains PARTIAL: live TypeSafe Jev evaluation/calibration is pending a key.
+No optional component is installed by this project. See [Models and Skills](docs/MODELS_AND_SKILLS.md).

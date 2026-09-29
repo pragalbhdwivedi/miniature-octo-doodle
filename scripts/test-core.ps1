@@ -58,9 +58,8 @@ Assert-True ((Get-HttpStatus 'http://127.0.0.1:4000/v1/models') -in @(401,403)) 
 try {
   $models = Invoke-RestMethod 'http://127.0.0.1:4000/v1/models' -Headers $masterHeaders -TimeoutSec 20
 } catch { throw 'Authenticated model listing failed; response omitted.' }
-$expected = @()
-if ($values.OPENAI_API_KEY) { $expected += $values.OPENAI_ALIAS }
-if ($values.GEMINI_API_KEY) { $expected += $values.GEMINI_ALIAS }
+$renderedConfig = Get-Content "$RepoRoot/config/litellm/config.local.yaml" -Raw | ConvertFrom-Json
+$expected = @($renderedConfig.model_list | ForEach-Object { $_.model_name })
 $actual = @($models.data | ForEach-Object { $_.id })
 Assert-True ((($actual | Sort-Object) -join ',') -eq (($expected | Sort-Object) -join ',')) 'Model list matches configured providers'
 Assert-True ('local-private' -notin $actual) 'No unimplemented local-private route is advertised'
