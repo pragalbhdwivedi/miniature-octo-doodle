@@ -43,6 +43,12 @@ workloads to repair this stack without assessing their impact.
 Install/uninstall operations are intentionally deferred until dependency and disk-safety checks are implemented.
 
 ## Operational rules
+Recovery commands: `scripts/recovery.ps1 -Action backup`, `-Action verify -Backup
+<physical-path>` and `-Action restore -Backup <physical-path>`. Backup briefly stops
+only the core; restore creates an isolated, spend-disabled project and stops it
+after verification. See [the recovery runbook](BACKUP_RESTORE.md). No volumes are
+overwritten or deleted; no automatic schedule or retention is installed.
+
 - check disk before optional installs
 - keep secrets local
 - record real failures in TROUBLESHOOTING

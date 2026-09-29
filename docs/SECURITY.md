@@ -73,3 +73,14 @@ Classification is declared, not DLP: unlabelled WebUI text is treated as public.
 Do not send sensitive material through cloud chats. Administrator key metadata
 can enforce stricter classification, providers and mandatory approval. Jev has no
 runtime authority or credentials. See [policy boundaries](PHASE2_POLICY.md).
+
+## Recovery data
+
+Cold backups contain secrets and potentially retained chats. Keep them in the
+ACL-restricted physical recovery directory outside Git/OneDrive; never attach
+archives or resolved Compose to PRs. SHA-256 checks detect corruption, not a
+malicious replacement. Restore only trusted bundles. Local ACLs are not encryption
+or protection from administrators; off-machine copies need protected storage.
+Recovery drills omit cloud keys, use internal networks, zero allowance and no
+automatic restart. Reconcile post-backup monthly debits before any real cutover;
+restoring an old ledger must not reset spend capacity.

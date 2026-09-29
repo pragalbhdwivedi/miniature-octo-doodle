@@ -21,12 +21,13 @@ speech or document-processing engines.
 
 PostgreSQL uses `postgres-data`; WebUI keeps its SQLite state in `open-webui-data`.
 Phase 2 gateway admission/provenance uses `policy-data`; preserve this volume
-across restarts and include it in future backup/restore validation.
+across restarts; Phase 3 includes it in the consistent cold backup and restore drill.
 Compose prefixes volumes with the project name. The database network is internal.
 Only LiteLLM and PostgreSQL join it; WebUI reaches LiteLLM on the core network.
 
 `stop` preserves state. Do not delete volumes or regenerate secrets to fix startup.
-Backup/restore and clean rebuild testing remain Phase 3 work. Logs rotate at
+Use [Phase 3 recovery](BACKUP_RESTORE.md) for an isolated rebuild with fresh
+containers/volumes and preserved credentials. Logs rotate at
 10 MB x 3 files per service. Inspect logs locally and redact sensitive upstream
 errors before sharing. Use `docker compose config --quiet` to avoid printing secrets.
 

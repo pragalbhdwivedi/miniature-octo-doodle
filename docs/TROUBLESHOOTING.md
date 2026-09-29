@@ -16,6 +16,27 @@ Initial categories:
 
 Do not invent successful fixes. Record tested resolutions.
 
+## Phase 3 recovery findings - 2026-09-29
+
+- Reapplying a newly constructed ACL through `Set-Acl` requested unavailable
+  `SeSecurityPrivilege`. Writing only the DACL with the .NET filesystem ACL API
+  succeeded repeatedly without elevation. Current-user/SYSTEM-only rules were
+  read back on the final backup's secrets, database archive and manifest.
+- Packaged Codex redirected Windows-created AppData files into its
+  `LocalCache/Local` directory, while Docker used the nominal path. The first
+  rebuilt gateway saw a directory at `/app/config.yaml` and exited. Resolve a
+  newly written marker's physical path, apply the ACL there, and use that path
+  for every artifact and Docker bind. A new self-contained backup and mounted
+  file visibility guard correct the mismatch; the first mixed-location bundle
+  is retained as failed evidence, not a usable recovery deliverable.
+- Internal-only Docker networks on this host suppress published port forwarding.
+  Rebuilt databases/services were healthy but host HTTP failed. The drill now
+  deliberately publishes no ports and runs authentication/model discovery and
+  synthetic routing probes inside its isolated containers. This preserves the
+  cloud-egress block. It does not count as restored-browser/cutover validation.
+- Failed rehearsal containers are stopped with their volumes preserved. Never
+  prune them or overwrite the original deployment to make a test pass.
+
 ## 2026-09-29: Runtime probe assumed two providers
 
 PR #8 review identified hard-coded OpenAI-to-Gemini expectations in the synthetic

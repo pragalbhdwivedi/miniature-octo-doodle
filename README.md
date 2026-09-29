@@ -109,7 +109,7 @@ Docker Compose is the first operational target. Kubernetes definitions are maint
 
 Phase 1 is validated and merged through PR #6. Phase 2 adds deterministic
 policy, capability aliases, bounded fallbacks and a persistent monthly admission
-budget on `feat/phase2-policy`, incorporating the design from PR #7. See
+budget, merged through PR #8 and incorporating the design from PR #7. See
 [Quick Start](docs/QUICK_START.md), [PROJECT_STATE.md](PROJECT_STATE.md) and
 [tested build evidence](docs/BUILD_STATUS.md). Both providers and Edge browser
 chat are validated on the target machine. See [policy operations](docs/PHASE2_POLICY.md)
@@ -118,3 +118,9 @@ Phase 2 is COMPLETE for the accepted deterministic scope, with Jev explicitly
 disabled by user decision. Live Jev integration/evaluation/calibration is deferred;
 see [ADR 0008](docs/adr/0008-phase2-acceptance-jev-disabled.md).
 No optional component is installed by this project. See [Models and Skills](docs/MODELS_AND_SKILLS.md).
+
+Phase 3 backup, isolated restore and clean container rebuild are implemented and
+tested; delivery is [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9). See the
+[recovery runbook](docs/BACKUP_RESTORE.md). The drill preserves the live deployment,
+blocks recovery-copy cloud access and retains all data. Off-machine disaster
+recovery and production cutover are separate, unvalidated steps.

@@ -31,6 +31,14 @@ calibration are deferred until separately authorized. No optional module is inst
 - prove fallback cannot broaden data exposure
 
 ## Phase 3 - Recovery
+Status: local backup/restore and clean container rebuild COMPLETE on
+`feat/phase3-recovery`, delivered through PR #9. Same-host isolated rehearsal passed;
+off-machine retention, new-machine recovery and production cutover remain outside
+this evidence. See [recovery operations](BACKUP_RESTORE.md).
+
+New-machine recovery validation is paused by user instruction until their
+Kubernetes setup is running. Off-machine backup remains unvalidated as well.
+
 - backup
 - restore
 - clean rebuild test
