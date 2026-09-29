@@ -4,8 +4,9 @@
 - OpenAI
 - Gemini
 
-Both credentials are empty in the deployed configuration by user instruction.
-Neither provider has been called or validated against an account.
+Both credentials were configured locally by the user on 2026-09-29. Both
+providers passed live completions through LiteLLM and rendered chat responses
+in Edge. See BUILD_STATUS for exact models, test scope and measured usage.
 
 | Variable | Configurable example | Purpose |
 |---|---|---|
@@ -23,6 +24,18 @@ Set `OPENAI_API_KEY` and/or `GEMINI_API_KEY` only in local `.env`. Use unquoted
 inline comments in values. Missing keys omit routes without preventing startup.
 Run `manage.ps1 start` after edits, then `manage.ps1 test`. A provider completion
 test is a separate step with a small synthetic prompt; core tests never send one.
+
+To explicitly run the live smoke test (can incur provider charges):
+
+```powershell
+.\scripts\test-providers.ps1 -RunLive
+```
+
+This sends one synthetic prompt per configured core alias through WebUI's
+existing scoped gateway key, with a 64 completion-token cap and no client retry.
+It checks for exactly `OK` and prints only status, elapsed time and token counts;
+provider response/error bodies and secrets are not printed. It is separate from
+CI and the normal `manage.ps1 test`, and does not validate browser rendering.
 
 WebUI receives a key restricted to model listing and chat-completion endpoints
 for registered proxy models. It cannot administer gateway keys. No wildcard

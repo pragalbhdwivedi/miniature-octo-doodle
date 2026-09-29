@@ -1,8 +1,8 @@
 # Quick Start
 
-Phase 1 core is implemented. All three containers and their internal and Windows
-integration checks passed on 2026-09-29 after the host switched WSL to NAT.
-Actual browser acceptance remains pending; provider inference is pending by instruction.
+Phase 1 core is deployed and validated on the target machine. All three containers,
+Windows integration checks, live OpenAI/Gemini completions and Edge browser chat
+passed on 2026-09-29. The host uses WSL NAT for working localhost forwarding.
 See [BUILD_STATUS.md](BUILD_STATUS.md) for the precise validation boundary.
 
 ## Setup

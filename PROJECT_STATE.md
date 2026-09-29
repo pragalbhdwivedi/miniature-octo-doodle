@@ -7,11 +7,11 @@
 Modular local/cloud AI coding platform with a single AI gateway, browser UI, optional agent memory/code graph, and future multi-agent orchestration.
 
 ## Current phase
-**Phase 1: PARTIAL; localhost fixed and tested, browser validation pending**
+**Phase 1: COMPLETE on the target machine; PR review/merge pending**
 
 Implementation branch: `feat/phase1-core`, based on refreshed `main` at `ba7a6bb`.
 Review: draft PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6).
-See `docs/BUILD_STATUS.md` for measured results; provider requests are pending by user instruction.
+See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
 ## Hardware baseline
 - Windows 11
@@ -42,22 +42,26 @@ localhost, including admin login and UI-to-gateway discovery. The exact upstream
 defect is unresolved. The backed-up change and rollback procedure are recorded
 in `docs/TROUBLESHOOTING.md`; no firewall or Compose exposure changes were needed.
 
-Browser validation is pending: this session's browser tool reports Edge
-unavailable, and its in-app browser fails to attach. HTTP tests do not establish
-browser rendering. Phase 1 stays PARTIAL until browser acceptance passes.
+On 2026-09-29, after the user configured provider keys locally and requested the
+next action, OpenAI and Gemini each passed a bounded live completion through
+the scoped LiteLLM key. Edge became available: existing administrator sign-in,
+model selection and rendered responses from both providers passed in a temporary
+WebUI chat. No alternate headless browser method was needed.
 
-## Implemented, not fully validated
+## Implemented and validated within Phase 1
 - Pinned core Compose, persistent volumes, health checks, local-only publication.
 - Guarded preflight/startup, random local secrets, restricted WebUI inference key.
 - OpenAI/Gemini configuration with independently configurable model IDs/aliases.
-- Empty-provider startup tested; cloud inference intentionally pending by user instruction.
-- Latest storage sample: 59.11 GiB free on C:; core image sizes sum to 2.68 GiB.
+- Empty-provider startup and both configured providers tested; live browser chat passed.
+- Repeatable opt-in live probe: `scripts/test-providers.ps1 -RunLive`.
+- Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Complete actual browser validation using an available browser tool or the
-requested alternate headless Edge method. Then configure and validate providers
-only when requested. Budgets, recovery, Kubernetes and optional modules remain
-later phases. NAT applies to all WSL2 distributions; direct WSL LAN access and
+Review PR #6, then implement Phase 2 gateway aliases, routing/fallback policy,
+budgets and local-private isolation. These controls are not yet implemented;
+Phase 1 completion is not production or recovery certification. Recovery,
+Kubernetes and optional modules remain later phases. NAT applies to all WSL2
+distributions; direct WSL LAN access and
 Linux-to-Windows localhost semantics change. All 31 running workload identities
 and six volumes were preserved; unrelated applications were not functionally tested.
 No reboot, firewall changes or data deletion was performed.

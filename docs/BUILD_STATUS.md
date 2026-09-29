@@ -6,14 +6,14 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
 |---|---|---|
 | Repository bootstrap | COMPLETE | Initial source-of-truth files committed |
 | Preflight tooling | COMPLETE | Target-machine checks passed 2026-09-29; details below |
-| Docker Compose core | PARTIAL | Three services healthy; internal and Windows tests pass; browser acceptance pending |
+| Docker Compose core | COMPLETE | Three services healthy; internal, Windows, live provider and Edge browser tests pass |
 | PostgreSQL | COMPLETE | 16.15 Alpine healthy; SQL query confirms LiteLLM schema; state survives restart/recreation |
 | LiteLLM core | COMPLETE | 1.103.0 healthy; DB/auth/key controls pass internally and from Windows; provider inference pending separately |
-| Open WebUI | PARTIAL | 0.11.4 slim healthy; Windows login and gateway discovery pass; browser acceptance pending |
+| Open WebUI | COMPLETE | 0.11.4 slim healthy; login, model selection and rendered responses from both providers pass in Edge |
 | Host HTTP access | COMPLETE | WSL NAT restored both 127.0.0.1 and localhost on 3000/4000; full smoke test passed |
-| Browser acceptance | BLOCKED | Browser tool cannot attach: Edge unavailable; in-app webview initialization times out; alternate Edge test requested |
-| OpenAI provider | PARTIAL | Configurable template/render tests pass; no key or inference test by instruction |
-| Gemini provider | PARTIAL | Configurable template/render tests pass; no key or inference test by instruction |
+| Browser acceptance | COMPLETE | Edge sign-in and temporary chat responses passed 2026-09-29; no alternate browser method needed |
+| OpenAI provider | COMPLETE | gpt-5.4-mini via openai-chat: live gateway HTTP 200/exact OK and browser response passed |
+| Gemini provider | COMPLETE | gemini-3.1-flash-lite via gemini-chat: live gateway HTTP 200/exact OK and browser response passed |
 | Routing / fallback | NOT STARTED | |
 | Budget controls | NOT STARTED | |
 | Backup / restore | NOT STARTED | |
@@ -167,3 +167,40 @@ A documented architecture is not implementation evidence.
 - Next: complete browser acceptance. Phase 1 remains PARTIAL; provider inference
   remains pending by instruction. No optional component installed. See
   [the recovery/rollback procedure](TROUBLESHOOTING.md) for the global NAT scope.
+
+## Milestone 3 completion and browser acceptance - 2026-09-29, 09:30 IST
+
+- User entered OpenAI/Gemini keys in the ignored local `.env` and requested the
+  next action, authorizing provider activation and minimal live validation.
+  Existing secrets and gateway inference key were preserved.
+- Guarded `manage.ps1 start` rendered two routes and recreated the gateway.
+  All three services are healthy. Full internal and Windows smoke tests pass,
+  including localhost, authentication, secret scoping and model discovery.
+  Gateway and WebUI both list `openai-chat` and `gemini-chat`.
+- New opt-in `test-providers.ps1 -RunLive` passed using WebUI's existing scoped
+  gateway key. Each request used synthetic text, no tools, non-streaming output,
+  and `max_completion_tokens=64`; the client performed no retries.
+
+| Gateway alias | Configured model | Result | Prompt / completion tokens | Seconds |
+|---|---|---|---|---|
+| openai-chat | openai/gpt-5.4-mini | HTTP 200; exactly OK | 14 / 4 | 3.66 |
+| gemini-chat | gemini/gemini-3.1-flash-lite | HTTP 200; exactly OK | 9 / 1 | 1.28 |
+
+- Edge's browser extension became available. Using the existing local admin
+  credentials, verified sign-in, rendered chat UI, model selection and a
+  temporary conversation. OpenAI rendered `OK`; Gemini rendered `GEMINI_OK`.
+  Both completed through WebUI -> LiteLLM -> provider. The UI also generated
+  follow-up suggestions; the token counts above cover only the scripted probes,
+  not the browser requests or their background tasks. No total billing claim.
+- Local browser screenshot: ignored `tmp/phase1-browser-validation.png`.
+  The earlier browser-tool blocker is resolved; no headless workaround was used.
+- Validation: configuration/storage regression suite, repository security/YAML
+  contract and diff checks passed. Core images remain 2.68 GiB; no optional
+  component or model was installed. Host free 59.19 GiB; global Docker 19 images /
+  7.464 GB, six volumes / 214.4 MB, 31 running of 55 total containers. Volume
+  growth since the previous sample was approximately 0.2 MB, not exclusively
+  attributable to this test. Credentials and runtime state remain outside Git.
+- Phase 1 is COMPLETE on the target machine. Main is unchanged; PR #6 still
+  requires review/merge. Next: Phase 2 routing, fallbacks, budgets, logging policy
+  and local-private isolation. Restore, clean rebuild, reboot recovery, load
+  testing and optional modules remain unvalidated/later work.
