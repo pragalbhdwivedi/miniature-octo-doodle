@@ -19,6 +19,16 @@
           │                    │                    │
           └────────────────────┼────────────────────┘
                                │
+                    ┌──────────▼──────────┐
+                    │ Deterministic Policy│
+                    │ auth/data/approval  │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │ TypeSafe Jev       │
+                    │ choice/score/prob. │
+                    └──────────┬──────────┘
+                               │
                         ┌──────▼──────┐
                         │ AI GATEWAY  │
                         │  LiteLLM    │
@@ -28,7 +38,8 @@
       │              │         │          │              │
       ▼              ▼         ▼          ▼              ▼
    OpenAI          Gemini    Claude    OmniRoute        Local
- Sol/Terra/Luna      API       API     Free APIs       Ollama
+      API             API       API     optional       Ollama /
+                                                llama.cpp
                                                         │
                                                  GTX 1650 Ti
                                                    + 64 GB RAM
@@ -48,14 +59,32 @@ Persistent contextual memory for agents, decisions, resources, and prior work. I
 ### Agent Controller
 Future orchestration layer for architect, implementer, tester, reviewer, security, and documentation agents.
 
+### Deterministic policy layer
+Hard rules decide whether a task is permitted, which data classification applies, whether cloud execution is allowed, which tools are available, whether a human approval is mandatory, and which spend/concurrency limits apply. A probabilistic model cannot override these rules.
+
+### TypeSafe Jev
+Planned Phase 2 structured decision layer. Where validated, Jev may return typed choices, scores, or probabilities for task classification, complexity, routing, risk, or escalation. Jev is decision intelligence, not authority and not a generative coding model.
+
+If Jev is unavailable, outside the evaluated task domain, malformed, or below the configured confidence/calibration threshold, the controller must use a deterministic fallback, fixed compliant route, or human review.
+
 ### LiteLLM
-Mandatory central OpenAI-compatible gateway. Provider keys live behind the gateway whenever practical.
+Mandatory central OpenAI-compatible gateway. Provider keys live behind the gateway whenever practical. LiteLLM performs the final provider/model routing only after deterministic policy and, where enabled, Jev decisioning.
 
 ### Open WebUI
 Initial human-facing browser interface.
 
-### Ollama
+### Ollama / llama.cpp
 Optional local inference. No model is downloaded by default.
+
+## Routing trust rule
+
+Fallback must never broaden data exposure.
+
+Examples:
+- `local-private` has no cloud fallback.
+- a private route may fall back only to providers explicitly approved for the same data class.
+- a free/experimental OmniRoute provider cannot become an implicit fallback for private work.
+- a Jev recommendation cannot grant a provider, tool, data, or production permission that policy denied.
 
 ## Initial deployed architecture
 
@@ -69,6 +98,8 @@ LiteLLM -> PostgreSQL for gateway state
 Open WebUI -> its persistent SQLite volume for UI state
 ```
 
+The Phase 1 runtime above is already validated on the target machine in PR #6. The deterministic policy/Jev decision plane is a documented Phase 2 target and is **not installed or tested yet**.
+
 ## Core principle
 Document the full architecture now, install components only when they are needed and disk capacity allows it.
 
@@ -80,4 +111,4 @@ inference key; provider keys and the master key remain in LiteLLM. The database
 network is internal and PostgreSQL has no host port. UI/gateway ports bind to
 127.0.0.1. See [ADR 0005](adr/0005-lean-authenticated-core.md).
 
-The full Agent Controller diagram is a target, not a deployed service list.
+The full Agent Controller, policy, Jev and optional local/provider-aggregation layers are targets, not deployed service claims.
