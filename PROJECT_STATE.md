@@ -15,7 +15,9 @@ and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
 Phase 2 [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8)
 merged at `c76406927ae1110e6023f4195c7d4b81c360cd55`, incorporating PR #7's design.
 Phase 3 implementation branch: `feat/phase3-recovery`, based on that main commit.
-Phase 3 is tested locally; it is not yet merged to main.
+Phase 3 is tested locally and open in
+[PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9);
+it is not yet merged to main.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
 ## Hardware baseline

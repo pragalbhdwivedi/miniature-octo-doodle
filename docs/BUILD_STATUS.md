@@ -35,7 +35,8 @@ A documented architecture is not implementation evidence.
 ## Milestone 5 - Phase 3 local recovery, 2026-09-29, 19:00 IST
 
 Implemented on `feat/phase3-recovery`, based on main `c764069` (merged PR #8).
-Local acceptance is COMPLETE; repository delivery remains pending review/merge.
+Local acceptance is COMPLETE; repository delivery is
+[PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9), pending review/merge.
 [ADR 0009](adr/0009-cold-backup-isolated-recovery.md) and the
 [runbook](BACKUP_RESTORE.md) define the same-host rehearsal boundary.
 
