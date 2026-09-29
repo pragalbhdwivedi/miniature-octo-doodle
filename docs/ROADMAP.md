@@ -31,6 +31,11 @@ calibration are deferred until separately authorized. No optional module is inst
 - prove fallback cannot broaden data exposure
 
 ## Phase 3 - Recovery
+Status: local backup/restore and clean container rebuild COMPLETE on
+`feat/phase3-recovery`, pending review/merge. Same-host isolated rehearsal passed;
+off-machine retention, new-machine recovery and production cutover remain outside
+this evidence. See [recovery operations](BACKUP_RESTORE.md).
+
 - backup
 - restore
 - clean rebuild test

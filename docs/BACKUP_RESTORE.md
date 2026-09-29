@@ -5,8 +5,8 @@ See BUILD_STATUS for actual tests; implementation alone is not recovery evidence
 
 ```powershell
 ./scripts/recovery.ps1 -Action backup
-./scripts/recovery.ps1 -Action verify -Backup "$env:LOCALAPPDATA/GatewayAI/recovery/backup-TIMESTAMP"
-./scripts/recovery.ps1 -Action restore -Backup "$env:LOCALAPPDATA/GatewayAI/recovery/backup-TIMESTAMP"
+./scripts/recovery.ps1 -Action verify -Backup 'FULL-PHYSICAL-BACKUP-PATH-PRINTED-ABOVE'
+./scripts/recovery.ps1 -Action restore -Backup 'FULL-PHYSICAL-BACKUP-PATH-PRINTED-ABOVE'
 ```
 
 Run from a clean committed checkout on the supported Windows/Docker Desktop
@@ -32,6 +32,10 @@ they do not authenticate a maliciously replaced backup. Restore trusted bundles 
 ## Private storage
 
 Artifacts live under `%LOCALAPPDATA%/GatewayAI/recovery`, outside Git and OneDrive.
+Packaged Windows terminals can redirect this folder into their `LocalCache/Local`
+directory. The script resolves and prints the physical path; use that exact path
+for restore, native tools and any later protected copy. Docker and Windows must
+see the same files. A mounted-file visibility check runs before restore creates volumes.
 The PowerShell entry point restricts NTFS access to the current user and SYSTEM.
 Backups contain credentials, accounts and potentially chat content. They are
 **not encrypted by this tool**; ACLs do not protect against administrators or disk
@@ -49,16 +53,20 @@ It creates fresh containers from the pinned images using only recovered configur
 and archived source. The original repository's bind mounts and volumes are not used.
 
 The new project is named `gatewayai-recovery-TIMESTAMP`; optional `-Name` must use
-that prefix. Default ports are 127.0.0.1:4300 (UI) and :4400 (gateway). Alternate
-ports can be supplied with `-WebUIPort` and `-GatewayPort`; live core ports are denied.
-Both recovery networks are internal, cloud keys are omitted, allowance is zero,
+that prefix. No recovery ports are published. Both recovery networks are internal,
+cloud keys are omitted, allowance is zero,
 Jev stays disabled and restart policy is off. Eight restored aliases may still be
 listed, but inference is denied. This prevents an isolated drill from duplicating
 real spend or sending stored data to a provider.
 
-The drill checks service health, both localhost spellings, restored administrator
+The drill checks a full PostgreSQL dump read to `/dev/null`, SQLite integrity,
+service health, restored administrator
 sign-in, the existing restricted inference key, model discovery and zero-budget
-denial. It verifies the restored policy ledger remains byte-for-byte unchanged.
+denial through container-local HTTP. The restored gateway also runs synthetic
+primary/fallback, privacy, budget and concurrency probes on loopback. No real
+provider inference is requested. It verifies the restored policy ledger remains
+byte-for-byte unchanged. This deliberately isolated copy has no browser endpoint;
+the original deployment's localhost checks are recorded separately.
 It stops recovery containers in a finally block and retains their volumes and a
 private `result.json`. It never overwrites the live deployment or deletes data.
 

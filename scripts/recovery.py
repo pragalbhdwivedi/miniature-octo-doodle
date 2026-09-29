@@ -10,12 +10,9 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import shutil
-import socket
 import subprocess
 import tarfile
 import time
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 
 REPO = Path(__file__).resolve().parent.parent
@@ -183,10 +180,9 @@ def backup(root):
     return folder
 
 
-def restore_config(config, work, name, gateway_port, ui_port):
+def restore_config(config, work, name):
     config = json.loads(json.dumps(config))
     check(re.fullmatch(r'gatewayai-recovery-[a-z0-9][a-z0-9-]{0,35}', name), 'Recovery project name must use gatewayai-recovery- prefix')
-    check(gateway_port != ui_port and all(1024 <= p <= 65535 and p not in (3000,4000) for p in (gateway_port,ui_port)), 'Invalid or live-core port')
     config['name'] = name
     for logical, volume in config['volumes'].items():
         volume.clear()
@@ -207,46 +203,26 @@ def restore_config(config, work, name, gateway_port, ui_port):
         check(not definition.get('privileged') and not definition.get('network_mode'), 'Unsafe container configuration')
         if service == 'postgres':
             check(not definition.get('ports'), 'Database publication forbidden')
-        else:
-            definition['ports'] = [{'target':4000 if service=='litellm' else 8080,
-                                    'published':str(gateway_port if service=='litellm' else ui_port),
-                                    'host_ip':'127.0.0.1','protocol':'tcp'}]
+        definition.pop('ports', None)
     env = config['services']['litellm']['environment']
     env.update(OPENAI_API_KEY='', GEMINI_API_KEY='', GATEWAY_MONTHLY_BUDGET_USD='0')
     env.pop('TYPESAFE_API_KEY', None)
-    config['services']['open-webui']['environment']['WEBUI_URL'] = 'http://127.0.0.1:' + str(ui_port)
+    config['services']['open-webui']['environment']['WEBUI_URL'] = 'http://open-webui:8080'
     return config
 
 
-def http(url, key=None, body=None, expected=200):
-    headers = {'Content-Type':'application/json'}
-    if key:
-        headers['Authorization'] = 'Bearer ' + key
-    data = json.dumps(body).encode() if body is not None else None
-    try:
-        with urllib.request.urlopen(urllib.request.Request(url, data, headers), timeout=30) as response:
-            status, payload = response.status, response.read()
-    except urllib.error.HTTPError as error:
-        status, payload = error.code, error.read()
-    check(status == expected, 'Recovery HTTP assertion failed: ' + str(status))
-    return json.loads(payload)
-
-
-def restore(root, folder, name, gateway_port, ui_port):
+def restore(root, folder, name):
     restore_started = time.monotonic()
     manifest, config = validate_bundle(folder)
     name = name or 'gatewayai-recovery-' + datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
     work = root / name
-    restored = restore_config(config, work, name, gateway_port, ui_port)
+    restored = restore_config(config, work, name)
     check(not work.exists(), 'Recovery directory already exists')
     check(not docker('ps','-aq','--filter','label=com.docker.compose.project='+name), 'Recovery containers already exist')
     existing = set(docker('volume','ls','-q').splitlines())
     check(not existing & {v['name'] for v in restored['volumes'].values()}, 'Recovery volumes already exist')
     networks = set(docker('network','ls','--format','{{.Name}}').splitlines())
     check(not networks & {v['name'] for v in restored['networks'].values()}, 'Recovery networks already exist')
-    for port in (gateway_port, ui_port):
-        with socket.socket() as sock:
-            sock.bind(('127.0.0.1',port))
     recovery_disk_guard(root, manifest['source_bytes'] * 3 + 1024**3)
     for service in config['services'].values():
         docker('image','inspect',service['image'])  # Never pull automatically.
@@ -260,6 +236,8 @@ def restore(root, folder, name, gateway_port, ui_port):
     compose_file.write_text(json.dumps(restored))
     compose(compose_file, 'config', '--quiet')
     image = config['services']['postgres']['image']
+    helper(image,[bind_mount(work,True)],'-c',
+           'test -f /backup/gateway-config.json && test -f /backup/policy.json && test -f /backup/source/gateway/callbacks.py')
     print('Restoring into new volumes:', name, flush=True)
     for logical, volume in restored['volumes'].items():
         docker('volume','create','--label','gatewayai.recovery='+name,volume['name'])
@@ -272,7 +250,9 @@ def restore(root, folder, name, gateway_port, ui_port):
     print('PASS: all three restored volume trees match backup exactly', flush=True)
     started = time.monotonic()
     try:
+        print('Starting rebuilt services on isolated networks...', flush=True)
         compose(compose_file,'up','-d','--pull','never','--wait','--wait-timeout','300')
+        print('PASS: rebuilt services healthy; validating databases and restored authentication...', flush=True)
         # Read every PostgreSQL table without exporting rows to the host/output.
         compose(compose_file,'exec','-T','postgres','sh','-c',
                 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /dev/null')
@@ -281,22 +261,12 @@ def restore(root, folder, name, gateway_port, ui_port):
             probe = ('import sqlite3; db=sqlite3.connect("file:' + database + '?mode=ro",uri=True); '
                      'assert db.execute("PRAGMA integrity_check").fetchone()[0]=="ok"; db.close()')
             compose(compose_file,'exec','-T',service,'python','-c',probe)
-        gateway = 'http://127.0.0.1:'+str(gateway_port)
-        ui = 'http://127.0.0.1:'+str(ui_port)
-        values = env_values(folder/'.env')
-        http(gateway+'/health/liveliness')
-        http(gateway+'/v1/models', expected=401)
-        models = http(gateway+'/v1/models', values['WEBUI_GATEWAY_KEY'])['data']
-        http(gateway+'/key/list', values['WEBUI_GATEWAY_KEY'], expected=403)
-        login = http(ui+'/api/v1/auths/signin', body={'email':values['WEBUI_ADMIN_EMAIL'],'password':values['WEBUI_ADMIN_PASSWORD']})
-        check(login['role']=='admin', 'Restored admin role mismatch')
-        ui_models = http(ui+'/api/models', login['token'])['data']
-        check(sorted(m['id'] for m in models)==sorted(m['id'] for m in ui_models), 'Restored discovery mismatch')
-        for host in (gateway,ui):
-            http(host.replace('127.0.0.1','localhost')+('/health/liveliness' if host==gateway else '/health'))
-        if models:
-            http(gateway+'/v1/chat/completions', values['WEBUI_GATEWAY_KEY'],
-                 {'model':models[0]['id'],'messages':[{'role':'user','content':'Synthetic recovery deny probe'}]},429)
+        models = [m['model_name'] for m in json.loads((work/'gateway-config.json').read_text())['model_list']]
+        probe = (REPO/'scripts/test-recovery-runtime.py').read_text()
+        print(compose(compose_file,'exec','-T','open-webui','python','-c',probe,json.dumps(models)),flush=True)
+        print('Testing recovered gateway against synthetic loopback providers...',flush=True)
+        synthetic = (work/'source/scripts/test-policy-runtime.py').read_text()
+        print(compose(compose_file,'exec','-T','litellm','python','-u','-c',synthetic),flush=True)
         # Compare ledger bytes after health/login and denied inference: no budget rollback/mutation.
         helper(image,[volume_mount(restored['volumes']['policy-data']['name']),bind_mount(work)],
                '-c','tar -cpf /backup/policy-after.tar -C /volume .')
@@ -307,6 +277,7 @@ def restore(root, folder, name, gateway_port, ui_port):
                   'seconds_to_validate':round(time.monotonic()-started,2),'model_count':len(models),
                   'total_restore_seconds':round(time.monotonic()-restore_started,2),
                   'postgres_full_read':True,'sqlite_integrity':True,
+                  'synthetic_routing':True,'host_ports_published':False,
                   'volume_content_match':True,'restored_admin_login':True,'budget_unchanged':True,
                   'provider_keys_injected':False,'monthly_budget':0,'jev_enabled':False}
         (work/'result.json').write_text(json.dumps(report,indent=2))
@@ -323,8 +294,6 @@ def main():
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--backup',type=Path)
     parser.add_argument('--name')
-    parser.add_argument('--gateway-port',type=int,default=4400)
-    parser.add_argument('--webui-port',type=int,default=4300)
     args=parser.parse_args()
     expected=(Path(os.environ['LOCALAPPDATA'])/'GatewayAI/recovery/.location').resolve().parent
     check(args.root.resolve()==expected.resolve() and args.root.is_dir(), 'Use the ACL-protected root through recovery.ps1')
@@ -336,7 +305,7 @@ def main():
             validate_bundle(args.backup)
             print('PASS: backup hashes and archive safety')
         else:
-            restore(args.root,args.backup,args.name,args.gateway_port,args.webui_port)
+            restore(args.root,args.backup,args.name)
 
 
 if __name__=='__main__':

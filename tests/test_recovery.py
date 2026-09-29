@@ -28,7 +28,7 @@ class RecoveryTests(unittest.TestCase):
     def test_restore_isolation_without_mutating_source(self):
         original=self.config()
         before=copy.deepcopy(original)
-        result=recovery.restore_config(original,Path('sandbox'),'gatewayai-recovery-test',4400,4300)
+        result=recovery.restore_config(original,Path('sandbox'),'gatewayai-recovery-test')
         self.assertEqual(original,before)
         self.assertTrue(all(n['internal'] for n in result['networks'].values()))
         self.assertTrue(all(v['name'].startswith('gatewayai-recovery-test_') for v in result['volumes'].values()))
@@ -38,19 +38,16 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(result['services']['postgres']['environment']['POSTGRES_PASSWORD'],'preserve')
         for name,service in result['services'].items():
             self.assertEqual(service['restart'],'no')
-            self.assertTrue(all(p['host_ip']=='127.0.0.1' for p in service.get('ports',[])))
+            self.assertNotIn('ports',service)
 
-    def test_source_names_ports_and_unsafe_mounts_rejected(self):
+    def test_source_names_and_unsafe_mounts_rejected(self):
         for name in ('miniature-octo-doodle','../gatewayai-recovery-test','gatewayai-recovery-'):
             with self.assertRaises(RuntimeError):
-                recovery.restore_config(self.config(),Path('sandbox'),name,4400,4300)
-        for ports in ((3000,4300),(4400,4000),(4400,4400),(80,4300)):
-            with self.assertRaises(RuntimeError):
-                recovery.restore_config(self.config(),Path('sandbox'),'gatewayai-recovery-test',*ports)
+                recovery.restore_config(self.config(),Path('sandbox'),name)
         config=self.config()
         config['services']['litellm']['volumes'][0]['target']='/var/run/docker.sock'
         with self.assertRaises(RuntimeError):
-            recovery.restore_config(config,Path('sandbox'),'gatewayai-recovery-test',4400,4300)
+            recovery.restore_config(config,Path('sandbox'),'gatewayai-recovery-test')
 
     def make_tar(self,path,name='safe',kind=tarfile.REGTYPE,duplicate=False):
         with tarfile.open(path,'w') as archive:
@@ -86,7 +83,7 @@ class RecoveryTests(unittest.TestCase):
             (folder/'policy-data.tar').write_bytes(b'corrupt')
             with patch.object(recovery,'docker') as docker:
                 with self.assertRaisesRegex(RuntimeError,'integrity'):
-                    recovery.restore(folder,folder,'gatewayai-recovery-test',4400,4300)
+                    recovery.restore(folder,folder,'gatewayai-recovery-test')
                 docker.assert_not_called()
             manifest['files']['../outside']='fake'
             (folder/'manifest.json').write_text(json.dumps(manifest))

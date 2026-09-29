@@ -58,3 +58,14 @@ No additional image or model was pulled for Phase 2. The gateway adds the small
 was replaced. Preserve its monthly debits during Phase 3 recovery work. Current
 host/global Docker measurements are recorded in BUILD_STATUS, separately from
 this project's attributable footprint.
+
+## Phase 3 recovery storage
+
+Backups include three volume archives, local secrets/configuration and tracked
+source. Recovery retains fresh volumes plus comparison archives; no image layers
+are duplicated. The guard checks recovery and Docker storage locations with a
+reserve of three times the measured volume bytes plus 1 GiB, retaining at least
+15 GiB free. Packaged AppData paths are resolved before Docker mounts.
+Failed and successful rehearsals are retained for review; no automatic prune or
+volume deletion occurs. See BUILD_STATUS for measured artifact sizes and remaining
+space. Off-machine encrypted retention is not configured by this local workflow.

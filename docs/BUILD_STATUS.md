@@ -18,7 +18,8 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | TypeSafe Jev decision layer | DEFERRED | Explicitly disabled per user instruction/ADR 0008; offline contracts and activation rejection tested; live integration/calibration unvalidated |
 | Routing / fallback | COMPLETE | Eight cloud aliases; one approved fallback; native 503/429 tests and live capability/browser validation |
 | Budget controls | COMPLETE | US$100/month UTC conservative admission ledger; atomic race, zero/exhausted budget, concurrency, rollover and restart persistence tested |
-| Backup / restore | NOT STARTED | |
+| Backup / restore | COMPLETE | Same-host cold backup and isolated restore tested 2026-09-29; off-machine/cutover limits below |
+| Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
 | Kubernetes base | NOT STARTED | |
 | Kubernetes Ingress | NOT STARTED | |
 | Ollama | NOT STARTED | Optional |
@@ -30,6 +31,64 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Agent Controller | NOT STARTED | Planned |
 
 A documented architecture is not implementation evidence.
+
+## Milestone 5 - Phase 3 local recovery, 2026-09-29, 19:00 IST
+
+Implemented on `feat/phase3-recovery`, based on main `c764069` (merged PR #8).
+Local acceptance is COMPLETE; repository delivery remains pending review/merge.
+[ADR 0009](adr/0009-cold-backup-isolated-recovery.md) and the
+[runbook](BACKUP_RESTORE.md) define the same-host rehearsal boundary.
+
+- Added cold backup, integrity verification and isolated restore commands. Three
+  stopped volumes are archived together with local secrets/configuration, exact
+  tracked source and SHA-256 manifest. No credentials or runtime data enter Git.
+- Final accepted backup `backup-20260929T132209Z`, source commit `31bfacf`, contains
+  71,571,646 bytes (68.26 MiB). Measured source volumes: 70,524,928 bytes. Source
+  services resumed healthy after 48.80 s interruption. An earlier backup caused
+  50.01 s interruption; both resumes passed. The first mixed-path backup is failed
+  evidence, not the accepted deliverable.
+- Final restore project `gatewayai-recovery-20260929132739` passed in 78.46 s
+  from validation/extraction through startup and probes (65.47 s startup/probes).
+  All files, modes and owners in all three new volumes matched the accepted backup
+  before startup. New containers mounted archived source, not the live checkout.
+- PostgreSQL full dump read to `/dev/null` PASSED; WebUI and policy SQLite
+  `integrity_check` PASSED. Existing administrator sign-in, restricted inference
+  key, denied key administration and all eight aliases PASSED inside the recovery
+  network. Zero-budget inference was denied before upstream execution.
+- The rebuilt gateway's synthetic HTTP suite PASSED: every advertised alias,
+  deterministic provenance, 503/429 bounded fallback, provider restriction,
+  private/local/tool/override denial, concurrency, streaming and exhausted budgets.
+  The recovered policy ledger remained byte-for-byte unchanged after these tests.
+- Recovery has internal networks, no published ports, no provider keys, zero
+  allowance and disabled Jev. All nine rehearsal containers (three attempts) are
+  stopped; nine recovery volumes retained. No original volume was overwritten.
+- Final original-deployment smoke checks PASSED: health, auth/admin login, eight
+  aliases, 127.0.0.1 and localhost. All 31 original running container IDs/names
+  preserved, including 28 unrelated workloads. Unrelated application functionality
+  was not tested. Original budget remains 100 USD/month, debit 2.875240 USD,
+  active requests zero; no new live provider request was made in Phase 3.
+- All 19 offline tests PASSED, including archive traversal/link/device/duplicate
+  rejection, corruption rejected before Docker mutation, private/internal recovery
+  configuration, source-name protection and disk reserve. Configuration/storage
+  regressions PASSED. Actual rerun against an existing recovery target was rejected
+  with no volume changes; final backup re-verification PASSED.
+- Failures corrected: repeat `Set-Acl` requested SACL privilege; DACL-only write
+  succeeds. Packaged AppData redirected Windows files away from Docker mounts;
+  physical-path resolution and mounted-file checks fix this. Internal-only networks
+  suppress host forwarding on this Docker host; the final drill intentionally uses
+  internal HTTP tests with no host publication. Details in TROUBLESHOOTING.
+- Storage: C: 46.30 GiB before, 45.47 GiB after. Accepted/private physical recovery
+  tree contains 215,149,154 bytes, plus retained initial nominal-path failure
+  artifacts. Global Docker: 37 images / 18.02 GB unchanged, 16 volumes / 425.7 MB
+  (initial seven / 214.6 MB), 64 containers / 31 running (initial 55 / 31), writable
+  layers 394.9 MB (initial 117.4 MB). No image/model/package pull, prune, global
+  Docker/WSL restart, network-mode change or data deletion. Host deltas can include
+  unrelated activity; retained failed drills are included, not hidden.
+- Backup files' ACLs were read back as current user/SYSTEM only. They contain
+  secrets and are not tool-encrypted. No scheduled backup, off-machine retention,
+  new-machine OS/image download, reboot/power-loss test, restored-browser/live
+  provider cutover or guaranteed RPO/RTO is claimed. Next: review/merge this work
+  and choose protected off-machine retention before laptop-loss recovery.
 
 ## Milestone 4 completion - 2026-09-29, 15:32 IST
 

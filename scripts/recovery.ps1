@@ -1,9 +1,7 @@
 param(
   [Parameter(Mandatory)][ValidateSet('backup','restore','verify')][string]$Action,
   [string]$Backup,
-  [string]$Name,
-  [int]$GatewayPort = 4400,
-  [int]$WebUIPort = 4300
+  [string]$Name
 )
 . "$PSScriptRoot/common.ps1"
 & "$PSScriptRoot/preflight.ps1"
@@ -28,6 +26,5 @@ foreach ($identity in @($sid, [Security.Principal.SecurityIdentifier]::new('S-1-
 $arguments = @("$PSScriptRoot/recovery.py", $Action, '--root', $recoveryRoot)
 if ($Backup) { $arguments += @('--backup', $Backup) }
 if ($Name) { $arguments += @('--name', $Name) }
-$arguments += @('--gateway-port', $GatewayPort, '--webui-port', $WebUIPort)
 & python @arguments
 if ($LASTEXITCODE -ne 0) { throw 'Recovery operation failed; existing volumes are preserved. See the last safe progress message.' }

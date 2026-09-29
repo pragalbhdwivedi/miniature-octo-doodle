@@ -9,7 +9,8 @@ Reuse the pinned existing images; add no backup service or host socket mount.
 
 Restore only to a fresh recovery namespace and volumes. Verify every restored
 file before starting rebuilt containers. Internal networks, removed cloud keys,
-zero budget and disabled Jev prevent a rehearsal from becoming a second spender.
+zero budget, no published ports and disabled Jev prevent a rehearsal from becoming
+a second spender. Authentication and routing probes run inside the isolated containers.
 Preserve all original and restored volumes. Production cutover and off-machine
 encrypted retention require separate deliberate operations.
 
