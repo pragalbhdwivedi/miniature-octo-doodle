@@ -13,13 +13,22 @@
 - OpenAI
 - Gemini
 
-## Phase 2 - Gateway intelligence
+## Phase 2 - Gateway intelligence and decision plane
+Status: COMPLETE with Jev disabled by user decision ([ADR 0008](adr/0008-phase2-acceptance-jev-disabled.md)).
+Deterministic routing, fallbacks and conservative budgets are deployed and tested.
+Jev wire/authority contract tests are synthetic; live integration, evaluation and
+calibration are deferred until separately authorized. No optional module is installed.
+
+- deterministic policy layer
 - model aliases
+- TypeSafe Jev synthetic evaluation
 - routing
 - fallbacks
 - budgets
-- request logging policy
-- local-private route
+- request/provenance logging policy
+- local-private route with no cloud fallback
+- provider outage and Jev-outage tests
+- prove fallback cannot broaden data exposure
 
 ## Phase 3 - Recovery
 - backup
@@ -35,7 +44,7 @@
 - no duplicate large model storage
 
 ## Phase 5 - Optional local AI
-- Ollama
+- Ollama / llama.cpp
 - GPU validation
 - one small coding model only
 
@@ -48,10 +57,12 @@
 - OpenViking
 - Graphify
 
-## Phase 8 - Coding agent
+## Phase 8 - Coding agent and skills
 - isolated workspaces
 - approval gates
 - cost / iteration limits
+- third-party skill provenance/security scanning
+- selected reusable engineering skills
 
 ## Phase 9 - Agent Controller
 - architect
@@ -61,3 +72,4 @@
 - reviewer
 - security reviewer
 - documentation agent
+- deterministic policy + Jev + LiteLLM orchestration

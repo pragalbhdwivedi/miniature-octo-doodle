@@ -3,7 +3,8 @@ $ErrorActionPreference = 'Stop'
 $sourceRoot = Split-Path $PSScriptRoot -Parent
 $previousAlias = [Environment]::GetEnvironmentVariable('OPENAI_ALIAS', 'Process')
 $fixture = Join-Path ([IO.Path]::GetTempPath()) ('gatewayai-test-' + [guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path "$fixture/scripts","$fixture/config/litellm" -Force | Out-Null
+New-Item -ItemType Directory -Path "$fixture/scripts","$fixture/config/litellm","$fixture/config/policy" -Force | Out-Null
+Copy-Item "$sourceRoot/config/policy/policy.json" "$fixture/config/policy/policy.json"
 Copy-Item "$PSScriptRoot/*.ps1" "$fixture/scripts/"
 Copy-Item "$sourceRoot/.env.example" "$fixture/.env.example"
 function Must-Fail([scriptblock]$Action, [string]$Name) {
@@ -26,7 +27,8 @@ try {
     & "$fixture/scripts/render-config.ps1"
     $rendered = Get-Content "$fixture/config/litellm/config.local.yaml" -Raw
     $config = $rendered | ConvertFrom-Json
-    if (@($config.model_list).Count -ne $count -or $rendered -match 'synthetic-.+-key') { throw 'Provider omission/secret isolation failed.' }
+    $expectedCount = if ($count) { $count + 6 } else { 0 }
+    if (@($config.model_list).Count -ne $expectedCount -or $rendered -match 'synthetic-.+-key') { throw 'Provider omission/secret isolation failed.' }
     Write-Host "PASS: $providers provider rendering without secret values"
   }
   Set-Content "$fixture/.env" ($original.Replace('OPENAI_ALIAS=openai-chat','OPENAI_ALIAS=local-private'))
@@ -35,6 +37,15 @@ try {
   Must-Fail { & "$fixture/scripts/render-config.ps1" } 'duplicate aliases'
   Set-Content "$fixture/.env" ($original.Replace('OPENAI_MODEL=openai/gpt-5.4-mini','OPENAI_MODEL=openai/*'))
   Must-Fail { & "$fixture/scripts/render-config.ps1" } 'wildcard model'
+  Set-Content "$fixture/.env" ($original.Replace('OPENAI_ALIAS=openai-chat','OPENAI_ALIAS=coding-fast'))
+  Must-Fail { & "$fixture/scripts/render-config.ps1" } 'capability alias collision'
+  Set-Content "$fixture/.env" ($original.Replace('OPENAI_API_KEY=', 'OPENAI_API_KEY=synthetic-key').Replace('OPENAI_MODEL=openai/gpt-5.4-mini','OPENAI_MODEL=openai/unreviewed'))
+  Must-Fail { & "$fixture/scripts/render-config.ps1" } 'unreviewed model price'
+  Set-Content "$fixture/.env" $original
+  $originalPolicy = Get-Content "$fixture/config/policy/policy.json" -Raw
+  Set-Content "$fixture/config/policy/policy.json" ($originalPolicy.Replace('"jev_enabled": false','"jev_enabled": true'))
+  Must-Fail { & "$fixture/scripts/render-config.ps1" } 'unvalidated Jev activation'
+  Set-Content "$fixture/config/policy/policy.json" $originalPolicy
   . "$fixture/scripts/common.ps1"
   Assert-DiskReserve -FreeGiB 27 -AdditionalGiB 12
   Must-Fail { Assert-DiskReserve -FreeGiB 26.99 -AdditionalGiB 12 } 'projected reserve violation'

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "decision_plane": {"mode": "deterministic", "jev_enabled": false},
+  "max_concurrency": 4,
+  "lease_seconds": 300,
+  "max_input_bytes": 32768,
+  "max_output_tokens": 1024,
+  "prices": {
+    "openai/gpt-5.4-mini": {"input_micro_usd": 10, "output_micro_usd": 100},
+    "gemini/gemini-3.1-flash-lite": {"input_micro_usd": 10, "output_micro_usd": 100}
+  },
+  "routes": {
+    "coding-fast": ["GEMINI", "OPENAI"],
+    "coding-standard": ["OPENAI", "GEMINI"],
+    "coding-hard": ["OPENAI", "GEMINI"],
+    "architecture": ["OPENAI", "GEMINI"],
+    "review": ["OPENAI", "GEMINI"],
+    "documentation": ["GEMINI", "OPENAI"]
+  }
+}

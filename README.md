@@ -23,6 +23,15 @@ This repository is the permanent source of truth for the platform. It is designe
           │                    │                    │
           └────────────────────┼────────────────────┘
                                │
+                    ┌──────────▼──────────┐
+                    │ Deterministic Policy│
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │ TypeSafe Jev       │
+                    │ decision layer      │
+                    └──────────┬──────────┘
+                               │
                         ┌──────▼──────┐
                         │ AI GATEWAY  │
                         │  LiteLLM    │
@@ -57,10 +66,14 @@ The initial target machine has approximately 50 GB free on a 256 GB NVMe drive. 
 - OpenViking
 - Graphify
 - Coding agent
+- TypeSafe Jev decision layer (Phase 2 evaluation)
 - Agent Controller
+- Security-scanned reusable agent skills
 - Extended observability
 
 No optional component may be downloaded merely because it appears in the architecture.
+
+The control plane deliberately separates **authority**, **decision intelligence**, and **model execution**: deterministic policy decides what is permitted; Jev may help choose among already-permitted routes; LiteLLM executes the approved provider/model route. A Jev or LLM result cannot grant itself broader access.
 
 ## Source-of-truth rule
 
@@ -94,9 +107,14 @@ Docker Compose is the first operational target. Kubernetes definitions are maint
 
 ## Status
 
-Phase 1 core implementation is on `feat/phase1-core`: pinned Compose images,
-guarded Windows startup, health checks and provider templates. See
+Phase 1 is validated and merged through PR #6. Phase 2 adds deterministic
+policy, capability aliases, bounded fallbacks and a persistent monthly admission
+budget on `feat/phase2-policy`, incorporating the design from PR #7. See
 [Quick Start](docs/QUICK_START.md), [PROJECT_STATE.md](PROJECT_STATE.md) and
 [tested build evidence](docs/BUILD_STATUS.md). Both providers and Edge browser
-chat are validated on the target machine; PR review/merge remains pending.
-No optional component is installed by this project.
+chat are validated on the target machine. See [policy operations](docs/PHASE2_POLICY.md)
+for limits and budget semantics. New installations default to zero spending.
+Phase 2 is COMPLETE for the accepted deterministic scope, with Jev explicitly
+disabled by user decision. Live Jev integration/evaluation/calibration is deferred;
+see [ADR 0008](docs/adr/0008-phase2-acceptance-jev-disabled.md).
+No optional component is installed by this project. See [Models and Skills](docs/MODELS_AND_SKILLS.md).

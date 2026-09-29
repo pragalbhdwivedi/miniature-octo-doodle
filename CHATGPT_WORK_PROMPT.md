@@ -23,4 +23,6 @@ Browser
   -> PostgreSQL
 ```
 
-The full documented target additionally includes the Agent Controller, OpenViking, Graphify, Git/GitHub, Claude, OmniRoute, and optional local Ollama inference, but these are install-later modules.
+The full documented target additionally includes the Agent Controller, OpenViking, Graphify, Git/GitHub, a deterministic policy layer, TypeSafe Jev structured decisioning, Claude, OmniRoute, and optional local Ollama/llama.cpp inference.
+
+For Phase 2, preserve the order: deterministic policy -> Jev decision (where validated) -> LiteLLM execution. Jev is not authority. The local-private route must never fall back to cloud providers. Do not install third-party agent skills until provenance, permissions and supply-chain risk are reviewed.

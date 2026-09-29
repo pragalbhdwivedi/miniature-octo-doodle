@@ -20,6 +20,7 @@ This repository is public.
 - Coding agents must use isolated workspaces.
 - Production credentials must not be exposed to autonomous agents.
 - Optional free-provider routes must not be used automatically for sensitive workloads.
+- Third-party agent skills/plugins are untrusted until provenance, permissions, dependencies and instructions are reviewed.
 
 ## Provider classifications
 At minimum support:
@@ -28,6 +29,17 @@ At minimum support:
 - local-only
 
 The `local-private` model route must have no cloud fallback.
+
+## Decision-plane rule
+
+Deterministic security policy is authoritative.
+
+TypeSafe Jev may be evaluated for structured classification/routing/risk decisions, but:
+- Jev cannot grant access, tools, secrets, data, or production permission.
+- Jev cannot override a hard deny or mandatory human approval.
+- low-confidence, malformed, unavailable, or out-of-scope decisions must fail to a deterministic safe route or human review.
+- provider fallback must remain inside the same or a stricter data/trust class.
+- a cheaper/free provider is never automatically a safer fallback.
 
 ## Secrets
 Use local `.env`, Docker secrets, or Kubernetes Secrets generated outside Git. Commit only templates/placeholders.
@@ -49,6 +61,15 @@ Use local `.env`, Docker secrets, or Kubernetes Secrets generated outside Git. C
 - Never publish `.env`, raw `docker inspect`, resolved Compose configuration or
   unredacted logs. Test tools report statuses without printing credentials.
 
-Provider budgets and complete privacy/routing policy are not yet implemented.
-Do not use the cloud aliases for local-only workloads. `local-private` is not
-advertised and is rejected as a cloud alias by the renderer.
+Phase 2 deterministic policy enforces a persistent conservative admission budget,
+four-request concurrency limit, approved provider/model attempts and one bounded
+fallback. Private and local-only labels deny before execution; `local-private`
+is not advertised. Actual tool definitions and client routing overrides are denied.
+Empty WebUI tool lists are stripped; they grant no tool permission.
+WebUI defaults to legacy function-calling mode with no configured tools, avoiding
+automatic native builtin-tool injection in ordinary chats.
+
+Classification is declared, not DLP: unlabelled WebUI text is treated as public.
+Do not send sensitive material through cloud chats. Administrator key metadata
+can enforce stricter classification, providers and mandatory approval. Jev has no
+runtime authority or credentials. See [policy boundaries](PHASE2_POLICY.md).

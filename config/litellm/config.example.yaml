@@ -1,6 +1,6 @@
 # Reference for scripts/render-config.ps1. Missing credentials omit the route.
 # The generated config.local.yaml is ignored and uses environment references.
-# No wildcard route or cloud fallback is installed.
+# Policy renderer installs only reviewed aliases and per-request bounded fallback.
 model_list: []
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
@@ -10,3 +10,10 @@ litellm_settings:
   telemetry: false
   set_verbose: false
   turn_off_message_logging: true
+  callbacks: [gateway.callbacks.proxy_handler_instance]
+router_settings:
+  num_retries: 0
+  max_fallbacks: 1
+  timeout: 60
+  disable_cooldowns: true
+  fallbacks: []

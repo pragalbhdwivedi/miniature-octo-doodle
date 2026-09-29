@@ -35,6 +35,10 @@ Expected internal/local gateway endpoint:
 
 With empty provider keys, the model list is empty. Add keys only to local `.env`
 when ready; see [PROVIDERS.md](PROVIDERS.md). Core tests never request inference.
+Set `GATEWAY_MONTHLY_BUDGET_USD` locally before inference; it defaults to 0.
+This is a conservative admission allowance per UTC calendar month, not an invoice
+counter. See [Phase 2 policy](PHASE2_POLICY.md). Keep `TYPESAFE_API_KEY` blank
+until a separately bounded synthetic evaluation is ready; runtime Jev is disabled.
 
 For diagnosis, `manage.ps1 test -ContainerOnly` checks the internal network and
 explicitly makes no host/browser readiness claim. `manage.ps1 stop` stops only

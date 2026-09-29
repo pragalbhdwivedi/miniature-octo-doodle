@@ -37,9 +37,14 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       LITELLM_TELEMETRY: "False"
+      PYTHONPATH: /app/policy-code
+      GATEWAY_MONTHLY_BUDGET_USD: ${GATEWAY_MONTHLY_BUDGET_USD:-0}
     command: ["--config", "/app/config.yaml", "--port", "4000"]
     volumes:
       - ./config/litellm/config.local.yaml:/app/config.yaml:ro
+      - ./gateway:/app/policy-code/gateway:ro
+      - ./config/policy/policy.local.json:/app/policy.json:ro
+      - policy-data:/app/policy-data
     ports:
       - "127.0.0.1:4000:4000"
     networks: [database, core]
@@ -69,6 +74,9 @@ services:
       ENABLE_EVALUATION_ARENA_MODELS: "False"
       ENABLE_COMMUNITY_SHARING: "False"
       ENABLE_PERSISTENT_CONFIG: "False"
+      # Native mode injects WebUI builtin tools even in an ordinary chat.
+      # No tools are configured; the gateway separately denies tool definitions.
+      DEFAULT_MODEL_PARAMS: '{"function_calling":"legacy"}'
       ENABLE_SIGNUP: "False"
       WEBUI_AUTH: "True"
       WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?Required}
@@ -103,3 +111,4 @@ networks:
 volumes:
   postgres-data:
   open-webui-data:
+  policy-data:

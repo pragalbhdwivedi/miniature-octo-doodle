@@ -22,6 +22,8 @@ They are examples, not claims of account access or latest-model recommendations.
 Set `OPENAI_API_KEY` and/or `GEMINI_API_KEY` only in local `.env`. Use unquoted
 `NAME=value` lines; the parser rejects whitespace, quotes, interpolation and
 inline comments in values. Missing keys omit routes without preventing startup.
+Set a nonzero local `GATEWAY_MONTHLY_BUDGET_USD` before inference. Changing model
+IDs also requires reviewed ceiling prices in `config/policy/policy.json`.
 Run `manage.ps1 start` after edits, then `manage.ps1 test`. A provider completion
 test is a separate step with a small synthetic prompt; core tests never send one.
 
@@ -39,8 +41,9 @@ CI and the normal `manage.ps1 test`, and does not validate browser rendering.
 
 WebUI receives a key restricted to model listing and chat-completion endpoints
 for registered proxy models. It cannot administer gateway keys. No wildcard
-model or fallback is configured. `local-private` is reserved and rejected as a
-cloud alias. Capability routing, budgets and fallbacks remain Phase 2 work.
+model is configured. Legacy provider aliases have no fallback; capability aliases
+allow one policy-approved fallback. `local-private` is reserved and rejected as a
+cloud alias. See [Phase 2 policy](PHASE2_POLICY.md) for routing and budget semantics.
 
 ## Optional providers
 - Anthropic Claude
