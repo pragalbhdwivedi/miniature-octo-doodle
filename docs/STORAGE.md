@@ -37,3 +37,16 @@ The project should provide:
 - explicit model-download size check
 
 Never automatically delete persistent volumes, databases, or models.
+
+## Phase 1 implementation
+
+Preflight checks the repository and Docker storage drives, verifies a local
+Docker Desktop WSL2 engine, and fails before a pull if the conservative 12 GiB
+core reserve would leave less than 15 GiB. Policy thresholds cannot be lowered
+through `.env`. The warning remains 25 GiB. A second disk check follows pulls.
+
+Core images have immutable digests; the WebUI slim variant omits the local ML
+stack. Docker logs rotate at 10 MB x 3 per container. No prune/volume deletion or
+VHDX relocation/compaction is performed. See BUILD_STATUS for actual image,
+volume and host free-space measurements; host disk delta includes concurrent
+activity and is not a precise measure of this project's physical allocation.

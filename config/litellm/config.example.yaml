@@ -1,16 +1,12 @@
-# Template only. ChatGPT Work must verify current LiteLLM syntax and provider model IDs
-# before promoting this file to an active runtime config.
-#
-# Provider credentials must come from environment variables.
-#
-# Intended aliases:
-# - coding-fast
-# - coding-standard
-# - coding-hard
-# - architecture
-# - review
-# - documentation
-# - local-private
-#
-# The local-private alias MUST NOT have a cloud fallback.
+# Reference for scripts/render-config.ps1. Missing credentials omit the route.
+# The generated config.local.yaml is ignored and uses environment references.
+# No wildcard route or cloud fallback is installed.
 model_list: []
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  disable_spend_logs: true
+litellm_settings:
+  telemetry: false
+  set_verbose: false
+  turn_off_message_logging: true

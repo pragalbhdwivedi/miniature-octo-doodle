@@ -26,3 +26,4 @@ ollama-data/
 open-webui-data/
 postgres-data/
 litellm-data/
+config/litellm/config.local.yaml

@@ -65,8 +65,19 @@ Browser
   -> LiteLLM
       -> OpenAI
       -> Gemini
-  -> PostgreSQL for gateway state
+LiteLLM -> PostgreSQL for gateway state
+Open WebUI -> its persistent SQLite volume for UI state
 ```
 
 ## Core principle
 Document the full architecture now, install components only when they are needed and disk capacity allows it.
+
+## Phase 1 implementation boundary
+
+Compose defines only PostgreSQL, LiteLLM and Open WebUI. Cloud routes are included
+only when their keys exist in local `.env`. WebUI receives a restricted gateway
+inference key; provider keys and the master key remain in LiteLLM. The database
+network is internal and PostgreSQL has no host port. UI/gateway ports bind to
+127.0.0.1. See [ADR 0005](adr/0005-lean-authenticated-core.md).
+
+The full Agent Controller diagram is a target, not a deployed service list.

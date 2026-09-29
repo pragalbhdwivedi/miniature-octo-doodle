@@ -1,22 +1,30 @@
 # Quick Start
 
-Current repository status is architecture/bootstrap only. Do not assume the runtime has been validated yet.
+Phase 1 core is deployed and validated on the target machine. All three containers,
+Windows integration checks, live OpenAI/Gemini completions and Edge browser chat
+passed on 2026-09-29. The host uses WSL NAT for working localhost forwarding.
+See [BUILD_STATUS.md](BUILD_STATUS.md) for the precise validation boundary.
 
-## Intended future flow
+## Setup
 ```powershell
 git clone https://github.com/pragalbhdwivedi/miniature-octo-doodle.git
 cd miniature-octo-doodle
-Copy-Item .env.example .env
+.\scripts\manage.ps1 init
 .\scripts\manage.ps1 preflight
 ```
 
-Then fill local provider keys in `.env`.
+`init` generates random secrets in local `.env` and refuses to overwrite it.
+The initial WebUI login is `admin@example.com`; its generated password is
+`WEBUI_ADMIN_PASSWORD` in `.env`. Change the email before first startup if desired.
+Never paste this file into chat or Git. Existing accounts are not reset on startup.
 
-After ChatGPT Work validates the current upstream images and Compose configuration:
+Deploy and test each stage:
 
 ```powershell
+.\scripts\manage.ps1 start -Stage gateway
+.\scripts\manage.ps1 test -Stage gateway
 .\scripts\manage.ps1 start
-.\scripts\manage.ps1 status
+.\scripts\manage.ps1 test
 ```
 
 Expected initial browser endpoint:
@@ -25,4 +33,9 @@ Expected initial browser endpoint:
 Expected internal/local gateway endpoint:
 - LiteLLM: http://127.0.0.1:4000
 
-Do not use this as proof the stack is already operational. See `docs/BUILD_STATUS.md`.
+With empty provider keys, the model list is empty. Add keys only to local `.env`
+when ready; see [PROVIDERS.md](PROVIDERS.md). Core tests never request inference.
+
+For diagnosis, `manage.ps1 test -ContainerOnly` checks the internal network and
+explicitly makes no host/browser readiness claim. `manage.ps1 stop` stops only
+this project and preserves its containers and volumes.
