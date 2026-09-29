@@ -20,6 +20,7 @@ This repository is public.
 - Coding agents must use isolated workspaces.
 - Production credentials must not be exposed to autonomous agents.
 - Optional free-provider routes must not be used automatically for sensitive workloads.
+- Third-party agent skills/plugins are untrusted until provenance, permissions, dependencies and instructions are reviewed.
 
 ## Provider classifications
 At minimum support:
@@ -28,6 +29,17 @@ At minimum support:
 - local-only
 
 The `local-private` model route must have no cloud fallback.
+
+## Decision-plane rule
+
+Deterministic security policy is authoritative.
+
+TypeSafe Jev may be evaluated for structured classification/routing/risk decisions, but:
+- Jev cannot grant access, tools, secrets, data, or production permission.
+- Jev cannot override a hard deny or mandatory human approval.
+- low-confidence, malformed, unavailable, or out-of-scope decisions must fail to a deterministic safe route or human review.
+- provider fallback must remain inside the same or a stricter data/trust class.
+- a cheaper/free provider is never automatically a safer fallback.
 
 ## Secrets
 Use local `.env`, Docker secrets, or Kubernetes Secrets generated outside Git. Commit only templates/placeholders.
