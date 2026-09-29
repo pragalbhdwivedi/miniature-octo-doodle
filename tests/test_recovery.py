@@ -3,6 +3,7 @@ import copy
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import tarfile
 import tempfile
@@ -15,6 +16,40 @@ spec.loader.exec_module(recovery)
 
 
 class RecoveryTests(unittest.TestCase):
+    def test_running_environment_drift_rejected_without_secret_output(self):
+        config={'services':{'postgres':{'image':'pin','environment':{'POSTGRES_PASSWORD':'new-secret'},'volumes':[]}}}
+        image={'pin':{'Config':{'Env':['PATH=/bin']}}}
+        container={'Config':{'Image':'pin','Labels':{'com.docker.compose.service':'postgres'},
+                             'Env':['PATH=/bin','POSTGRES_PASSWORD=old-secret']},
+                   'Mounts':[],'State':{'StartedAt':'2026-09-29T10:00:00Z'}}
+        with self.assertRaisesRegex(RuntimeError,'Running environment') as error:
+            recovery.assert_running_config(config,[container],image)
+        self.assertNotIn('secret',str(error.exception))
+        container['Config']['Env'][1]='POSTGRES_PASSWORD=new-secret'
+        recovery.assert_running_config(config,[container],image)
+        # Removing a configured override is drift too, even if the image has defaults.
+        config['services']['postgres']['environment']={}
+        with self.assertRaises(RuntimeError): recovery.assert_running_config(config,[container],image)
+
+    def test_bound_config_edit_and_wrong_mount_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source=Path(temp)/'policy.json'
+            source.write_text('{}')
+            os.utime(source,(10,10))
+            config={'services':{'litellm':{'image':'pin','volumes':[{'type':'bind','target':'/app/policy.json','source':str(source),'read_only':True}]}}}
+            images={'pin':{'Config':{'Env':[]}}}
+            container={'Config':{'Image':'pin','Labels':{'com.docker.compose.service':'litellm'},'Env':[]},
+                       'Mounts':[{'Type':'bind','Destination':'/app/policy.json','Source':str(source),'RW':False}],
+                       'State':{'StartedAt':'1970-01-01T00:00:20Z'}}
+            recovery.assert_running_config(config,[container],images)
+            os.utime(source,(30,30))
+            with self.assertRaisesRegex(RuntimeError,'changed after service start'):
+                recovery.assert_running_config(config,[container],images)
+            os.utime(source,(10,10))
+            container['Mounts'][0]['Source']=str(source.parent/'different.json')
+            with self.assertRaisesRegex(RuntimeError,'bind source'):
+                recovery.assert_running_config(config,[container],images)
+
     def config(self):
         return {'name':recovery.PROJECT,
                 'services':{

@@ -123,8 +123,49 @@ def validate_bundle(folder):
     return manifest, config
 
 
+def assert_running_config(config, containers, images):
+    """Reject disk/runtime drift before producing a snapshot or stopping services."""
+    seen = set()
+    for container in containers:
+        service = container['Config']['Labels']['com.docker.compose.service']
+        check(service in config['services'] and service not in seen, 'Unexpected running service inventory')
+        seen.add(service)
+        definition = config['services'][service]
+        check(container['Config']['Image'] == definition['image'], 'Running image differs from configured pin')
+        expected = dict(entry.split('=', 1) for entry in images[definition['image']]['Config'].get('Env', []))
+        for key, value in definition.get('environment', {}).items():
+            if value is None:
+                expected.pop(key, None)
+            else:
+                expected[key] = str(value)
+        actual = dict(entry.split('=', 1) for entry in container['Config'].get('Env', []))
+        check(actual == expected, 'Running environment differs from local configuration; reconcile and recreate before backup')
+        mounts = {m['Destination']: m for m in container['Mounts']}
+        check(set(mounts) == {m['target'] for m in definition.get('volumes', [])}, 'Running mount targets differ from configuration')
+        started = datetime.fromisoformat(container['State']['StartedAt'].replace('Z', '+00:00')).timestamp()
+        for mount in definition.get('volumes', []):
+            active = mounts[mount['target']]
+            check(active['Type'] == mount['type'] and active['RW'] == (not mount.get('read_only', False)), 'Running mount mode differs from configuration')
+            if mount['type'] == 'volume':
+                check(active['Name'] == config['volumes'][mount['source']]['name'], 'Running volume assignment differs from configuration')
+            else:
+                source = Path(mount['source']).resolve()
+                check(Path(active['Source']).resolve() == source, 'Running bind source differs from configuration')
+                files = list(source.rglob('*.py')) if source.is_dir() else [source]
+                check(files and all(p.stat().st_mtime <= started for p in files),
+                      'Bound configuration/code changed after service start; restart with reconciled configuration before backup')
+    check(seen == set(config['services']), 'Missing running service')
+
+
+def source_fingerprints():
+    files = [REPO/'.env', REPO/'compose.yaml', REPO/'config/litellm/config.local.yaml',
+             REPO/'config/policy/policy.local.json', *sorted((REPO/'gateway').rglob('*.py'))]
+    return {str(p.relative_to(REPO)): sha(p) for p in files}
+
+
 def backup(root):
     check(not run(['git', 'status', '--porcelain'], cwd=REPO), 'Commit or stash changes before backing up a reproducible source revision')
+    fingerprints = source_fingerprints()
     values = env_values(REPO / '.env')
     environment = dict(os.environ, **values)
     config = json.loads(compose(REPO / 'compose.yaml', 'config', '--format', 'json', env=environment))
@@ -132,16 +173,20 @@ def backup(root):
     ids = docker('ps', '-q', '--filter', 'label=com.docker.compose.project=' + PROJECT).splitlines()
     containers = json.loads(docker('inspect', *ids)) if ids else []
     check(len(containers) == 3 and all(c['State'].get('Health',{}).get('Status') == 'healthy' for c in containers), 'All three source services must be healthy')
-    for container in containers:
-        service = container['Config']['Labels']['com.docker.compose.service']
-        check(service in config['services'] and container['Config']['Image'] == config['services'][service]['image'], 'Running image differs from configured pin')
     actual_volumes = {m['Name'] for c in containers for m in c['Mounts'] if m['Type'] == 'volume'}
     expected_volumes = {config['volumes'][v]['name'] for v in VOLUMES}
     check(actual_volumes == expected_volumes, 'Source mount inventory mismatch')
     image = config['services']['postgres']['image']
+    images = {}
     for service in config['services'].values():
         check('@sha256:' in service['image'], 'Unpinned image')
-        docker('image', 'inspect', service['image'])
+        images[service['image']] = json.loads(docker('image', 'inspect', service['image']))[0]
+    assert_running_config(config, containers, images)
+    # POSTGRES_PASSWORD does not rotate an existing cluster's password on recreate.
+    compose(REPO/'compose.yaml', 'exec', '-T', 'postgres', 'sh', '-c',
+            'PGPASSWORD="$POSTGRES_PASSWORD" psql -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT 1"', env=environment)
+    check(source_fingerprints() == fingerprints, 'Source configuration changed during backup preflight')
+    print('PASS: running environment, mounts, configuration freshness and database credentials match', flush=True)
     size = sum(int(helper(image, [volume_mount(v)], '-c', 'du -sk /volume').split()[0]) * 1024 for v in expected_volumes)
     recovery_disk_guard(root, size * 3 + 1024**3)
     name = 'backup-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
@@ -154,6 +199,11 @@ def backup(root):
     shutil.copy2(REPO / 'config/policy/policy.local.json', folder / 'policy.json')
     commit = run(['git', 'rev-parse', 'HEAD'], cwd=REPO)
     run(['git', 'archive', '--format=tar', '-o', str(folder / 'source.tar'), commit], cwd=REPO)
+    for source, target in (('.env', '.env'), ('config/litellm/config.local.yaml', 'gateway-config.json'),
+                           ('config/policy/policy.local.json', 'policy.json')):
+        check(sha(folder/target) == fingerprints[source], 'Source configuration changed while copying')
+    assert_running_config(config, json.loads(docker('inspect', *ids)), images)
+    check(source_fingerprints() == fingerprints, 'Source configuration changed before snapshot')
     started = time.monotonic()
     try:
         print('Stopping only core UI/gateway, then PostgreSQL for a consistent snapshot...', flush=True)
@@ -167,6 +217,7 @@ def backup(root):
             helper(image, [volume_mount(config['volumes'][logical]['name']), bind_mount(folder)],
                    '-c', 'tar -cpf /backup/' + logical + '.tar -C /volume .')
             archive_index(folder / (logical + '.tar'))
+        check(source_fingerprints() == fingerprints, 'Source configuration changed during snapshot')
         manifest = {'format':1, 'created_utc':datetime.now(timezone.utc).isoformat(), 'git_commit':commit,
                     'source_bytes':size, 'files':{name:sha(folder/name) for name in sorted(FILES)}}
         (folder / 'manifest.json').write_text(json.dumps(manifest, indent=2))

@@ -8,16 +8,16 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 
 ## Current phase
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
-restore and clean container rebuild COMPLETE on the implementation branch.**
+restore and clean container rebuild COMPLETE for the tested same-host scope.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
 Phase 2 [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8)
 merged at `c76406927ae1110e6023f4195c7d4b81c360cd55`, incorporating PR #7's design.
 Phase 3 implementation branch: `feat/phase3-recovery`, based on that main commit.
-Phase 3 is tested locally and open in
+Phase 3 is tested locally; delivery is
 [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9);
-it is not yet merged to main.
+GitHub records its review and merge status.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
 ## Hardware baseline
@@ -64,9 +64,11 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Review the Phase 3 recovery implementation. Its same-host cold backup and isolated
-restore/rebuild passed; see `docs/BACKUP_RESTORE.md` and the measured build record.
-Choose protected off-machine backup storage before claiming laptop-loss recovery.
+New-machine recovery validation is paused by user instruction until their
+Kubernetes setup is running. Off-machine backup and new-machine recovery remain
+unvalidated. Same-host cold backup and isolated restore/rebuild passed; see
+`docs/BACKUP_RESTORE.md` and the measured build record. No Kubernetes installation
+or off-machine transfer is started by this review/merge.
 Phase 2 remains accepted with Jev disabled under ADR 0008.
 Live Jev integration/evaluation/calibration is deferred to a separately reviewed
 and authorized change with a key and evaluation allowance. Local validation is

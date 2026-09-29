@@ -32,6 +32,21 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
 A documented architecture is not implementation evidence.
 
+## PR #9 review follow-up - 2026-09-29
+
+- Confirmed the automated P2 finding: edited `.env`/rendered configuration could
+  be combined with databases from differently configured running containers.
+- Added exact effective environment and mount checks, conservative bound-file
+  freshness checks, PostgreSQL TCP password verification and source fingerprint
+  checks before/during capture. Configuration drift fails without exposing secrets.
+- All 21 offline tests passed, including changed/removed environment settings,
+  post-start configuration edits and a wrong bind source. Read-only validation of
+  the actual three-service deployment passed against the new guard.
+- New-machine validation was requested and then explicitly paused by the user
+  until their Kubernetes setup is running. Off-machine backup and new-machine
+  recovery remain unvalidated; no VM, Kubernetes runtime or remote transfer was
+  started. The following same-host evidence does not satisfy those gates.
+
 ## Milestone 5 - Phase 3 local recovery, 2026-09-29, 19:00 IST
 
 Implemented on `feat/phase3-recovery`, based on main `c764069` (merged PR #8).

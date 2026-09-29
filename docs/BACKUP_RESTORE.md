@@ -15,6 +15,16 @@ host. Existing pinned images must be available; the scripts never pull. Python
 
 ## Backup contents and interruption
 
+Before creating a backup, running environments (including image defaults), mount
+targets/sources/modes and configured images must match the local configuration.
+Bound configuration and gateway source files newer than container startup are
+rejected conservatively; reconcile configuration and restart/recreate the affected
+services first. Do not backdate files to bypass this freshness check. A PostgreSQL
+TCP authentication probe also checks the actual stored password: changing
+`POSTGRES_PASSWORD` in Compose does not rotate an existing database's password.
+Source fingerprints are checked through capture to reject concurrent edits.
+Errors never print environment values or credentials.
+
 The script requires all three source services healthy, checks storage, stops only
 this project's UI/gateway and then PostgreSQL, and rejects unclean shutdown or
 remaining volume writers. It captures all files from `postgres-data`,

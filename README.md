@@ -120,7 +120,7 @@ see [ADR 0008](docs/adr/0008-phase2-acceptance-jev-disabled.md).
 No optional component is installed by this project. See [Models and Skills](docs/MODELS_AND_SKILLS.md).
 
 Phase 3 backup, isolated restore and clean container rebuild are implemented and
-tested on `feat/phase3-recovery` (pending review/merge). See the
+tested; delivery is [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9). See the
 [recovery runbook](docs/BACKUP_RESTORE.md). The drill preserves the live deployment,
 blocks recovery-copy cloud access and retains all data. Off-machine disaster
 recovery and production cutover are separate, unvalidated steps.
