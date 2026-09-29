@@ -84,6 +84,16 @@ def disk_guard(path, additional):
     check(shutil.disk_usage(path).free - additional >= 15 * 1024**3, 'Critical disk reserve would be crossed')
 
 
+def recovery_disk_guard(root, additional):
+    # Docker can store its VHDX on another drive; check that drive's reserve too.
+    paths = [root, Path(os.environ['LOCALAPPDATA'])/'Docker/wsl']
+    settings_path = Path(os.environ['APPDATA'])/'Docker/settings-store.json'
+    settings = json.loads(settings_path.read_text(encoding='utf-8-sig'))
+    paths.extend(Path(settings[key]) for key in ('DataFolder','DiskImageLocation') if settings.get(key))
+    for path in paths:
+        disk_guard(path, additional)
+
+
 def helper(image, mounts, *args):
     command = ['run', '--rm', '--pull', 'never', '--network', 'none']
     for mount in mounts:
@@ -136,7 +146,7 @@ def backup(root):
         check('@sha256:' in service['image'], 'Unpinned image')
         docker('image', 'inspect', service['image'])
     size = sum(int(helper(image, [volume_mount(v)], '-c', 'du -sk /volume').split()[0]) * 1024 for v in expected_volumes)
-    disk_guard(root, size * 3 + 1024**3)
+    recovery_disk_guard(root, size * 3 + 1024**3)
     name = 'backup-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     folder = root / name
     folder.mkdir()  # Never reuse/overwrite an existing backup.
@@ -192,7 +202,8 @@ def restore_config(config, work, name, gateway_port, ui_port):
         for mount in definition.get('volumes', []):
             if mount['type'] == 'bind':
                 check(mount['target'] in targets, 'Unapproved bind mount')
-                mount['source'] = str(targets[mount['target']])
+                # Compose's YAML loader can double Windows backslashes in JSON input.
+                mount['source'] = targets[mount['target']].as_posix()
         check(not definition.get('privileged') and not definition.get('network_mode'), 'Unsafe container configuration')
         if service == 'postgres':
             check(not definition.get('ports'), 'Database publication forbidden')
@@ -222,6 +233,7 @@ def http(url, key=None, body=None, expected=200):
 
 
 def restore(root, folder, name, gateway_port, ui_port):
+    restore_started = time.monotonic()
     manifest, config = validate_bundle(folder)
     name = name or 'gatewayai-recovery-' + datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
     work = root / name
@@ -235,7 +247,7 @@ def restore(root, folder, name, gateway_port, ui_port):
     for port in (gateway_port, ui_port):
         with socket.socket() as sock:
             sock.bind(('127.0.0.1',port))
-    disk_guard(root, manifest['source_bytes'] * 3 + 1024**3)
+    recovery_disk_guard(root, manifest['source_bytes'] * 3 + 1024**3)
     for service in config['services'].values():
         docker('image','inspect',service['image'])  # Never pull automatically.
     work.mkdir()
@@ -261,6 +273,14 @@ def restore(root, folder, name, gateway_port, ui_port):
     started = time.monotonic()
     try:
         compose(compose_file,'up','-d','--pull','never','--wait','--wait-timeout','300')
+        # Read every PostgreSQL table without exporting rows to the host/output.
+        compose(compose_file,'exec','-T','postgres','sh','-c',
+                'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /dev/null')
+        for service, database in (('open-webui','/app/backend/data/webui.db'),
+                                  ('litellm','/app/policy-data/budget.sqlite3')):
+            probe = ('import sqlite3; db=sqlite3.connect("file:' + database + '?mode=ro",uri=True); '
+                     'assert db.execute("PRAGMA integrity_check").fetchone()[0]=="ok"; db.close()')
+            compose(compose_file,'exec','-T',service,'python','-c',probe)
         gateway = 'http://127.0.0.1:'+str(gateway_port)
         ui = 'http://127.0.0.1:'+str(ui_port)
         values = env_values(folder/'.env')
@@ -285,6 +305,8 @@ def restore(root, folder, name, gateway_port, ui_port):
             check(json.loads(docker('network','inspect',network['name']))[0]['Internal'], 'Recovery egress isolation missing')
         report = {'passed':True,'backup_commit':manifest['git_commit'],'project':name,
                   'seconds_to_validate':round(time.monotonic()-started,2),'model_count':len(models),
+                  'total_restore_seconds':round(time.monotonic()-restore_started,2),
+                  'postgres_full_read':True,'sqlite_integrity':True,
                   'volume_content_match':True,'restored_admin_login':True,'budget_unchanged':True,
                   'provider_keys_injected':False,'monthly_budget':0,'jev_enabled':False}
         (work/'result.json').write_text(json.dumps(report,indent=2))
@@ -304,7 +326,7 @@ def main():
     parser.add_argument('--gateway-port',type=int,default=4400)
     parser.add_argument('--webui-port',type=int,default=4300)
     args=parser.parse_args()
-    expected=Path(os.environ['LOCALAPPDATA'])/'GatewayAI/recovery'
+    expected=(Path(os.environ['LOCALAPPDATA'])/'GatewayAI/recovery/.location').resolve().parent
     check(args.root.resolve()==expected.resolve() and args.root.is_dir(), 'Use the ACL-protected root through recovery.ps1')
     if args.action=='backup':
         backup(args.root)
