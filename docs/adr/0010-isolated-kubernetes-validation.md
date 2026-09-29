@@ -28,7 +28,9 @@ ACLs protect storage but do not restrict a host/cluster administrator.
 The node stores separate core image copies (about 4 GiB host delta including
 infrastructure); no model weights are duplicated. Three fresh PVCs exercise
 persistence without copying live chats or credentials. Runtime API/policy checks
-pass; browser acceptance remains pending.
+pass. Follow-up on 2026-09-29: zero-spend browser acceptance also passed (admin
+sign-in, eight aliases, model selection and rendered budget denial). Live provider
+responses remain outside this validation scope.
 
 This does not validate a separate machine, provider cutover or Kubernetes backup.
 A future migration must preserve records and reconcile monthly budget debits,

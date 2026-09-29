@@ -9,7 +9,7 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 ## Current phase
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
 restore and clean container rebuild COMPLETE for the tested same-host scope.
-Phase 4: PARTIAL, isolated zero-spend Kubernetes core deployed and API-tested.**
+Phase 4: PARTIAL, isolated zero-spend Kubernetes core passes API and browser acceptance.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -17,7 +17,8 @@ Phase 2 [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8)
 merged at `c76406927ae1110e6023f4195c7d4b81c360cd55`, incorporating PR #7's design.
 Phase 3 [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9)
 merged at `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
-Phase 4 implementation branch: `feat/phase4-kubernetes`, based on that main commit.
+Phase 4 implementation: [PR #10](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/10),
+branch `feat/phase4-kubernetes`, based on that main commit; not yet merged.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
 ## Hardware baseline
@@ -64,8 +65,8 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Complete Phase 4 browser acceptance, then agree the intended Kubernetes target
-and migration scope before moving existing chats, credentials and budget history.
+Agree the intended Kubernetes target and migration scope before moving existing
+chats, credentials and budget history. Zero-spend browser acceptance has passed.
 The local k3d deployment is an isolated validation instance: no provider keys,
 zero spending, fresh data, Jev disabled. It does not replace the Compose gateway.
 Off-machine backup and new-machine recovery remain unvalidated; the user's pause
@@ -82,8 +83,12 @@ No optional modules or model weights were installed. See [Kubernetes operations]
   zero-budget rejection passed. Synthetic routing/fallback/concurrency tests passed.
 - NetworkPolicy permits gateway-to-database and UI-to-gateway only (plus DNS and
   Ingress); UI-to-database and external TCP egress denial passed.
-- Browser validation is pending: browser connector blocked the local URL and native
-  Computer Use stopped because it could not determine the browser URL for policy checks.
+- Edge browser acceptance passed at `http://localhost:3080`: existing admin sign-in,
+  eight-alias picker, `coding-standard` selection and rendered zero-budget denial in
+  a temporary chat. The prior browser automation blocker did not recur this session.
+- Post-browser ledger: zero debit, zero provider attempts, zero active requests;
+  provider keys remain empty and Jev disabled. Screenshot is in `docs/evidence/`.
+- All three deployments remain ready; 41.37 GiB free, no image pull/runtime change.
 - Kubernetes provider inference, Compose-data migration, off-machine recovery and
   Kubernetes backups remain unvalidated. No production/cutover readiness claim.
 
@@ -136,7 +141,7 @@ No optional modules or model weights were installed. See [Kubernetes operations]
 - Graphify
 - coding agent
 - Agent Controller
-- Kubernetes runtime
+- Kubernetes live provider/data cutover
 - extended observability
 
 ## Storage policy

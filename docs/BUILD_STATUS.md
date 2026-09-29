@@ -21,7 +21,7 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Backup / restore | COMPLETE | Same-host cold backup and isolated restore tested 2026-09-29; off-machine/cutover limits below |
 | Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
 | Kubernetes base | PARTIAL | Dedicated k3d core ready; pod/PVC persistence, isolation and synthetic policy pass; provider/data migration pending |
-| Kubernetes Ingress | PARTIAL | Both localhost names pass HTTP login/discovery; browser automation blocked, visual acceptance pending |
+| Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
 | Ollama | NOT STARTED | Optional |
 | Local model | NOT STARTED | Optional |
 | OmniRoute | NOT STARTED | Optional |
@@ -31,6 +31,39 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Agent Controller | NOT STARTED | Planned |
 
 A documented architecture is not implementation evidence.
+
+## Phase 4 browser acceptance follow-up - 2026-09-29
+
+Runtime/source baseline: `17b96db28ba3d88c501ec2fac5a518a1dc405d1e`, open PR #10.
+Documentation/evidence follow-up only; no deployment configuration changed.
+
+- **PASS**: Edge opened `http://localhost:3080`, displayed the sign-in page and
+  signed in with the existing test administrator. The password stayed out of
+  screenshots, Git and chat. Release notes were dismissed; no settings changed.
+- **PASS**: picker displayed all eight aliases: `openai-chat`, `gemini-chat`,
+  `coding-fast`, `coding-standard`, `coding-hard`, `architecture`, `review`,
+  `documentation`. No `local-private` or optional provider appeared.
+- **PASS**: temporary chat selected `coding-standard`; the synthetic message
+  "Synthetic Phase 4 browser acceptance check. Reply OK." rendered the expected
+  `policy: monthly_budget_exhausted` result. This is correct for budget zero.
+- **PASS**: post-browser gateway inspection confirmed zero admission debit, zero
+  provider attempts, zero active requests, empty OpenAI/Gemini credentials and
+  explicitly disabled Jev. All three Kubernetes Deployments remained 1/1 ready.
+- Saved [browser screenshot](evidence/phase4-browser-budget-denial.png), 31,694 bytes,
+  SHA-256 `2e58090090df8361cf6883693d7b4ac969a8bde6b0c9becf949758abf9c75503`.
+  Only synthetic test text and the denial are visible. The temporary chat was not saved.
+- The earlier browser blocker did not recur using the connected Edge browser this
+  session. No security bypass, alternate headless browser, network change, image
+  pull, service restart or live provider request was needed. Root cause remains unknown.
+- Free C: 41.37 GiB, above warning/critical thresholds. No runtime installation;
+  only small documentation and screenshot artifacts were added. Host free-space
+  changes since the prior sample include concurrent activity.
+- Local zero-spend browser acceptance and Ingress are COMPLETE. Phase 4 remains
+  PARTIAL for live provider/data migration; this is not provider response validation,
+  production cutover, Kubernetes backup or separate-machine recovery evidence.
+- Next: choose the intended target and migration scope; preserve/reconcile existing
+  data and monthly budget history before any live activation. Off-machine and
+  new-machine recovery remain pending under the prior pause.
 
 ## Phase 3 closeout and Phase 4 start - 2026-09-29
 

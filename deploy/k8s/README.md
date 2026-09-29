@@ -9,5 +9,5 @@ sets local-path storage, performs server validation and waits for readiness.
 Directly applying the base alone does not supply those required resources.
 
 This is a tested zero-spend validation instance with fresh data. Browser acceptance
-and live data/provider migration remain pending. See [operations](../../docs/KUBERNETES.md).
+passed; live data/provider migration remains pending. See [operations](../../docs/KUBERNETES.md).
 No optional overlay is installed. Never delete PVCs or clusters to stop the runtime.

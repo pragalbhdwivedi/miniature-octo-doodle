@@ -1,8 +1,8 @@
 # Kubernetes
 
-Phase 4 is PARTIAL. The local core and Ingress HTTP/API checks pass. Browser
-acceptance, live provider inference and migration of existing Compose data are
-pending. This is a fresh, zero-spend validation instance, not a cutover.
+Phase 4 is PARTIAL. Local core, Ingress HTTP/API and zero-spend browser acceptance
+checks pass. Live provider inference and migration of existing Compose data remain
+pending. This is a fresh validation instance, not a cutover.
 
 ## Tested target and scope
 
@@ -72,9 +72,14 @@ All three pods were recreated with Compose stopped: PVC identities, administrato
 login, scoped gateway key and tests survived. Compose was then resumed. This is
 same-host persistence/independence evidence, not off-machine recovery.
 
-The browser connector blocked the local URL. Native Computer Use stopped because
-it could not determine the browser URL for policy enforcement. Browser rendering
-and rendered chat remain unvalidated; complete that gate in a later browser session.
+Edge browser acceptance passed on 2026-09-29 at `http://localhost:3080`: sign-in
+with the existing test admin, all eight model aliases, `coding-standard` selection,
+and a synthetic temporary-chat submission rendered `policy: monthly_budget_exhausted`.
+Post-check ledger: zero debit, zero provider attempts and zero active requests.
+Provider keys remained empty and Jev disabled. See the [screenshot](evidence/phase4-browser-budget-denial.png).
+The previous browser automation blocker did not recur; its underlying cause was
+not established and no browser/network settings were changed. This validates the
+intended denial flow, not a successful live provider response.
 
 Before enabling Kubernetes cloud inference, select the real target and migration
 scope, preserve/reconcile monthly debits, transfer trusted data and credentials,

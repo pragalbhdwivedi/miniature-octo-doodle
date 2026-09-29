@@ -126,6 +126,6 @@ blocks recovery-copy cloud access and retains all data. Off-machine disaster
 recovery and production cutover are separate, unvalidated steps.
 
 Phase 4 has started: an isolated k3d core with persistent volumes, network policies
-and loopback Ingress passes API and synthetic policy checks. Browser acceptance
-remains pending. It uses fresh test data, zero budget and no cloud keys; Compose
+and loopback Ingress passes API, synthetic policy and zero-spend browser acceptance
+checks. It uses fresh test data, zero budget and no cloud keys; Compose
 remains the live provider deployment. See [Kubernetes operations](docs/KUBERNETES.md).

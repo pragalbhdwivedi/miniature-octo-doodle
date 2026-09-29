@@ -46,8 +46,8 @@ Kubernetes setup is running. Off-machine backup remains unvalidated as well.
 
 ## Phase 4 - Kubernetes
 Status: PARTIAL. Isolated k3d core, PVCs, Ingress HTTP/auth, network isolation and
-synthetic policy checks pass. Browser acceptance remains pending; existing-data
-migration and live Kubernetes provider inference are not yet validated.
+synthetic policy and zero-spend Edge browser checks pass. Existing-data migration
+and live Kubernetes provider inference are not yet validated.
 See [Kubernetes operations](KUBERNETES.md).
 
 - k3d
