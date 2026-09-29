@@ -32,7 +32,7 @@ calibration are deferred until separately authorized. No optional module is inst
 
 ## Phase 3 - Recovery
 Status: local backup/restore and clean container rebuild COMPLETE on
-`feat/phase3-recovery`, delivered through PR #9. Same-host isolated rehearsal passed;
+main, merged through PR #9 (`3cf3b6d`). Same-host isolated rehearsal passed;
 off-machine retention, new-machine recovery and production cutover remain outside
 this evidence. See [recovery operations](BACKUP_RESTORE.md).
 
@@ -45,6 +45,11 @@ Kubernetes setup is running. Off-machine backup remains unvalidated as well.
 - disk reporting
 
 ## Phase 4 - Kubernetes
+Status: PARTIAL. Isolated k3d core, PVCs, Ingress HTTP/auth, network isolation and
+synthetic policy checks pass. Browser acceptance remains pending; existing-data
+migration and live Kubernetes provider inference are not yet validated.
+See [Kubernetes operations](KUBERNETES.md).
+
 - k3d
 - base manifests
 - Ingress

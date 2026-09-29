@@ -1,0 +1,512 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: gatewayai
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: core
+    namespace: gatewayai
+  automountServiceAccountToken: false
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: postgres-data
+    namespace: gatewayai
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: postgres
+    namespace: gatewayai
+  spec:
+    type: ClusterIP
+    selector:
+      app: postgres
+    ports:
+    - port: 5432
+      targetPort: 5432
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: postgres
+    namespace: gatewayai
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+    selector:
+      matchLabels:
+        app: postgres
+    template:
+      metadata:
+        labels:
+          app: postgres
+      spec:
+        serviceAccountName: core
+        automountServiceAccountToken: false
+        securityContext:
+          seccompProfile:
+            type: RuntimeDefault
+        containers:
+        - name: postgres
+          image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 5432
+          env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: POSTGRES_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: POSTGRES_PASSWORD
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: POSTGRES_DB
+          volumeMounts:
+          - name: data
+            mountPath: /var/lib/postgresql/data
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - NET_RAW
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '2'
+              memory: 512Mi
+          startupProbe:
+            exec: &id001
+              command:
+              - sh
+              - -c
+              - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            periodSeconds: 5
+            failureThreshold: 60
+            timeoutSeconds: 3
+          readinessProbe:
+            exec: *id001
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            exec: *id001
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 6
+        volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: policy-data
+    namespace: gatewayai
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 256Mi
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: litellm
+    namespace: gatewayai
+  spec:
+    type: ClusterIP
+    selector:
+      app: litellm
+    ports:
+    - port: 4000
+      targetPort: 4000
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: litellm
+    namespace: gatewayai
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+    selector:
+      matchLabels:
+        app: litellm
+    template:
+      metadata:
+        labels:
+          app: litellm
+      spec:
+        serviceAccountName: core
+        automountServiceAccountToken: false
+        securityContext:
+          seccompProfile:
+            type: RuntimeDefault
+        containers:
+        - name: litellm
+          image: ghcr.io/berriai/litellm-database:v1.103.0@sha256:f4f114b1996c5923c4d62a7bbdcecb2ccf9df17bdebce76050f609be97f75f5c
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 4000
+          env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: litellm-credentials
+                key: DATABASE_URL
+          - name: LITELLM_MASTER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: litellm-credentials
+                key: LITELLM_MASTER_KEY
+          - name: LITELLM_SALT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: litellm-credentials
+                key: LITELLM_SALT_KEY
+          - name: LITELLM_TELEMETRY
+            value: 'False'
+          - name: PYTHONPATH
+            value: /app/policy-code
+          - name: OPENAI_API_KEY
+            value: ''
+          - name: GEMINI_API_KEY
+            value: ''
+          - name: GATEWAY_MONTHLY_BUDGET_USD
+            value: '0'
+          volumeMounts:
+          - name: data
+            mountPath: /app/policy-data
+          - name: config
+            mountPath: /app/config.yaml
+            subPath: config.yaml
+            readOnly: true
+          - name: config
+            mountPath: /app/policy.json
+            subPath: policy.json
+            readOnly: true
+          - name: code
+            mountPath: /app/policy-code/gateway
+            readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - NET_RAW
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '2'
+              memory: 2Gi
+          startupProbe:
+            httpGet: &id002
+              path: /health/liveliness
+              port: 4000
+            periodSeconds: 5
+            failureThreshold: 60
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet: *id002
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: *id002
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 6
+          args:
+          - --config
+          - /app/config.yaml
+          - --port
+          - '4000'
+        volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: policy-data
+        - name: config
+          configMap:
+            name: gateway-config
+        - name: code
+          configMap:
+            name: gateway-code
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: open-webui-data
+    namespace: gatewayai
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 256Mi
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: open-webui
+    namespace: gatewayai
+  spec:
+    type: ClusterIP
+    selector:
+      app: open-webui
+    ports:
+    - port: 8080
+      targetPort: 8080
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: open-webui
+    namespace: gatewayai
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+    selector:
+      matchLabels:
+        app: open-webui
+    template:
+      metadata:
+        labels:
+          app: open-webui
+      spec:
+        serviceAccountName: core
+        automountServiceAccountToken: false
+        securityContext:
+          seccompProfile:
+            type: RuntimeDefault
+        containers:
+        - name: open-webui
+          image: ghcr.io/open-webui/open-webui:v0.11.4-slim@sha256:0487ad4a5a4b986062dedace806c3ef1e88fec38c10d1e64d6a5501c66671e5e
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8080
+          env:
+          - name: OPENAI_API_BASE_URL
+            value: http://litellm:4000/v1
+          - name: OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: open-webui-credentials
+                key: OPENAI_API_KEY
+          - name: ENABLE_OPENAI_API
+            value: 'True'
+          - name: ENABLE_OLLAMA_API
+            value: 'False'
+          - name: ENABLE_DIRECT_CONNECTIONS
+            value: 'False'
+          - name: ENABLE_DIRECT_INTEGRATIONS
+            value: 'False'
+          - name: ENABLE_CODE_EXECUTION
+            value: 'False'
+          - name: ENABLE_CODE_INTERPRETER
+            value: 'False'
+          - name: ENABLE_EVALUATION_ARENA_MODELS
+            value: 'False'
+          - name: ENABLE_COMMUNITY_SHARING
+            value: 'False'
+          - name: ENABLE_PERSISTENT_CONFIG
+            value: 'False'
+          - name: DEFAULT_MODEL_PARAMS
+            value: '{"function_calling":"legacy"}'
+          - name: ENABLE_SIGNUP
+            value: 'False'
+          - name: WEBUI_AUTH
+            value: 'True'
+          - name: WEBUI_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: open-webui-credentials
+                key: WEBUI_SECRET_KEY
+          - name: WEBUI_ADMIN_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: open-webui-credentials
+                key: WEBUI_ADMIN_EMAIL
+          - name: WEBUI_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: open-webui-credentials
+                key: WEBUI_ADMIN_PASSWORD
+          - name: WEBUI_URL
+            value: http://127.0.0.1:3080
+          - name: OFFLINE_MODE
+            value: 'True'
+          - name: HF_HUB_OFFLINE
+            value: '1'
+          - name: RAG_EMBEDDING_MODEL_AUTO_UPDATE
+            value: 'False'
+          - name: RAG_RERANKING_MODEL_AUTO_UPDATE
+            value: 'False'
+          - name: WHISPER_MODEL_AUTO_UPDATE
+            value: 'False'
+          - name: DO_NOT_TRACK
+            value: 'True'
+          - name: SCARF_NO_ANALYTICS
+            value: 'True'
+          volumeMounts:
+          - name: data
+            mountPath: /app/backend/data
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - NET_RAW
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '2'
+              memory: 2Gi
+          startupProbe:
+            httpGet: &id003
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 60
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet: *id003
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: *id003
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 6
+        volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: open-webui-data
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: default-deny
+    namespace: gatewayai
+  spec:
+    podSelector: {}
+    policyTypes:
+    - Ingress
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: dns
+    namespace: gatewayai
+  spec:
+    podSelector: {}
+    policyTypes:
+    - Egress
+    egress:
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53
+      - protocol: TCP
+        port: 53
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: postgres
+    namespace: gatewayai
+  spec:
+    podSelector:
+      matchLabels:
+        app: postgres
+    policyTypes:
+    - Ingress
+    - Egress
+    ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: litellm
+      ports:
+      - protocol: TCP
+        port: 5432
+    egress: []
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: litellm
+    namespace: gatewayai
+  spec:
+    podSelector:
+      matchLabels:
+        app: litellm
+    policyTypes:
+    - Ingress
+    - Egress
+    ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: open-webui
+      ports:
+      - protocol: TCP
+        port: 4000
+    egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: postgres
+      ports:
+      - protocol: TCP
+        port: 5432
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: open-webui
+    namespace: gatewayai
+  spec:
+    podSelector:
+      matchLabels:
+        app: open-webui
+    policyTypes:
+    - Ingress
+    - Egress
+    ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: traefik
+      ports:
+      - protocol: TCP
+        port: 8080
+    egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: litellm
+      ports:
+      - protocol: TCP
+        port: 4000
