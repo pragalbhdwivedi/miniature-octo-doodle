@@ -82,7 +82,9 @@ Storage conservation is a hard requirement.
 Follow the updated [roadmap](docs/ROADMAP.md); the milestone numbers above are
 historical implementation steps, not additional roadmap phases.
 
-- Phase 5: dedicated Debian control-plane VM, protected configuration and recovery.
+- Phase 5: dedicated Linux control-plane VM, protected configuration and recovery.
+  The user-selected template 9001 is Ubuntu 24.04; ADR 0012 supersedes Debian-only
+  target selection while retaining Debian compatibility.
   Start with [target admission](docs/DEBIAN_CONTROL_PLANE.md). Local k3d is developer
   validation only; it is not the AADI production architecture.
 - Phase 6: isolated coding worker with bounded shell/tests and no production authority.

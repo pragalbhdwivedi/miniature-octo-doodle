@@ -25,6 +25,7 @@ class DebianPreflightTests(unittest.TestCase):
     def test_supported_os_and_missing_facts(self):
         for version in ('12', '13'):
             self.assertEqual(preflight.evaluate({**self.facts, 'os_version': version})['status'], 'PASS')
+        self.assertEqual(preflight.evaluate({**self.facts, 'os_id': 'ubuntu', 'os_version': '24.04'})['status'], 'PASS')
         for facts in ({}, {**self.facts, 'os_id': 'ubuntu'}, {**self.facts, 'system': 'Windows'},
                       {**self.facts, 'os_version': '11'}):
             self.assertEqual(preflight.evaluate(facts)['status'], 'BLOCKED')
@@ -59,12 +60,22 @@ class DebianPreflightTests(unittest.TestCase):
                 self.assertEqual(cmd.call_args_list[0].args[0], ['docker', 'context', 'inspect'])
                 self.assertEqual(cmd.call_count, 1)
 
-    def test_non_debian_stops_before_engine_probe(self):
+    def test_unsupported_os_stops_before_engine_probe(self):
         with patch.object(preflight.platform, 'system', return_value='Linux'), \
-             patch.object(preflight.platform, 'freedesktop_os_release', return_value={'ID': 'ubuntu', 'VERSION_ID': '24.04'}), \
+             patch.object(preflight.platform, 'freedesktop_os_release', return_value={'ID': 'ubuntu', 'VERSION_ID': '22.04'}), \
              patch.object(preflight, 'inspect_local_engine') as engine:
             self.assertEqual(preflight.evaluate(preflight.collect('/srv'))['status'], 'BLOCKED')
             engine.assert_not_called()
+
+    def test_wsl_or_container_stops_before_engine_probe(self):
+        for kernel, detected in [('6.6-microsoft-standard-WSL2', ['kvm', None]), ('6.8-generic', [None, 'docker'])]:
+            with patch.object(preflight.platform, 'system', return_value='Linux'), \
+                 patch.object(preflight.platform, 'freedesktop_os_release', return_value={'ID': 'ubuntu', 'VERSION_ID': '24.04'}), \
+                 patch.object(preflight.platform, 'release', return_value=kernel), \
+                 patch.object(preflight, 'command', side_effect=detected), \
+                 patch.object(preflight, 'inspect_local_engine') as engine:
+                self.assertEqual(preflight.evaluate(preflight.collect('/srv'))['status'], 'BLOCKED')
+                engine.assert_not_called()
 
     def test_failed_command_does_not_disclose_stderr(self):
         with patch.object(preflight.subprocess, 'run') as run:

@@ -134,8 +134,11 @@ have not been migrated. See [ADR 0010](adr/0010-isolated-kubernetes-validation.m
 ## Operational progression and controller boundary
 
 The revised roadmap accepts Phase 4 as developer validation only. Next is a
-dedicated Debian VM running the core with Compose; full Kubernetes services are
-Phase 12. No Debian runtime is deployed yet. See [ADR 0011](adr/0011-debian-controller-progression.md).
+dedicated Linux VM running the core with Compose; full Kubernetes services are
+Phase 12. The user subsequently selected Ubuntu template 9001, superseding the
+Debian-only choice in [ADR 0011](adr/0011-debian-controller-progression.md).
+See [ADR 0012](adr/0012-template-9001-ubuntu-target.md). No Linux application
+runtime is deployed yet.
 
 Build an isolated worker (Phase 6), then a controller that refreshes each managed
 repository and works from Git alone (Phase 7). OpenViking/Graphify are later context

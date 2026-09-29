@@ -22,7 +22,7 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
 | Kubernetes developer validation (Phase 4) | COMPLETE | Revised PR #11 scope: dedicated k3d core, pod/PVC persistence, API/browser, isolation and synthetic policy pass; no live migration claim |
 | Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
-| Debian control-plane VM (Phase 5) | PARTIAL | Read-only preflight and acceptance plan prepared; target unidentified, deployment/startup/recovery NOT TESTED |
+| Linux control-plane VM (Phase 5) | PARTIAL | User-selected Ubuntu template cloned; guest/reboot/SSH checks pass through temporary isolated path; durable routed SSH and Docker/application deployment pending |
 | Ollama | NOT STARTED | Optional |
 | Local model | NOT STARTED | Optional |
 | OmniRoute | NOT STARTED | Optional |
@@ -33,6 +33,63 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## User-selected Proxmox VM creation - 2026-09-29
+
+The user explicitly requested a VM from template 9001. Refreshed GitHub main is
+still `3cf3b6d`; implementation continues on draft PR #12, based on PR #10 and
+including PR #11's roadmap. Live template inspection identified Ubuntu 24.04,
+so [ADR 0012](adr/0012-template-9001-ubuntu-target.md) records the explicit change
+from the earlier Debian-only target. Private addressing, keys and raw operator
+evidence remain outside this public repository.
+
+- **CREATED:** independent full QCOW2 clone, 4 vCPU / 8192 MiB / 60 GiB, on the
+  selected cluster node and existing shared storage. No backing file; new MAC,
+  SMBIOS UUID and generation identity. Existing VNet/firewall flag preserved;
+  no extra guest VLAN tag. Automatic host-boot startup enabled.
+- **PASS:** guest Ubuntu 24.04.5, expected hostname/address, 4 visible CPUs,
+  7.755 GiB RAM, expanded root filesystem and 55.20 GiB free after installation.
+  DNS and outbound HTTPS worked. No Docker/Compose or application service exists.
+- **PASS:** existing Windows and WSL RSA public keys authenticate as the template
+  administrator, including `sudo -n true`. Existing template authorized keys were
+  retained. No password was reset and no private SSH key was copied.
+- **Access limit:** direct routed SSH times out from the current laptop network
+  and Proxmox management network. Same-VNet ping/SSH works. A temporary isolated
+  network namespace on the target node supplied the SSH verification path. Its
+  address was checked against guest configurations and failed ARP resolution before
+  use. Target MAC matched Proxmox configuration; observed host key was pinned and
+  subsequently confirmed through the guest agent. The namespace/veth were removed
+  and absence checked. No router ACL, host routing or firewall policy was changed.
+  This does **not** establish durable administrator access.
+- **Fixed on this clone only:** template did not contain `qemu-guest-agent`.
+  Installed the Ubuntu package and `liburing2` (413 kB downloaded, approximately
+  1.3 MB package footprint). Guest-agent ping/exec now pass. Template unchanged.
+- **PASS:** controlled guest reboot changed boot ID; cloud-init completed, guest
+  agent activated automatically, disk/resources persisted, and both Windows/WSL
+  SSH and sudo passed again. This is guest reboot evidence, not Proxmox host reboot,
+  power-loss, application persistence or recovery evidence.
+- **PASS:** all 26 pre-existing guests retained their configuration hashes,
+  node identity and running/stopped status. No existing VM/volume was replaced.
+- **PASS:** 35 Windows unit tests, including native Ubuntu admission and WSL/
+  container rejection; all ten preflight tests also passed under WSL. Repository
+  YAML/security checks passed. Real VM preflight passes OS, VM, CPU/RAM, runtime
+  disk reserve and free application ports. Overall BLOCKED is expected because
+  Docker/Compose and their storage/service checks remain unavailable.
+- **Storage:** full clone reserved 60 GiB virtual capacity; final shared-storage
+  allocation reports 974,664,192 bytes root disk plus 30,208 bytes cloud-init.
+  Shared storage has 4,256,244,957,184 bytes available. These sparse/storage reports
+  are not backup capacity guarantees. Local C: sample 41.25 GiB free. No AI images,
+  model weights, provider credentials or live application data were transferred.
+- **Failures/limits:** clone progress reached 100% before its final task exit;
+  configuration lookup before completion correctly failed without mutation.
+  The local helper then rejected mixed progress/JSON output; independent task
+  status proved `OK`, and cloning was not retried. Configuration readback normalized
+  Proxmox's string-valued memory field before proceeding. Initial cloud-init
+  reported a deprecated `user` field with no errors; after reboot status was done.
+- **Next:** establish durable administrator SSH access, install the core Linux
+  Docker prerequisites, then implement and validate the zero-spend application
+  deployment. Phase 5 application/browser/backup/clean-host recovery remain pending.
+
 
 ## Updated roadmap, Phase 4 closeout and Phase 5 preparation - 2026-09-29
 

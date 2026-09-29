@@ -1,20 +1,29 @@
-# Phase 5: Dedicated Debian control plane
+# Phase 5: Dedicated Linux control plane
 
-Status: preparation PARTIAL. Read-only preflight implemented; target deployment
-NOT STARTED. No Debian VM has been identified, contacted or validated.
+The user selected Proxmox template 9001, verified as Ubuntu 24.04, on 2026-09-29.
+This supersedes the Debian-only target ([ADR 0012](adr/0012-template-9001-ubuntu-target.md)).
+This filename is retained for existing links. Native Ubuntu 24.04 and Debian 12/13
+are accepted by preflight; WSL/containers remain rejected.
+
+Status: PARTIAL. The selected Ubuntu VM is created and guest validation has passed.
+Docker/application deployment is NOT STARTED; target preflight correctly reports
+BLOCKED for missing Docker/Compose. Routed administrator SSH still requires a
+durable access path; temporary isolated SSH verification is not that path.
 
 ## Target and admission
 
-Provide the dedicated VM hostname/IP and SSH user or existing SSH alias. If the VM
-does not exist, identify its virtualization host and proposed resources first.
-Never paste keys/passwords into chat or commit them. Existing AADI, Docker Desktop
-and unrelated hosts are not implicit deployment targets.
+The selected template was cloned independently on the user-authorized Proxmox
+cluster. Private target addressing and SSH evidence are retained in the protected
+operator journal, not this public repository. Never paste keys/passwords into chat
+or commit them. Other AADI/Docker Desktop workloads are not deployment targets.
 
 Initial recommendation: Debian 13, 4 vCPU, 8 GiB RAM, 60 GiB disk, no GPU. Debian 12
 is also accepted by preflight. These are planning values, not measured capacity.
 The approved operator must first establish SSH access and install Git, Python 3.11+
 and the supported Docker Engine/Compose plugin. Installation is not automated yet.
-Use [Docker's Debian instructions](https://docs.docker.com/engine/install/debian/)
+For the selected template, use [Docker's Ubuntu instructions](https://docs.docker.com/engine/install/ubuntu/)
+(Ubuntu 24.04 support checked 2026-09-29). For Debian candidates use
+[Docker's Debian instructions](https://docs.docker.com/engine/install/debian/)
 and [Debian release information](https://www.debian.org/releases/index.html)
 (checked 2026-09-29; Debian 13 stable, Docker supports 12 and 13).
 
@@ -39,7 +48,7 @@ must be reviewed/redacted before including evidence in this public repository.
 
 Admission requires:
 
-- Native Debian 12/13 VM; Windows, Ubuntu/WSL and containers are rejected.
+- Native Debian 12/13 or Ubuntu 24.04 VM; Windows, WSL and containers are rejected.
 - At least 4 vCPU and 7 GiB visible RAM (allows kernel overhead on an 8 GiB VM).
 - Local Unix Docker endpoint; remote contexts and endpoint/TLS overrides rejected
   before any engine request. Linux Engine, not Docker Desktop.
@@ -83,7 +92,8 @@ to make preflight pass; resolve the target identity first.
    controller run-state/service boundaries without giving workers host authority;
    full worker/controller implementations belong to Phases 6/7.
 
-Phase 5 remains partial until its target runtime, recovery and operational evidence
+Phase 5 remains partial until its application runtime, recovery and operational evidence
 are recorded. The current live browser is `http://localhost:3000`; local Phase 4
-validation is `http://localhost:3080`. No remote Debian web address or new login
-exists yet. Existing local credentials remain in their protected local files.
+validation is `http://localhost:3080`. No remote GatewayAI web service or web login
+exists yet. The new VM administrator uses existing SSH keys; application credentials
+have not been provisioned. Existing local credentials remain in protected files.

@@ -10,7 +10,8 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
 restore and clean container rebuild COMPLETE for the tested same-host scope.
 Phase 4: COMPLETE for local developer Kubernetes validation.
-Phase 5: PARTIAL, Debian target preflight prepared; VM deployment NOT STARTED.**
+Phase 5: PARTIAL, selected Ubuntu VM created and guest checks passed;
+Docker/application deployment NOT STARTED.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -71,11 +72,14 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Identify the dedicated Debian VM (hostname/IP, SSH account or existing alias).
-Run the read-only [Debian preflight](docs/DEBIAN_CONTROL_PLANE.md) there, then
-implement Linux startup/private configuration and validate a fresh zero-spend core.
-No Debian target has been supplied or contacted. Existing Windows PowerShell
-startup/recovery scripts are not yet a validated Linux deployment path.
+Establish a durable administrator SSH path to the new control-plane VM, then
+install core Docker Engine/Compose and implement Linux startup/private configuration
+for a fresh zero-spend core. The user explicitly selected Proxmox template 9001,
+verified as Ubuntu 24.04.5; this supersedes the earlier Debian-only target.
+The VM is created. Both Windows and WSL public-key SSH/sudo passed through a
+temporary isolated test path. Direct routed SSH remains blocked; no router/ACL
+change was made. Existing Windows startup/recovery scripts are not a validated
+Linux application deployment path. See [the runbook](docs/DEBIAN_CONTROL_PLANE.md).
 
 Preserve existing chats, credentials and monthly budget history during any later
 explicitly approved migration. Zero-spend Kubernetes browser acceptance has passed.
@@ -89,13 +93,17 @@ Live Jev integration/evaluation/calibration remains deferred under ADR 0008.
 No optional modules or model weights were installed. See [Kubernetes operations](docs/KUBERNETES.md).
 
 ## Phase 5 preparation checkpoint
-- Implemented read-only Debian 12/13 VM preflight: local Engine/Compose, systemd,
+- Implemented read-only Debian 12/13 and Ubuntu 24.04 VM preflight: local Engine/Compose, systemd,
   CPU/RAM, both runtime and Docker storage reserves, fresh-target and loopback-port checks.
 - Guard tests cover unsupported hosts, remote Docker endpoints, occupied targets
   and disk thresholds. Real Windows and WSL Ubuntu runs correctly reject the host.
-- Target SSH, Debian runtime, startup/reboot, Linux secret permissions, backup,
-  off-machine restore and browser acceptance are NOT TESTED. Controller remains
-  planned; no controller process, optional image or model has been installed.
+- Independent full clone: 4 vCPU, 8 GiB RAM, 60 GiB disk; auto-start enabled.
+  Verified guest identity, disk expansion, DNS/HTTPS, administrator SSH keys/sudo
+  and QEMU guest agent. Target preflight passes OS/VM/resources/runtime disk/ports;
+  overall BLOCKED as expected because Docker/Compose are not installed.
+- Linux application startup, private application secrets, backup, off-machine
+  restore and browser acceptance remain NOT TESTED. No controller, optional
+  image, model or provider credentials were installed. See BUILD_STATUS for limits.
 
 ## Phase 4 local checkpoint
 - Dedicated k3d 5.9.0 / k3s 1.35.5 cluster; existing Docker Desktop context preserved.

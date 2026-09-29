@@ -61,11 +61,17 @@ it is not the production orchestration target for AADI.
 - no claim that a passing k3d test approves an AADI production cluster
 
 ## Phase 5 - Dedicated always-on control-plane VM
-Status: PARTIAL preparation; read-only target admission tooling and an
-[acceptance plan](DEBIAN_CONTROL_PLANE.md) exist. No Debian VM has been identified
-or deployed. Linux startup, secret provisioning and recovery remain unvalidated.
+Target update: the user selected Proxmox template 9001 (Ubuntu 24.04) on
+2026-09-29, superseding the original Debian-only choice below. See
+[ADR 0012](adr/0012-template-9001-ubuntu-target.md). Debian remains a supported
+candidate; the selected VM uses Ubuntu. Provider/policy contracts are unchanged.
 
-Move the proven core from the Windows/WSL2 development host to a dedicated Debian
+Status: PARTIAL; selected Ubuntu VM created and guest access/resources verified.
+Read-only admission passes host checks but remains BLOCKED for missing Docker.
+Durable routed SSH, Linux application startup, secret provisioning and recovery
+remain outstanding. See the [acceptance plan](DEBIAN_CONTROL_PLANE.md).
+
+Move the proven core from the Windows/WSL2 development host to the selected Linux
 VM without changing the repository's provider/policy contracts.
 
 - PostgreSQL
@@ -84,7 +90,7 @@ Target progression:
 ```text
 Windows + Docker/WSL2 development
         ->
-dedicated Debian control-plane VM
+dedicated Linux control-plane VM (selected Ubuntu template 9001)
         ->
 full Kubernetes deployment when scale/recovery evidence justifies it
 ```

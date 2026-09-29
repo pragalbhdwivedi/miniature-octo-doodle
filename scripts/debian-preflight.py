@@ -1,4 +1,7 @@
-"""Read-only, fresh Debian VM admission checks. Never installs or deploys services."""
+"""Read-only Linux VM admission checks (Debian 12/13 or Ubuntu 24.04).
+
+Filename retained for compatibility. Never installs or deploys services.
+"""
 import argparse
 import json
 import os
@@ -9,6 +12,12 @@ import socket
 import subprocess
 
 GIB = 1024 ** 3
+
+
+def supported_os(facts):
+    return facts.get('system') == 'Linux' and (
+        (facts.get('os_id') == 'debian' and facts.get('os_version') in ('12', '13')) or
+        (facts.get('os_id') == 'ubuntu' and facts.get('os_version') == '24.04'))
 
 
 def command(argv):
@@ -65,12 +74,13 @@ def collect(runtime_parent):
         facts.update(os_id=release.get('ID'), os_version=release.get('VERSION_ID'))
     except OSError:
         return facts
-    # An Ubuntu/WSL result must not become Debian deployment evidence.
-    if facts['os_id'] != 'debian' or facts['os_version'] not in ('12', '13'):
+    if not supported_os(facts):
         return facts
     facts['virtual_machine'] = bool(command(['systemd-detect-virt', '--vm']))
     facts['container'] = bool(command(['systemd-detect-virt', '--container']))
     facts['wsl'] = 'microsoft' in platform.release().lower()
+    if not facts['virtual_machine'] or facts['container'] or facts['wsl']:
+        return facts
     facts['cpu_count'] = os.cpu_count() or 0
     try:
         memory = next(line for line in Path('/proc/meminfo').read_text().splitlines() if line.startswith('MemTotal:'))
@@ -101,7 +111,7 @@ def evaluate(facts):
     def check(name, passed):
         checks.append({'check': name, 'passed': bool(passed)})
 
-    check('Debian 12 or 13 on Linux', facts.get('system') == 'Linux' and facts.get('os_id') == 'debian' and facts.get('os_version') in ('12', '13'))
+    check('Debian 12/13 or Ubuntu 24.04 on Linux', supported_os(facts))
     check('Dedicated VM candidate, not WSL/container', facts.get('virtual_machine') and not facts.get('container', True) and not facts.get('wsl', True))
     # Suggested VM sizing: 4 vCPU / 8 GiB. Linux reports slightly less than
     # allocated RAM, so the admission floor is 7 GiB, not an exact 8 GiB.

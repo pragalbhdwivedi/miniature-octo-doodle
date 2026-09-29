@@ -1,7 +1,7 @@
 # miniature-octo-doodle
 
 A modular, self-hosted AI development platform, developed on Windows + WSL2 with
-a dedicated Debian control-plane VM as the next operational target.
+a dedicated Linux control-plane VM as the next operational target.
 
 This repository is the permanent source of truth for the platform. It is designed to start lean on a laptop with limited free disk space, while preserving a documented path to a larger multi-agent coding system.
 
@@ -131,8 +131,11 @@ and loopback Ingress passes API, synthetic policy and zero-spend browser accepta
 checks. It uses fresh test data, zero budget and no cloud keys; Compose
 remains the live provider deployment. See [Kubernetes operations](docs/KUBERNETES.md).
 
-Phase 5 has started with a read-only [Debian target preflight and acceptance plan](docs/DEBIAN_CONTROL_PLANE.md).
-VM deployment awaits the target identity; Linux startup and recovery remain unvalidated.
+Phase 5 has started with a read-only [Linux target preflight and acceptance plan](docs/DEBIAN_CONTROL_PLANE.md).
+The user selected Proxmox template 9001 (Ubuntu 24.04), superseding the original
+Debian-only target. See [ADR 0012](docs/adr/0012-template-9001-ubuntu-target.md) and
+[current VM evidence](docs/BUILD_STATUS.md). Linux application startup and recovery
+remain unvalidated.
 The updated [roadmap](docs/ROADMAP.md) prioritizes an isolated worker, repository-driven
 controller and Telegram approvals before optional memory/code graph or local models.
 AADI is the first managed development project and retains its own production authority.
