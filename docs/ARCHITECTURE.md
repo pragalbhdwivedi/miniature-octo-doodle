@@ -130,3 +130,17 @@ per-service Secrets restrict credential distribution. Default-deny NetworkPolicy
 blank cloud keys and a zero allowance keep this fresh instance unable to spend.
 It operates independently of Compose. Existing Compose records and budget history
 have not been migrated. See [ADR 0010](adr/0010-isolated-kubernetes-validation.md).
+
+## Operational progression and controller boundary
+
+The revised roadmap accepts Phase 4 as developer validation only. Next is a
+dedicated Debian VM running the core with Compose; full Kubernetes services are
+Phase 12. No Debian runtime is deployed yet. See [ADR 0011](adr/0011-debian-controller-progression.md).
+
+Build an isolated worker (Phase 6), then a controller that refreshes each managed
+repository and works from Git alone (Phase 7). OpenViking/Graphify are later context
+enhancements, and Jev remains disabled until separately approved. Telegram is the
+sole planned approval channel; WhatsApp is excluded. Human authority remains
+required for merges, production deployments and other consequential actions.
+AADI retains its own architecture and acceptance gates and must operate without
+this development platform. See [the integration contract](AADI_DEVELOPMENT_INTEGRATION.md).

@@ -61,6 +61,10 @@ it is not the production orchestration target for AADI.
 - no claim that a passing k3d test approves an AADI production cluster
 
 ## Phase 5 - Dedicated always-on control-plane VM
+Status: PARTIAL preparation; read-only target admission tooling and an
+[acceptance plan](DEBIAN_CONTROL_PLANE.md) exist. No Debian VM has been identified
+or deployed. Linux startup, secret provisioning and recovery remain unvalidated.
+
 Move the proven core from the Windows/WSL2 development host to a dedicated Debian
 VM without changing the repository's provider/policy contracts.
 

@@ -9,7 +9,8 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 ## Current phase
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
 restore and clean container rebuild COMPLETE for the tested same-host scope.
-Phase 4: PARTIAL, isolated zero-spend Kubernetes core passes API and browser acceptance.**
+Phase 4: COMPLETE for local developer Kubernetes validation.
+Phase 5: PARTIAL, Debian target preflight prepared; VM deployment NOT STARTED.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -20,6 +21,11 @@ merged at `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
 Phase 4 implementation: [PR #10](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/10),
 branch `feat/phase4-kubernetes`, based on that main commit; not yet merged.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
+
+The updated roadmap from open PR #11 (`223bb00`) makes the dedicated Debian VM
+Phase 5, followed by isolated worker, controller and Telegram approvals. It is
+integrated with PR #10 on `feat/phase5-debian-foundation` for review; neither PR
+has been merged to main. Local model installation is an optional lane, not next.
 
 ## Hardware baseline
 - Windows 11
@@ -65,8 +71,14 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Agree the intended Kubernetes target and migration scope before moving existing
-chats, credentials and budget history. Zero-spend browser acceptance has passed.
+Identify the dedicated Debian VM (hostname/IP, SSH account or existing alias).
+Run the read-only [Debian preflight](docs/DEBIAN_CONTROL_PLANE.md) there, then
+implement Linux startup/private configuration and validate a fresh zero-spend core.
+No Debian target has been supplied or contacted. Existing Windows PowerShell
+startup/recovery scripts are not yet a validated Linux deployment path.
+
+Preserve existing chats, credentials and monthly budget history during any later
+explicitly approved migration. Zero-spend Kubernetes browser acceptance has passed.
 The local k3d deployment is an isolated validation instance: no provider keys,
 zero spending, fresh data, Jev disabled. It does not replace the Compose gateway.
 Off-machine backup and new-machine recovery remain unvalidated; the user's pause
@@ -75,6 +87,15 @@ does not establish recovery on a separate machine or authorize a remote target.
 
 Live Jev integration/evaluation/calibration remains deferred under ADR 0008.
 No optional modules or model weights were installed. See [Kubernetes operations](docs/KUBERNETES.md).
+
+## Phase 5 preparation checkpoint
+- Implemented read-only Debian 12/13 VM preflight: local Engine/Compose, systemd,
+  CPU/RAM, both runtime and Docker storage reserves, fresh-target and loopback-port checks.
+- Guard tests cover unsupported hosts, remote Docker endpoints, occupied targets
+  and disk thresholds. Real Windows and WSL Ubuntu runs correctly reject the host.
+- Target SSH, Debian runtime, startup/reboot, Linux secret permissions, backup,
+  off-machine restore and browser acceptance are NOT TESTED. Controller remains
+  planned; no controller process, optional image or model has been installed.
 
 ## Phase 4 local checkpoint
 - Dedicated k3d 5.9.0 / k3s 1.35.5 cluster; existing Docker Desktop context preserved.
@@ -132,15 +153,16 @@ No optional modules or model weights were installed. See [Kubernetes operations]
   text-only requests, cost ceilings and remaining validation limits.
 - The discussion catalogue is in `docs/MODELS_AND_SKILLS.md`.
 
-## Deferred / optional
+## Later phases / optional
 - Anthropic / Claude
 - OmniRoute
 - Ollama
 - local LLM
 - OpenViking
 - Graphify
-- coding agent
-- Agent Controller
+- isolated coding worker (Phase 6)
+- Agent Controller (Phase 7)
+- Telegram approvals (Phase 8; WhatsApp excluded)
 - Kubernetes live provider/data cutover
 - extended observability
 

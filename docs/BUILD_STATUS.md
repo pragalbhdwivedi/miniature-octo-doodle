@@ -20,17 +20,66 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Budget controls | COMPLETE | US$100/month UTC conservative admission ledger; atomic race, zero/exhausted budget, concurrency, rollover and restart persistence tested |
 | Backup / restore | COMPLETE | Same-host cold backup and isolated restore tested 2026-09-29; off-machine/cutover limits below |
 | Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
-| Kubernetes base | PARTIAL | Dedicated k3d core ready; pod/PVC persistence, isolation and synthetic policy pass; provider/data migration pending |
+| Kubernetes developer validation (Phase 4) | COMPLETE | Revised PR #11 scope: dedicated k3d core, pod/PVC persistence, API/browser, isolation and synthetic policy pass; no live migration claim |
 | Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
+| Debian control-plane VM (Phase 5) | PARTIAL | Read-only preflight and acceptance plan prepared; target unidentified, deployment/startup/recovery NOT TESTED |
 | Ollama | NOT STARTED | Optional |
 | Local model | NOT STARTED | Optional |
 | OmniRoute | NOT STARTED | Optional |
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
-| Coding agent | NOT STARTED | Optional |
-| Agent Controller | NOT STARTED | Planned |
+| Isolated coding worker | NOT STARTED | Phase 6, before context/local models |
+| Agent Controller | NOT STARTED | Phase 7; independent of AADI production |
+| Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## Updated roadmap, Phase 4 closeout and Phase 5 preparation - 2026-09-29
+
+Refreshed main: `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
+Phase 4 open PR #10: `1130fcf23223b3a7a85049be0ea345e1c91b60ee`.
+User roadmap open PR #11: `223bb00a9b57efed54a90bee9cffa9012cf03364`.
+Both histories are integrated for review on `feat/phase5-debian-foundation`;
+main and the existing PR branches are unchanged.
+
+- **Scope reconciliation:** PR #11 explicitly makes Phase 4 local developer
+  validation only. Existing browser/PVC evidence plus the fresh runtime suite
+  satisfy that scope, so Phase 4 is COMPLETE. This supersedes the older PARTIAL
+  wording below; live migration was not performed or silently marked tested.
+- **PASS, current runtime:** `scripts/kubernetes.ps1 test` passed internal admin
+  login, restricted-key administration denial, eight aliases and zero-budget
+  rejection; HTTP Ingress/auth/model discovery through both localhost names;
+  gateway-to-DB allowance, UI-to-DB and external TCP denial; native synthetic
+  primary/503/429 fallback, provider/private/tool/override policy, streaming,
+  concurrency and exhausted budget. No provider request or deployment change.
+- **Prior measured evidence retained:** the browser screenshot and all-three-pod
+  recreation with Compose stopped were not repeated; their configuration has not
+  changed. Those results remain recorded in the entries below.
+- **Implemented:** read-only `scripts/debian-preflight.py` and
+  [Debian acceptance plan](DEBIAN_CONTROL_PLANE.md). No installer, Linux secret
+  generator, startup wrapper, controller runtime or Linux backup implementation
+  is claimed. Main continues to contain only the merged Phase 1-3 implementation.
+- **PASS:** 34 Python unit tests on Windows, including nine Debian preflight
+  guard tests; those nine also passed under WSL Ubuntu. Repository safety/YAML
+  checks and configuration/storage regressions passed. Native Windows and WSL
+  Ubuntu 24.04 preflight runs both
+  exited 1 with BLOCKED as intended, before any Docker request. Fixture acceptance
+  is not Debian-machine evidence.
+- **Storage:** C: 41.33 GiB before work, 41.30 GiB after tests (concurrent host
+  activity included). Docker inventory: 40 images / 18.5 GB,
+  67 containers / 34 running, 21 volumes / 4.287 GB and 10.11 GB build cache.
+  Only small source/documentation files added; no image/model install, runtime
+  volumes, destructive cleanup, target connection or live-data migration.
+- **Pending:** VM identity/SSH access, actual Debian preflight, Linux deployment
+  and secret permissions, browser/provider acceptance, reboot and recovery.
+  Off-machine backups/new-machine recovery retain their explicit unvalidated
+  status and the user's prior pause. No new remote web address/login exists.
+- **Next:** identify the dedicated VM, run read-only target admission and implement
+  the Linux fresh zero-spend deployment path before any approved live cutover.
+
+The later order is isolated worker, controller, Telegram-only approvals, then
+context and advanced orchestration. Optional models remain uninstalled; Jev stays
+disabled. See [ADR 0011](adr/0011-debian-controller-progression.md).
 
 ## Phase 4 browser acceptance follow-up - 2026-09-29
 

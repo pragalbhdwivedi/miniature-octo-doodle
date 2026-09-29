@@ -1,6 +1,7 @@
 # miniature-octo-doodle
 
-A modular, self-hosted AI development platform for a Windows + WSL2 workstation.
+A modular, self-hosted AI development platform, developed on Windows + WSL2 with
+a dedicated Debian control-plane VM as the next operational target.
 
 This repository is the permanent source of truth for the platform. It is designed to start lean on a laptop with limited free disk space, while preserving a documented path to a larger multi-agent coding system.
 
@@ -125,7 +126,13 @@ tested and merged through [PR #9](https://github.com/pragalbhdwivedi/miniature-o
 blocks recovery-copy cloud access and retains all data. Off-machine disaster
 recovery and production cutover are separate, unvalidated steps.
 
-Phase 4 has started: an isolated k3d core with persistent volumes, network policies
+Phase 4 developer validation is complete: an isolated k3d core with persistent volumes, network policies
 and loopback Ingress passes API, synthetic policy and zero-spend browser acceptance
 checks. It uses fresh test data, zero budget and no cloud keys; Compose
 remains the live provider deployment. See [Kubernetes operations](docs/KUBERNETES.md).
+
+Phase 5 has started with a read-only [Debian target preflight and acceptance plan](docs/DEBIAN_CONTROL_PLANE.md).
+VM deployment awaits the target identity; Linux startup and recovery remain unvalidated.
+The updated [roadmap](docs/ROADMAP.md) prioritizes an isolated worker, repository-driven
+controller and Telegram approvals before optional memory/code graph or local models.
+AADI is the first managed development project and retains its own production authority.
