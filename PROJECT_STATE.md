@@ -23,7 +23,7 @@ See `docs/BUILD_STATUS.md` for measured results, including live provider and Edg
 - Docker Desktop + WSL2 expected
 
 ## Canonical architecture
-Open WebUI / coding agent -> Agent Controller -> OpenViking + Graphify + Git/GitHub -> LiteLLM -> OpenAI / Gemini / Claude / OmniRoute / optional Ollama.
+Open WebUI / coding agent -> Agent Controller -> OpenViking + Graphify + Git/GitHub -> deterministic policy -> TypeSafe Jev decision layer -> LiteLLM -> OpenAI / Gemini / Claude / OmniRoute / optional Ollama/llama.cpp.
 
 ## Installed
 Preflight validated Windows 11, Docker Desktop 29.8.0 / Compose 5.5.1,
@@ -57,14 +57,22 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Review PR #6, then implement Phase 2 gateway aliases, routing/fallback policy,
-budgets and local-private isolation. These controls are not yet implemented;
+Review PR #6, then implement Phase 2 deterministic policy, TypeSafe Jev synthetic evaluation, gateway aliases, routing/fallback policy, budgets and local-private isolation. These controls are not yet implemented;
 Phase 1 completion is not production or recovery certification. Recovery,
 Kubernetes and optional modules remain later phases. NAT applies to all WSL2
 distributions; direct WSL LAN access and
 Linux-to-Windows localhost semantics change. All 31 running workload identities
 and six volumes were preserved; unrelated applications were not functionally tested.
 No reboot, firewall changes or data deletion was performed.
+
+## Phase 2 design checkpoint
+- TypeSafe Jev is the selected structured decision-layer evaluation target.
+- Deterministic policy remains authoritative for data classes, provider allowlists, tools, spend limits and human approval.
+- LiteLLM remains the mandatory execution gateway.
+- Jev is **not installed or tested yet**; no TypeSafe API key or runtime state is present in this repository.
+- Low-confidence/outage behavior must fail to deterministic routing or human review.
+- Provider fallback must never broaden data exposure.
+- The discussion catalogue is in `docs/MODELS_AND_SKILLS.md`.
 
 ## Deferred / optional
 - Anthropic / Claude

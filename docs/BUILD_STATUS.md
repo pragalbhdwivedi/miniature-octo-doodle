@@ -14,6 +14,8 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
 | Browser acceptance | COMPLETE | Edge sign-in and temporary chat responses passed 2026-09-29; no alternate browser method needed |
 | OpenAI provider | COMPLETE | gpt-5.4-mini via openai-chat: live gateway HTTP 200/exact OK and browser response passed |
 | Gemini provider | COMPLETE | gemini-3.1-flash-lite via gemini-chat: live gateway HTTP 200/exact OK and browser response passed |
+| Deterministic policy layer | NOT STARTED | Phase 2 design documented; runtime not implemented |
+| TypeSafe Jev decision layer | NOT STARTED | Phase 2 evaluation target documented; no API/runtime integration yet |
 | Routing / fallback | NOT STARTED | |
 | Budget controls | NOT STARTED | |
 | Backup / restore | NOT STARTED | |
@@ -28,6 +30,14 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
 | Agent Controller | NOT STARTED | Planned |
 
 A documented architecture is not implementation evidence.
+
+## Phase 2 design checkpoint - 2026-09-29
+
+- Added a reviewed target separation: deterministic policy -> TypeSafe Jev structured decision -> LiteLLM provider/model execution.
+- Jev may be evaluated for choice/score/probability tasks such as task class, complexity, risk, routing and escalation; it cannot grant permissions or override hard policy.
+- Acceptance now requires synthetic labelled cases, calibration/low-confidence behavior, Jev outage handling, provider outage/quota handling, and proof that local-private and other fallbacks do not broaden data exposure.
+- No Jev service, API key, container, package, model, third-party skill or optional provider was installed by this documentation change.
+- The researched model/tool/skill inventory is recorded in `docs/MODELS_AND_SKILLS.md`; catalogue membership is not installation or approval evidence.
 
 ## Milestone 0 - 2026-09-29 (Asia/Calcutta)
 

@@ -23,6 +23,15 @@ This repository is the permanent source of truth for the platform. It is designe
           │                    │                    │
           └────────────────────┼────────────────────┘
                                │
+                    ┌──────────▼──────────┐
+                    │ Deterministic Policy│
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │ TypeSafe Jev       │
+                    │ decision layer      │
+                    └──────────┬──────────┘
+                               │
                         ┌──────▼──────┐
                         │ AI GATEWAY  │
                         │  LiteLLM    │
@@ -57,10 +66,14 @@ The initial target machine has approximately 50 GB free on a 256 GB NVMe drive. 
 - OpenViking
 - Graphify
 - Coding agent
+- TypeSafe Jev decision layer (Phase 2 evaluation)
 - Agent Controller
+- Security-scanned reusable agent skills
 - Extended observability
 
 No optional component may be downloaded merely because it appears in the architecture.
+
+The control plane deliberately separates **authority**, **decision intelligence**, and **model execution**: deterministic policy decides what is permitted; Jev may help choose among already-permitted routes; LiteLLM executes the approved provider/model route. A Jev or LLM result cannot grant itself broader access.
 
 ## Source-of-truth rule
 
@@ -99,4 +112,4 @@ guarded Windows startup, health checks and provider templates. See
 [Quick Start](docs/QUICK_START.md), [PROJECT_STATE.md](PROJECT_STATE.md) and
 [tested build evidence](docs/BUILD_STATUS.md). Both providers and Edge browser
 chat are validated on the target machine; PR review/merge remains pending.
-No optional component is installed by this project.
+No optional component is installed by this project. Phase 2 now includes a synthetic-only TypeSafe Jev evaluation before any Jev-backed routing is enabled. See [Models and Skills](docs/MODELS_AND_SKILLS.md).

@@ -58,8 +58,13 @@ Storage conservation is a hard requirement.
 - configurable model aliases
 
 ### Milestone 4
+- deterministic request/data policy layer
+- TypeSafe Jev structured decision/routing evaluation using synthetic labelled cases
 - routing, fallbacks, budgets
 - local-private route with no cloud fallback
+- low-confidence/Jev-outage deterministic fallback
+- provider outage/quota tests
+- prove fallback cannot broaden data exposure
 
 ### Milestone 5
 - Docker backup/rebuild validation
@@ -71,12 +76,13 @@ Storage conservation is a hard requirement.
 - do not duplicate local model storage
 
 ### Later milestones
-- Ollama
+- Ollama / llama.cpp
 - one small local coding model
 - OmniRoute
 - OpenViking
 - Graphify
 - coding agent
+- security-scanned reusable agent skills
 - Agent Controller
 - expanded observability
 
@@ -104,6 +110,14 @@ Capability aliases should be configurable, for example:
 
 Do not permanently hard-code provider model names. Verify currently supported provider/model identifiers at implementation time.
 
+## Decision separation
+Never merge permission and model selection into one probabilistic prompt.
+
+- deterministic policy decides what is allowed
+- Jev may help decide among already-permitted routes
+- LiteLLM executes the selected approved provider/model route
+- human approval remains mandatory where configured
+
 ## Security
 - `.env` is local only.
 - commit only `.env.example`.
@@ -111,6 +125,8 @@ Do not permanently hard-code provider model names. Verify currently supported pr
 - no unrestricted Docker socket.
 - no arbitrary host shell from web UI.
 - no production credentials.
+- no cloud fallback from a local-only route.
+- third-party skills/plugins require review before activation.
 
 ## Required deliverables
 Maintain:
@@ -122,6 +138,7 @@ Maintain:
 - `docs/SECURITY.md`
 - `docs/ROADMAP.md`
 - ADRs for material architecture decisions
+- `docs/MODELS_AND_SKILLS.md` as the non-approved research catalogue
 
 At the end of every milestone record:
 - what changed
