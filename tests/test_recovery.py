@@ -16,6 +16,18 @@ spec.loader.exec_module(recovery)
 
 
 class RecoveryTests(unittest.TestCase):
+    def test_snapshot_fingerprints_use_portable_keys_and_detect_edits(self):
+        with tempfile.TemporaryDirectory() as temp, patch.object(recovery, 'REPO', Path(temp)):
+            root=Path(temp)
+            for name in ('.env','compose.yaml','config/litellm/config.local.yaml','config/policy/policy.local.json','gateway/callbacks.py'):
+                path=root/name
+                path.parent.mkdir(parents=True,exist_ok=True)
+                path.write_text('fixture')
+            before=recovery.source_fingerprints()
+            self.assertIn('config/policy/policy.local.json',before)
+            (root/'config/policy/policy.local.json').write_text('edited')
+            self.assertNotEqual(before,recovery.source_fingerprints())
+
     def test_running_environment_drift_rejected_without_secret_output(self):
         config={'services':{'postgres':{'image':'pin','environment':{'POSTGRES_PASSWORD':'new-secret'},'volumes':[]}}}
         image={'pin':{'Config':{'Env':['PATH=/bin']}}}

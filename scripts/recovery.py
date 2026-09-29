@@ -160,7 +160,7 @@ def assert_running_config(config, containers, images):
 def source_fingerprints():
     files = [REPO/'.env', REPO/'compose.yaml', REPO/'config/litellm/config.local.yaml',
              REPO/'config/policy/policy.local.json', *sorted((REPO/'gateway').rglob('*.py'))]
-    return {str(p.relative_to(REPO)): sha(p) for p in files}
+    return {p.relative_to(REPO).as_posix(): sha(p) for p in files}
 
 
 def backup(root):
