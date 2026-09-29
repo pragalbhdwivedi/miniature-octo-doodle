@@ -39,9 +39,16 @@ A documented architecture is not implementation evidence.
 - Added exact effective environment and mount checks, conservative bound-file
   freshness checks, PostgreSQL TCP password verification and source fingerprint
   checks before/during capture. Configuration drift fails without exposing secrets.
-- All 21 offline tests passed, including changed/removed environment settings,
+- All 22 offline tests passed, including changed/removed environment settings,
   post-start configuration edits and a wrong bind source. Read-only validation of
   the actual three-service deployment passed against the new guard.
+- Updated backup path PASSED on the target machine: `backup-20260929T134402Z`,
+  71,645,374 bytes, source `e8be7cc`; running-config/TCP-password checks, archive
+  verification and restart health passed, with 49.21 s core interruption. No new
+  restore namespace or volume was needed for this backup-only review change.
+  Free C: 45.42 GiB; no images pulled. Initial retry caught a Windows fingerprint
+  key separator mismatch before stopping services; normalized portable keys and
+  added a regression test. That incomplete bundle has no completion manifest.
 - New-machine validation was requested and then explicitly paused by the user
   until their Kubernetes setup is running. Off-machine backup and new-machine
   recovery remain unvalidated; no VM, Kubernetes runtime or remote transfer was
