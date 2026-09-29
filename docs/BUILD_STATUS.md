@@ -33,6 +33,9 @@ A documented architecture is not implementation evidence.
 
 ## Milestone 4 - 2026-09-29, 13:15 IST
 
+Implementation review: [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8).
+The target machine runs this implementation; main contains merged Phase 1 only.
+
 - Refreshed GitHub, reviewed PR #6 and its checks/diff against the repository
   instructions, reran core/configuration validation and found no blocking review
   issue. Marked ready and merged with the reviewed head pinned; main merge commit

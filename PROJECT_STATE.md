@@ -13,6 +13,8 @@ PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was rev
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
 Phase 2 branch: `feat/phase2-policy`, based on that main commit and incorporating
 the updated design from PR #7 without replacing its history.
+Review: [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8),
+open for review; not merged to main.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
 ## Hardware baseline
