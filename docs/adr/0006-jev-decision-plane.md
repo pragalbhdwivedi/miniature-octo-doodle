@@ -1,7 +1,9 @@
 # ADR 0006: Separate policy, Jev decisions, and model execution
 
 ## Status
-Accepted design direction for Phase 2; runtime implementation and validation are pending.
+Accepted design direction. The deterministic runtime is implemented and validated.
+Jev is explicitly disabled by user decision; [ADR 0008](0008-phase2-acceptance-jev-disabled.md)
+defers live evaluation/calibration and activation beyond Phase 2 acceptance.
 
 ## Context
 The platform needs to choose among local and cloud models without allowing cost, availability, or an AI-generated routing decision to weaken privacy, provider allowlists, tool permissions, or human approval.

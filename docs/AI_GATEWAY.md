@@ -66,6 +66,10 @@ Fallback must stay inside the same or a stricter trust/data class.
 OmniRoute remains optional and experimental. Free or aggregated providers must not receive private workloads merely because another route is unavailable or cheaper.
 
 ## Phase 2 acceptance targets
+The user approved Phase 2 completion with Jev disabled; see
+[ADR 0008](adr/0008-phase2-acceptance-jev-disabled.md). Live Jev accuracy/calibration
+below is a deferred activation gate, not a prerequisite for the disabled deployment.
+
 Before marking routing COMPLETE:
 - deterministic deny rules win over Jev/model output
 - Jev accuracy/calibration tested on labelled synthetic cases

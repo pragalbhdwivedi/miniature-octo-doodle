@@ -7,14 +7,14 @@
 Modular local/cloud AI coding platform with a single AI gateway, browser UI, optional agent memory/code graph, and future multi-agent orchestration.
 
 ## Current phase
-**Phase 1: COMPLETE and merged. Phase 2: PARTIAL; deterministic core deployed, live Jev evaluation pending.**
+**Phase 1: COMPLETE and merged. Phase 2: COMPLETE with Jev explicitly disabled.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
 Phase 2 branch: `feat/phase2-policy`, based on that main commit and incorporating
 the updated design from PR #7 without replacing its history.
 Review: [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8),
-open for review; not merged to main.
+contains the tested implementation; GitHub records its delivery/merge status.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
 ## Hardware baseline
@@ -61,10 +61,11 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Review the Phase 2 implementation PR. Live Jev evaluation/calibration stays pending
-the user's TypeSafe key and a separately bounded synthetic evaluation. The next
-implementation milestone after Phase 2 acceptance is Phase 3 backup/restore,
-including the new policy ledger. Local validation is not production or recovery certification. Recovery,
+Phase 3 backup/restore, including the policy ledger, is next. Phase 2 is accepted
+with Jev disabled under `docs/adr/0008-phase2-acceptance-jev-disabled.md`.
+Live Jev integration/evaluation/calibration is deferred to a separately reviewed
+and authorized change with a key and evaluation allowance. Local validation is
+not production or recovery certification. Recovery,
 Kubernetes and optional modules remain later phases. NAT applies to all WSL2
 distributions; direct WSL LAN access and
 Linux-to-Windows localhost semantics change. All 31 running workload identities
@@ -76,8 +77,11 @@ No reboot, firewall changes or data deletion was performed.
 - Deterministic policy remains authoritative for data classes, provider allowlists, tools, spend limits and human approval.
 - LiteLLM remains the mandatory execution gateway.
 - Jev Choice parsing and authority/failure contracts are tested with synthetic fixtures.
-  Live Jev requests, accuracy, domain evaluation and calibration are **pending** by
+  Live Jev integration, accuracy, domain evaluation and calibration are **deferred** by
   user instruction; a blank local key field exists but is not passed to containers.
+- Deterministic mode and `jev_enabled: false` are explicit. Renderer and gateway
+  startup reject activation, even if a key is present. This is a tested disabled
+  boundary, not a claim that live Jev integration is ready.
 - Six capability aliases plus the two legacy aliases are deployed. Native HTTP
   outage/quota fallback, provider restrictions, private/local-only denial, streaming,
   atomic budgets and concurrency tests pass. No local provider is installed.

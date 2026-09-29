@@ -14,9 +14,10 @@
 - Gemini
 
 ## Phase 2 - Gateway intelligence and decision plane
-Status: PARTIAL. Deterministic routing, fallbacks and conservative budgets are
-implemented and locally tested. Jev wire/authority contract tests are synthetic;
-live evaluation/calibration remains pending a key. No optional module is installed.
+Status: COMPLETE with Jev disabled by user decision ([ADR 0008](adr/0008-phase2-acceptance-jev-disabled.md)).
+Deterministic routing, fallbacks and conservative budgets are deployed and tested.
+Jev wire/authority contract tests are synthetic; live integration, evaluation and
+calibration are deferred until separately authorized. No optional module is installed.
 
 - deterministic policy layer
 - model aliases

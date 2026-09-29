@@ -27,5 +27,6 @@ host; distributed gateway operation is outside this validation.
 
 PR #6 was reviewed and merged to main at `301e3a13a021fedfaa8418759661736fe784fb33`.
 This implementation incorporates the design commit from PR #7 and addresses the
-deterministic portion of issue #3. Phase 2 remains partial while live Jev evidence
-is pending. See [policy operations](../PHASE2_POLICY.md).
+deterministic portion of issue #3. The user subsequently accepted Phase 2 with
+Jev disabled in [ADR 0008](0008-phase2-acceptance-jev-disabled.md); live Jev evidence
+remains a deferred activation gate. See [policy operations](../PHASE2_POLICY.md).

@@ -114,5 +114,7 @@ budget on `feat/phase2-policy`, incorporating the design from PR #7. See
 [tested build evidence](docs/BUILD_STATUS.md). Both providers and Edge browser
 chat are validated on the target machine. See [policy operations](docs/PHASE2_POLICY.md)
 for limits and budget semantics. New installations default to zero spending.
-Phase 2 remains PARTIAL: live TypeSafe Jev evaluation/calibration is pending a key.
+Phase 2 is COMPLETE for the accepted deterministic scope, with Jev explicitly
+disabled by user decision. Live Jev integration/evaluation/calibration is deferred;
+see [ADR 0008](docs/adr/0008-phase2-acceptance-jev-disabled.md).
 No optional component is installed by this project. See [Models and Skills](docs/MODELS_AND_SKILLS.md).

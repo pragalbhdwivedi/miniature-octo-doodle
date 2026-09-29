@@ -63,7 +63,11 @@ Future orchestration layer for architect, implementer, tester, reviewer, securit
 Hard rules decide whether a task is permitted, which data classification applies, whether cloud execution is allowed, which tools are available, whether a human approval is mandatory, and which spend/concurrency limits apply. A probabilistic model cannot override these rules.
 
 ### TypeSafe Jev
-Planned Phase 2 structured decision layer. Where validated, Jev may return typed choices, scores, or probabilities for task classification, complexity, routing, risk, or escalation. Jev is decision intelligence, not authority and not a generative coding model.
+Disabled for Phase 2 by user decision, with offline Choice/authority contracts
+prepared. Live integration/evaluation and activation remain deferred under ADR 0008.
+Where subsequently validated, Jev may return typed choices, scores, or probabilities
+for task classification, complexity, routing, risk, or escalation. Jev is decision
+intelligence, not authority and not a generative coding model.
 
 If Jev is unavailable, outside the evaluated task domain, malformed, or below the configured confidence/calibration threshold, the controller must use a deterministic fallback, fixed compliant route, or human review.
 

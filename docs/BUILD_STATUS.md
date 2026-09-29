@@ -1,6 +1,6 @@
 # Build Status
 
-Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
+Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
 | Subsystem | Status | Evidence |
 |---|---|---|
@@ -15,7 +15,7 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
 | OpenAI provider | COMPLETE | gpt-5.4-mini via openai-chat: live gateway HTTP 200/exact OK and browser response passed |
 | Gemini provider | COMPLETE | gemini-3.1-flash-lite via gemini-chat: live gateway HTTP 200/exact OK and browser response passed |
 | Deterministic policy layer | COMPLETE | Local text-only scope; declared classification, provider restrictions, tools/approval denies tested before upstream execution |
-| TypeSafe Jev decision layer | PARTIAL | Offline Choice/authority contracts tested; live evaluation/calibration pending key; runtime disabled |
+| TypeSafe Jev decision layer | DEFERRED | Explicitly disabled per user instruction/ADR 0008; offline contracts and activation rejection tested; live integration/calibration unvalidated |
 | Routing / fallback | COMPLETE | Eight cloud aliases; one approved fallback; native 503/429 tests and live capability/browser validation |
 | Budget controls | COMPLETE | US$100/month UTC conservative admission ledger; atomic race, zero/exhausted budget, concurrency, rollover and restart persistence tested |
 | Backup / restore | NOT STARTED | |
@@ -30,6 +30,54 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED.
 | Agent Controller | NOT STARTED | Planned |
 
 A documented architecture is not implementation evidence.
+
+## Milestone 4 completion - 2026-09-29, 15:32 IST
+
+**Phase 2 is COMPLETE for the accepted deterministic scope with Jev disabled.**
+[ADR 0008](adr/0008-phase2-acceptance-jev-disabled.md) records the user's revised
+acceptance scope. Delivery: [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8);
+GitHub records its merge status. Historical partial entries below are superseded.
+
+- Fixed the PR review finding: runtime probes now derive provider expectations
+  and support both providers, OpenAI only, Gemini only and neither provider.
+  The full four-mode pinned-image HTTP matrix PASSED, including every advertised
+  alias and deterministic provenance headers. Single-provider outages fail within
+  their allowed attempts; no-provider startup remains healthy with inference denied.
+- All 14 offline tests PASSED. Renderer/storage regressions, repository security
+  checks and Compose syntax PASSED. Explicit deterministic/disabled configuration
+  is enforced at render and startup; providing a Jev key cannot activate calls.
+- HTTP matrix PASSED: 503/429 fallback bounds, privacy/local isolation, tool and
+  approval denial, provider restrictions, forged ownership, concurrent admission,
+  budget exhaustion, streaming and slot release. All upstreams were synthetic.
+- Streaming now records `stream_completed` or `stream_incomplete` for the final
+  attempt without overwriting an earlier failed attempt. Offline tests and the
+  HTTP matrix validate this; live browser streams for both providers recorded
+  `stream_completed`. Historical `pending` rows are preserved.
+- Recreated only LiteLLM using existing images (`--pull never`). All three core
+  services and full Windows/internal authentication/discovery checks PASSED,
+  including `localhost` and `127.0.0.1`. An initial smoke invocation ran before
+  readiness and failed its health assertion; the completed Compose health wait
+  and subsequent full smoke run passed. No global Docker/WSL restart was needed.
+- Bounded live probes (64-token output cap) PASSED HTTP 200/exact `OK`:
+  `coding-standard` 2.27 s, 14/4 prompt/completion tokens; `coding-fast` 3.39 s,
+  9/1 tokens; `gemini-chat` 2.91 s, 9/1 tokens. A three-alias probe invocation was
+  rejected by the script's two-alias limit before inference, then run in two batches.
+- Edge temporary chat rendered `PHASE2_READY` from `coding-fast` and
+  `STANDARD_READY` from `coding-standard`. Local ignored proof:
+  `tmp/phase2-complete-browser.png`. Browser follow-up generation is additional
+  traffic and is not included in the scripted token counts.
+- Budget remains US$100 per UTC calendar month. Existing conservative debit
+  1.437320 USD survived gateway recreation unchanged; after live/browser checks
+  debit was 2.875240 USD, zero active requests, ledger 28,672 bytes. These are
+  conservative admission debits, not billing totals. Fresh installs default to zero.
+- C: free 59.90 GiB (preflight 59.81 GiB); core images remain 2.68 GiB. Global
+  Docker sample: 23 images / 7.646 GB, seven volumes / 214 MB, 31 running of 55
+  containers. No image/model/package was installed for this completion; global
+  changes include unrelated concurrent activity. Only the gateway was recreated.
+- Live Jev integration, labelled evaluation, calibration and activation remain
+  DEFERRED, not tested or enabled. Optional components remain uninstalled. Next:
+  Phase 3 backup/restore and clean rebuild, including the policy ledger. Recovery,
+  reboot/crash behavior and distributed/load acceptance are not claimed here.
 
 ## Milestone 4 - 2026-09-29, 13:15 IST
 

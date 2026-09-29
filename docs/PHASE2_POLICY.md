@@ -86,7 +86,8 @@ host deployment; multi-host scaling and load capacity are not validated.
 ```powershell
 ./scripts/policy-status.ps1
 python -m unittest discover -s tests -v
-./scripts/test-policy-runtime.ps1
+./scripts/test-policy-runtime.ps1          # currently configured providers
+./scripts/test-policy-runtime.ps1 -Matrix  # both / OpenAI / Gemini / no providers
 ./scripts/test-providers.ps1 -RunLive -Aliases coding-standard,coding-fast
 ```
 
@@ -100,9 +101,10 @@ The local ledger stores random admission IDs, UTC month, alias, approved
 provider/model candidates, attempt order/reason, concurrency leases and aggregate
 debits. It stores no prompt, response, API key or user identity. Response headers
 include `x-gateway-request-id` and `x-gateway-decision: deterministic`.
-Attempt outcome `accepted` is a deployment signal, not billing proof. `pending`
-can also describe a stream without a deployment-success callback or an older
-record; inspect request leases separately for concurrency. No invoice is inferred.
+Attempt outcome `accepted` is a deployment signal, not billing proof. New streams
+record `stream_completed` or `stream_incomplete` when their iterator closes.
+Historical `pending` records are preserved; inspect request leases separately for
+concurrency. No invoice is inferred.
 Post-admission provider errors are replaced with generic errors. LiteLLM message
 and detailed spend logging remain disabled; normal operational logs rotate.
 Do not publish raw runtime logs or database files. WebUI chat retention still
@@ -110,14 +112,18 @@ applies. Ledger retention is currently manual; no automatic deletion is installe
 
 ## Jev evaluation boundary
 
-No TypeSafe key is available. `.env` has a blank `TYPESAFE_API_KEY` field, omitted
-from runtime containers. There is **no live Jev call or runtime enable switch**.
+Jev is **disabled by user decision**. `config/policy/policy.json` explicitly selects
+`decision_plane: {"mode":"deterministic","jev_enabled":false}`. Rendering and
+gateway startup reject any other mode or attempted activation. `.env` retains
+the `TYPESAFE_API_KEY` placeholder, omitted from runtime containers; adding a key
+alone cannot enable Jev. There is no live Jev call or installed Jev service.
 `gateway/jev.py` validates the documented Choice response and enforces the allowed
 route set, finite probability/confidence values, domain checks and deterministic
 fallback. Synthetic tests exercise malformed/unavailable decisions, low confidence
 and authority violations. They are contract tests, not Jev accuracy/calibration.
+This disabled setup is accepted for Phase 2 under [ADR 0008](adr/0008-phase2-acceptance-jev-disabled.md).
 
-Before enabling Jev: obtain a key locally, agree an evaluation spend allocation,
+Before enabling Jev in a separate reviewed change: obtain a key locally, agree an evaluation spend allocation,
 collect labelled synthetic task/risk/route cases, run the vendor endpoint in shadow
 evaluation, record model version/accuracy/coverage and calibration, then review
 domain-specific thresholds. The test threshold 0.9 is provisional. TypeSafe's

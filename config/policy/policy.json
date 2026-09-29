@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "decision_plane": {"mode": "deterministic", "jev_enabled": false},
   "max_concurrency": 4,
   "lease_seconds": 300,
   "max_input_bytes": 32768,

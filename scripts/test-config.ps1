@@ -41,6 +41,11 @@ try {
   Must-Fail { & "$fixture/scripts/render-config.ps1" } 'capability alias collision'
   Set-Content "$fixture/.env" ($original.Replace('OPENAI_API_KEY=', 'OPENAI_API_KEY=synthetic-key').Replace('OPENAI_MODEL=openai/gpt-5.4-mini','OPENAI_MODEL=openai/unreviewed'))
   Must-Fail { & "$fixture/scripts/render-config.ps1" } 'unreviewed model price'
+  Set-Content "$fixture/.env" $original
+  $originalPolicy = Get-Content "$fixture/config/policy/policy.json" -Raw
+  Set-Content "$fixture/config/policy/policy.json" ($originalPolicy.Replace('"jev_enabled": false','"jev_enabled": true'))
+  Must-Fail { & "$fixture/scripts/render-config.ps1" } 'unvalidated Jev activation'
+  Set-Content "$fixture/config/policy/policy.json" $originalPolicy
   . "$fixture/scripts/common.ps1"
   Assert-DiskReserve -FreeGiB 27 -AdditionalGiB 12
   Must-Fail { Assert-DiskReserve -FreeGiB 26.99 -AdditionalGiB 12 } 'projected reserve violation'

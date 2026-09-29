@@ -11,6 +11,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
+from gateway.jev import validate_disabled_config
 
 
 class Denied(Exception):
@@ -101,6 +102,11 @@ class Ledger:
             db.executemany('UPDATE requests SET expires=? WHERE id=? AND active=1',
                            [(now + self.lease, token) for token in request_ids])
 
+    def finish_stream(self, request_id, completed):
+        with self.connect() as db:
+            db.execute('UPDATE attempts SET outcome=? WHERE request_id=? AND ordinal=(SELECT max(ordinal) FROM attempts WHERE request_id=?)',
+                       ('stream_completed' if completed else 'stream_incomplete', request_id, request_id))
+
 
 class Policy:
     BODY_FIELDS = {"model", "messages", "stream", "stream_options", "temperature",
@@ -108,6 +114,7 @@ class Policy:
                    "metadata", "user", "frequency_penalty", "presence_penalty", "tools"}
 
     def __init__(self, config, ledger):
+        validate_disabled_config(config.get("decision_plane"))
         self.config, self.ledger = config, ledger
 
     def admit(self, body, key_metadata=None):

@@ -58,6 +58,9 @@ Storage conservation is a hard requirement.
 - configurable model aliases
 
 ### Milestone 4
+- Current acceptance: complete the deterministic scope with Jev disabled, per
+  the user's decision in `docs/adr/0008-phase2-acceptance-jev-disabled.md`.
+  Live Jev integration/evaluation/calibration is a deferred activation gate.
 - deterministic request/data policy layer
 - TypeSafe Jev structured decision/routing evaluation using synthetic labelled cases
 - routing, fallbacks, budgets

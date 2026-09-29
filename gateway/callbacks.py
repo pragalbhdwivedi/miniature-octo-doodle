@@ -134,14 +134,18 @@ class GatewayPolicy(CustomLogger):
         return {"x-gateway-request-id": request_id, "x-gateway-decision": "deterministic"} if request_id else {}
 
     async def async_post_call_streaming_iterator_hook(self, user_api_key_dict, response, request_data):
+        completed = False
         try:
             async with asyncio.timeout(120):
                 async for item in response:
                     yield item
+            completed = True
         except Exception:
             raise HTTPException(502, "policy: stream_execution_failed") from None
         finally:
-            self.release(request_data)
+            request_id = self.release(request_data)
+            if request_id:
+                self.ledger.finish_stream(request_id, completed)
 
 
 proxy_handler_instance = GatewayPolicy()

@@ -16,6 +16,15 @@ Initial categories:
 
 Do not invent successful fixes. Record tested resolutions.
 
+## 2026-09-29: Runtime probe assumed two providers
+
+PR #8 review identified hard-coded OpenAI-to-Gemini expectations in the synthetic
+runtime probe. This failed for supported single-provider installations. The probe
+now derives primary/fallback expectations from the resolved route. `-Matrix`
+creates isolated both-provider, OpenAI-only, Gemini-only and no-provider fixtures.
+The single-provider outage cases expect a bounded failure rather than a nonexistent
+fallback. All four initial fixtures passed; completion evidence is in BUILD_STATUS.
+
 ## 2026-09-29: Windows localhost timeouts resolved with WSL NAT
 
 PostgreSQL/LiteLLM/WebUI container health and internal auth/login/discovery pass.

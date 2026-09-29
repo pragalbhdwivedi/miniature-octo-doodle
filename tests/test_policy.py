@@ -2,6 +2,7 @@ import concurrent.futures
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from gateway.jev import normalize_choice, select_route
@@ -155,6 +156,30 @@ class PolicyTests(unittest.TestCase):
                       {"probabilities": {"coding-fast": 0.4, "coding-standard": 0.1}}):
             self.assertIsNone(normalize_choice({"answers": {"route": dict(answer, **patch)}}, allowed))
         self.assertIsNone(normalize_choice(None, allowed))
+
+    def test_jev_disabled_even_with_key_and_invalid_activation_rejected(self):
+        with patch.dict('os.environ', {'TYPESAFE_API_KEY': 'synthetic-unused-key'}), patch('urllib.request.urlopen') as network:
+            token, candidates, _ = self.policy.admit(self.body)
+            self.assertEqual(candidates, self.candidates)
+            network.assert_not_called()
+            self.ledger.release(token)
+        for settings in (None, {}, {'mode': 'jev', 'jev_enabled': True},
+                         {'mode': 'deterministic', 'jev_enabled': 'false'},
+                         {'mode': 'deterministic', 'jev_enabled': 0}):
+            with self.subTest(settings=settings), self.assertRaises(ValueError):
+                Policy(dict(self.config, decision_plane=settings), self.ledger)
+
+    def test_stream_outcome_updates_only_last_attempt(self):
+        token, _, _ = self.policy.admit(self.body)
+        for candidate in self.candidates:
+            self.ledger.attempt(token, candidate['model'])
+        self.ledger.outcome(token, self.candidates[0]['model'], 'http_503')
+        self.ledger.finish_stream(token, True)
+        with self.ledger.connect() as db:
+            self.assertEqual(db.execute('SELECT outcome FROM attempts ORDER BY ordinal').fetchall(), [('http_503',), ('stream_completed',)])
+        self.ledger.finish_stream(token, False)
+        with self.ledger.connect() as db:
+            self.assertEqual(db.execute('SELECT outcome FROM attempts WHERE ordinal=1').fetchone()[0], 'stream_incomplete')
 
 
 if __name__ == "__main__":

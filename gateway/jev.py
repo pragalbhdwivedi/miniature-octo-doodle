@@ -6,6 +6,12 @@ is a routing threshold, never a claim of calibrated accuracy or authority.
 import math
 
 
+def validate_disabled_config(config):
+    """Do not turn a credential/configuration edit into unvalidated Jev traffic."""
+    if config != {"mode": "deterministic", "jev_enabled": False} or type(config.get("jev_enabled")) is not bool:
+        raise ValueError("Only deterministic routing with Jev explicitly disabled is supported")
+
+
 def normalize_choice(response, allowed, *, in_domain=False):
     """Validate the documented TypeSafe Choice wire response, fail to None.
 

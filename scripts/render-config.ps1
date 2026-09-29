@@ -5,6 +5,9 @@ $values = Read-LocalEnv -Path $EnvFile
 $models = @()
 $aliases = @()
 $policy = Get-Content "$RepoRoot/config/policy/policy.json" -Raw | ConvertFrom-Json -AsHashtable
+if ($policy.decision_plane.mode -cne 'deterministic' -or $policy.decision_plane.jev_enabled -isnot [bool] -or $policy.decision_plane.jev_enabled) {
+  throw 'Only deterministic routing with Jev explicitly disabled is supported.'
+}
 $providers = @{}
 foreach ($provider in @('OPENAI','GEMINI')) {
   $alias = $values["${provider}_ALIAS"]

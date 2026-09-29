@@ -26,6 +26,9 @@ counts. `python -m unittest discover -s tests -v` tests policy/Jev contracts and
 atomic budget races. `scripts/test-policy-runtime.ps1` tests the pinned gateway
 against synthetic loopback providers, including outage/quota, streaming and
 concurrency. It never calls a live provider. See [policy operations](PHASE2_POLICY.md).
+Use `-Matrix` to test both-provider, each single-provider and no-provider synthetic
+configurations independently of installed credentials. `policy-status.ps1` must
+report deterministic mode and Jev disabled. Jev activation is deliberately rejected.
 `python scripts/validate-repository.py` uses `requirements-ci.txt` to validate
 YAML and the core security contract. CI also validates Compose syntax; CI does
 not establish Windows deployment or cloud provider readiness.
