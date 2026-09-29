@@ -34,6 +34,25 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
 A documented architecture is not implementation evidence.
 
+## VM inventory documentation - 2026-09-29
+
+User requested complete per-VM records in the owning project folder and Proxmox
+Notes, including cluster/node identity, CPU/RAM, disk backend/volume/path, network,
+startup/backup and username/access details. Added this standing rule to project
+agent instructions and excluded `VM_NOTES/` from Git.
+
+Created complete local records for GatewayAI's control plane and AADI's existing
+ChatGPT Work VM. Current configuration/storage paths and effective SSH policy
+were read from Proxmox/guest-agent; both named accounts have public-key access
+with SSH password and keyboard-interactive authentication disabled. Passwords
+were not read or changed. Actual passwords/private keys are excluded from project
+files and Proxmox Notes.
+
+Saved both records to Proxmox Notes, retained existing descriptions and verified
+exact readback. Compared before/after configurations excluding description/digest:
+no non-note setting changed. Git-ignore checks passed for both local records.
+Application readiness and routed-SSH/recovery limitations remain unchanged.
+
 ## User-selected Proxmox VM creation - 2026-09-29
 
 The user explicitly requested a VM from template 9001. Refreshed GitHub main is

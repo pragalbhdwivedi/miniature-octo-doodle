@@ -93,6 +93,9 @@ Live Jev integration/evaluation/calibration remains deferred under ADR 0008.
 No optional modules or model weights were installed. See [Kubernetes operations](docs/KUBERNETES.md).
 
 ## Phase 5 preparation checkpoint
+- Complete private VM handover record is in local `VM_NOTES/9125-gatewayai-control.md`
+  and the VM's Proxmox Notes. Both were verified on 2026-09-29; operational details
+  remain Git-excluded. AGENTS.md requires this for every future VM.
 - Implemented read-only Debian 12/13 and Ubuntu 24.04 VM preflight: local Engine/Compose, systemd,
   CPU/RAM, both runtime and Docker storage reserves, fresh-target and loopback-port checks.
 - Guard tests cover unsupported hosts, remote Docker endpoints, occupied targets

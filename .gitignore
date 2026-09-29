@@ -28,3 +28,4 @@ postgres-data/
 litellm-data/
 config/litellm/config.local.yaml
 config/policy/policy.local.json
+VM_NOTES/
