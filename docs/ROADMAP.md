@@ -98,12 +98,12 @@ full Kubernetes deployment when scale/recovery evidence justifies it
 ```
 
 ## Phase 6 - Isolated coding worker v0.1
-Status: PARTIAL, authorized to start on 30 September 2026. The zero-spend execution
+Status: COMPLETE for bounded operator scope on 30 September 2026. The zero-spend execution
 boundary is deployed/tested: approved public repository refresh, bounded offline
 commands/tests, isolated local branch/commit and immutable-source artifact review.
 Gateway-backed one-turn coding and per-run budgets are deployed/live-tested.
-Scoped draft-PR publication is implemented and unit/plan-tested; credential
-provisioning and live GitHub acceptance remain pending.
+Scoped draft-PR publication passed live in PR #16; bounded Phase 6 scope is complete.
+Token repository restrictions remain the operator provisioning responsibility.
 See [worker operations](WORKER.md). Phase 5's open gates remain open.
 
 Build the first execution worker before adding persistent agent memory or a large

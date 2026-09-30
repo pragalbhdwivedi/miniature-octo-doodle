@@ -150,8 +150,8 @@ Phase 6 has started with a tested [isolated worker execution boundary](docs/WORK
 fresh approved-repository snapshots, bounded offline commands/tests, local worker
 branches/commits and reviewed artifact export. The live gateway is unchanged.
 Gateway-backed one-turn coding and per-run budgets passed live acceptance. Scoped
-draft-PR publishing is implemented and locally tested; live publication awaits a
-repository-scoped credential, so Phase 6 remains partial. No sandbox receives credentials.
+draft-PR publishing passed live acceptance in PR #16, completing the bounded
+Phase 6 scope. Token restriction is an operator provisioning responsibility. No sandbox receives credentials.
 
 ## Service directory and remote access - 30 September 2026
 

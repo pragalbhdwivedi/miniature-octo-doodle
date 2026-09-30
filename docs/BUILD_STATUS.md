@@ -29,9 +29,31 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | OmniRoute | NOT STARTED | Optional |
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
-| Isolated coding worker | PARTIAL | Gateway coding/per-run budgets live-tested; scoped publisher implemented, live GitHub acceptance awaits credential |
+| Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | NOT STARTED | Phase 7; independent of AADI production |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
+
+## Live scoped publisher acceptance - 30 September 2026
+
+- Supplied fine-grained token installed root-only outside Git/sandbox. Repository
+  API authentication passed; the API response does not prove the token lacks
+  broader repository permissions. Scope restriction remains operator-owned.
+- Fresh zero-spend run `3c8b04fae1294d85b662abfa3b82f5d2` fetched main
+  `b5843bbe091ccab9a12d95dd812dc167dc88db16`, recreated the previously reviewed
+  synthetic clamp example, passed lower/upper/interior/equal/inverted-limit tests,
+  local commit and export in 20.08s. Container removed; zero provider calls.
+- Reviewed exact eight-line patch, sole path `docs/examples/worker_acceptance.py`,
+  mode 0644 and artifact digest
+  `5c6f2172036378342409f114cef9e83e11f2f624d52f2da252d61bb3d1f8e75d`.
+- Live adapter created draft [PR #16](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/16),
+  commit `8ccedb8d461ec66e1cec3c1fb757b07b3c481f04`. GitHub readback confirms exactly
+  the reviewed file, draft state, exact source parent and unchanged default branch.
+  Private journal retained; no retry, force push, merge or deployment by worker.
+- Four core/proxy containers healthy; loopback refresh successful. September debit
+  unchanged at 4.870530 USD, 28 attempts. VM free 48.49 GiB; no images/packages/models
+  installed. Only small job/artifact/configuration files added (no isolated disk delta).
+- Phase 6 bounded acceptance complete. Phase 5 recovery/client gates remain open;
+  controller orchestration is separate Phase 7 work. Acceptance PR stays draft.
 
 A documented architecture is not implementation evidence.
 

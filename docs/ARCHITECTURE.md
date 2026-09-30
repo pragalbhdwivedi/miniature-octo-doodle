@@ -166,7 +166,7 @@ changes to the immutable input, preserving an audit record outside the worker.
 No agent/runtime API can invoke the privileged broker. An operator adapter makes
 one budget-reserved LiteLLM call and validates proposed edits before sandbox tests.
 A separate publisher binds operator review to artifact hashes and creates only
-new run branches/draft PRs; live publishing awaits a scoped credential.
+new run branches/draft PRs; live publication passed in draft PR #16.
 Phase 7 task selection/controller is not installed. See [WORKER](WORKER.md).
 
 ## Service directory and remote access - 30 September 2026

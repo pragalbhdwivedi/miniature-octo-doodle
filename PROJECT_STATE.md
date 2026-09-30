@@ -13,10 +13,10 @@ Phase 4: COMPLETE for local developer Kubernetes validation.
 Phase 5: PARTIAL. Live Windows data/credentials/ledger migrated to the Linux VM;
 API/provider/browser acceptance passed. Encrypted off-VM copy and authenticated
 readback passed. Separate clean-host recovery and reverse cutover remain pending.
-Phase 6: STARTED / PARTIAL. Zero-spend isolated worker execution is deployed and
-tested. Gateway-backed one-turn coding and per-run budgets passed live acceptance;
-scoped draft-PR publication is implemented/tested locally but awaits a scoped
-credential for live GitHub acceptance.**
+Phase 6: COMPLETE for the bounded operator-run worker scope. Offline isolation,
+gateway coding, per-run budgets and live reviewed draft-PR publishing passed.
+Fine-grained token repository restriction remains an operator provisioning
+responsibility; API success does not independently prove absence of broader scope.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -24,14 +24,11 @@ Phase 2 [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8)
 merged at `c76406927ae1110e6023f4195c7d4b81c360cd55`, incorporating PR #7's design.
 Phase 3 [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9)
 merged at `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
-Phase 4 implementation: [PR #10](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/10),
-branch `feat/phase4-kubernetes`, based on that main commit; not yet merged.
-See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
-
-The updated roadmap from open PR #11 (`223bb00`) makes the dedicated Debian VM
-Phase 5, followed by isolated worker, controller and Telegram approvals. It is
-integrated with PR #10 on `feat/phase5-debian-foundation` for review; neither PR
-has been merged to main. Local model installation is an optional lane, not next.
+Phase 4 PR #10, Phase 5 PR #12 (including roadmap PR #11), and dashboard PR #14
+are merged. Historical design PR #7 was closed as superseded. Phase 6 PR #13
+has now passed live publishing acceptance in draft test PR #16. Phase 7's read-only
+planner is implemented/tested in stacked PR #15; orchestration remains pending.
+See `docs/BUILD_STATUS.md` for measured results and remaining Phase 5 gates.
 
 ## Hardware baseline
 - Windows 11
@@ -101,8 +98,8 @@ adds an operator-only broker, allowlisted public repository refresh, offline
 non-root disposable worker, bounded shell/tests and reviewable artifacts.
 It is on `feat/phase6-isolated-worker`, stacked on the unmerged Phase 5 branch.
 Gateway-backed one-turn coding and per-run cost reservations now pass live
-acceptance. The external publisher passes unit/plan checks; live GitHub publication
-awaits a repository-scoped credential. See [worker operations](docs/WORKER.md).
+acceptance. The external publisher created draft PR #16 from a fresh main snapshot;
+exact file/parent and unchanged main were verified with no provider calls. See [worker operations](docs/WORKER.md).
 
 The local k3d deployment remains isolated developer validation: no provider keys,
 zero spending, fresh data and Jev disabled. It does not replace the Compose gateway.
