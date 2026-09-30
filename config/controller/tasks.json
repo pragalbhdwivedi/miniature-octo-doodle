@@ -80,6 +80,45 @@
           ]
         ]
       }
+    },
+    {
+      "id": "telegram-approval-acceptance",
+      "issue": 28,
+      "state": "ready",
+      "priority": 100,
+      "depends_on": [],
+      "job": {
+        "project": "gatewayai",
+        "ref": "refs/heads/main",
+        "write_paths": [
+          "docs/examples/telegram_acceptance.py"
+        ],
+        "timeout_seconds": 60,
+        "model_budget_usd": 0,
+        "commands": [
+          [
+            "python3",
+            "-c",
+            "from pathlib import Path; p=Path('docs/examples/telegram_acceptance.py'); p.parent.mkdir(parents=True,exist_ok=True); p.write_text('def is_even(value):\\n    return value % 2 == 0\\n')"
+          ],
+          [
+            "python3",
+            "-c",
+            "import runpy; f=runpy.run_path('docs/examples/telegram_acceptance.py')['is_even']; assert [f(x) for x in (-3,-2,-1,0,1,2,3)] == [False,True,False,True,False,True,False]"
+          ],
+          [
+            "git",
+            "add",
+            "docs/examples/telegram_acceptance.py"
+          ],
+          [
+            "git",
+            "commit",
+            "-m",
+            "Synthetic candidate for Telegram draft approval acceptance"
+          ]
+        ]
+      }
     }
   ]
 }
