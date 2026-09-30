@@ -1,0 +1,12 @@
+{
+  "gatewayai": {
+    "repository": "pragalbhdwivedi/miniature-octo-doodle",
+    "branch": "main",
+    "enabled": true
+  },
+  "aadi": {
+    "repository": "pragalbhdwivedi/aadi",
+    "branch": "Dev",
+    "enabled": false
+  }
+}

@@ -16,7 +16,10 @@ readback passed. Separate clean-host recovery and reverse cutover remain pending
 Phase 6: STARTED / PARTIAL. Zero-spend isolated worker execution is deployed and
 tested. Gateway-backed one-turn coding and per-run budgets passed live acceptance;
 scoped draft-PR publication is implemented/tested locally but awaits a scoped
-credential for live GitHub acceptance.**
+credential for live GitHub acceptance.
+Phase 7: STARTED / PARTIAL. Read-only repository planner implemented and tested;
+unprivileged VM refresh correctly blocks without a committed approved backlog.
+Execution orchestration, PostgreSQL run state and independent review remain pending.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -25,13 +28,14 @@ merged at `c76406927ae1110e6023f4195c7d4b81c360cd55`, incorporating PR #7's desi
 Phase 3 [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9)
 merged at `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
 Phase 4 implementation: [PR #10](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/10),
-branch `feat/phase4-kubernetes`, based on that main commit; not yet merged.
+merged after the reviewed storage-drive reserve fix. Phase 5 PR #12 and dashboard
+PR #14 are also merged; roadmap PR #11 was included through PR #12.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
-The updated roadmap from open PR #11 (`223bb00`) makes the dedicated Debian VM
-Phase 5, followed by isolated worker, controller and Telegram approvals. It is
-integrated with PR #10 on `feat/phase5-debian-foundation` for review; neither PR
-has been merged to main. Local model installation is an optional lane, not next.
+The revised roadmap is merged. Phase 6 PR #13 remains draft pending the live
+publisher credential/test; Phase 7 starts on a review branch stacked on PR #13.
+Historical design PR #7 was closed as superseded by merged implementation.
+See [stack review](docs/PR_STACK_REVIEW.md) for exact merges and tests.
 
 ## Hardware baseline
 - Windows 11
@@ -80,7 +84,8 @@ WebUI chat. No alternate headless browser method was needed.
 On 2026-09-30 the user resumed deployment. Both direct Windows/WSL SSH and the
 bastion path now pass. The direct Omada rule is restricted to the laptop's current
 address and the target's SSH port; the bastion handles changing laptop networks.
-Outside-VPN acceptance remains pending by user choice. See [SSH access](docs/SSH_BASTION.md).
+Outside OpenVPN/phone RDP were subsequently owner-confirmed in PR #14;
+phone browser trust and complete client/reboot acceptance remain pending. See [SSH access](docs/SSH_BASTION.md).
 
 The selected Ubuntu VM now owns the live Compose gateway. Existing account/chat
 volumes, scoped/provider credentials and the US$100 UTC-month allowance were
@@ -257,3 +262,14 @@ reset. User confirmed external OpenVPN and phone RDP login. WireGuard server rou
 corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
 acceptance remain open. See [dashboard operation](docs/DASHBOARD.md) and
 [remote-access evidence](docs/REMOTE_ACCESS_CHECK.md).
+
+## Phase 7 first milestone - 30 September 2026
+
+Read-only CLI refreshes the approved public gateway repository, records exact SHA,
+recent commits, issue/PR inventory and governance hashes, and checks a committed
+task manifest against issue ownership, explicit ready label and dependencies.
+It emits a zero-budget worker plan for operator review; it cannot execute jobs,
+publish, merge or call a model. AADI remains disabled. Live unprivileged VM run
+fetched main and correctly recorded `no_committed_task_manifest`; synthetic tests
+cover selection/denial paths. PostgreSQL persistence, dispatch, independent review,
+repair and exact-run approval integration are not implemented. See controller docs.

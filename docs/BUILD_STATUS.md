@@ -30,10 +30,40 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
 | Isolated coding worker | PARTIAL | Gateway coding/per-run budgets live-tested; scoped publisher implemented, live GitHub acceptance awaits credential |
-| Agent Controller | NOT STARTED | Phase 7; independent of AADI production |
+| Agent Controller | PARTIAL | Read-only planner tested; PostgreSQL state, dispatch/review/repair pending |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## Stack review and Phase 7 start - 30 September 2026
+
+- Refreshed all PR heads/CI/issues and reviewed the implementation stack. Fixed
+  Phase4 P1 review: reserve checks now cover all discovered Docker storage drives,
+  not only C:. Synthetic separate-drive tests pass; fresh CI green before merge.
+- Merged PR10, PR12 (including roadmap PR11), and PR14. Closed superseded design
+  PR7; preserved history. Reconciled PR13 against current main, preserving both
+  worker and dashboard documentation. PR13 remains draft: publisher token is still
+  absent, so live scoped publication remains blocked. No broad credential substituted.
+- Phase7 read-only planner implemented: bounded public Git/GitHub refresh, exact
+  SHA/recent commits, governance/task/inventory hashes, explicit ready-label and
+  task ownership/dependency checks, deterministic selection, zero-budget plans.
+  Empty task manifest prevents unapproved automatic work. AADI remains disabled.
+- Unprivileged VM UID65534 run fetched main `b5843bbe091ccab9a12d95dd812dc167dc88db16`;
+  real GitHub issue/PR inventory and governance passed. Correctly blocked with
+  `no_committed_task_manifest` (the new manifest is not merged). Plan hash:
+  `24e707e8bf003e311568edbc1f3fe475b6acba3199c92bc065d83f6c4daf3db3`.
+  Positive task selection is synthetic evidence only; no live task executed.
+- 84 WSL tests passed; Windows77passed/7existing platform/dependency skips.
+  New controller tests cover ownership, approval label, dependency completion,
+  cycles/duplicates, stale scope, zero budget, missing governance and pagination.
+  No model calls, publication, new image, package, VM or service. VMfree48.52GiB.
+- Current client check: strict WSL HTTPS200; Windows HTTPS still fails TLS
+  validation. Owner-confirmed outside OpenVPN/phone RDP evidence from PR14 remains
+  distinct from phone browser trust and all-client acceptance. No certificate
+  bypass, Windows gateway restart or recovery cutover performed.
+- Separate clean recovery host is still unnamed; clean-host and reverse-cutover
+  tests remain open. Controller dispatch, PostgreSQL audit state, independent
+  reviewer, repair and AADI end-to-end acceptance remain unimplemented.
 
 ## Phase 6 coding, run budgets and scoped publisher - 30 September 2026
 

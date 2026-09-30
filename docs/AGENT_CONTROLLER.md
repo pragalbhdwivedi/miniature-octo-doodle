@@ -1,7 +1,8 @@
 # Agent Controller
 
-The Agent Controller is planned for Phase 7, after the Debian foundation and
-isolated worker. No controller runtime is implemented or deployed yet. Follow
+Phase 7 is STARTED / PARTIAL. The read-only repository planning CLI is implemented
+and deployed for an unprivileged VM acceptance run. Execution orchestration and
+durable PostgreSQL run state are not implemented. Follow
 the [roadmap](ROADMAP.md) and [AADI integration contract](AADI_DEVELOPMENT_INTEGRATION.md).
 
 ## Intended roles
@@ -45,3 +46,55 @@ Third-party skills/plugins are untrusted code/instructions until reviewed. The p
 
 ## Safety
 It must not receive unrestricted production credentials, Docker host socket access, or arbitrary host-level access.
+
+## Implemented first milestone
+
+`scripts/controller.py` reads only approved public GitHub repositories. It fetches
+five recent commits into a fresh private temporary Git database with credentials,
+hooks and redirects disabled; validates a bounded source archive; reads complete
+bounded issue/open-PR inventories; and checks that the branch SHA did not advance.
+The refresh has a 180-second deadline and preserves a 15GiB disk floor plus 1GiB
+reserve. AADI's registry entry is disabled and cannot be selected.
+
+Required governance: PROJECT.md, AGENTS.md, WORK_INSTRUCTIONS.md, PROJECT_STATE.md,
+README.md, ARCHITECTURE, BUILD_STATUS and ROADMAP. Missing files block selection.
+Tasks must be committed in `config/controller/tasks.json`; the checked-in manifest
+is deliberately empty until the owner/reviewer approves actual controller tasks.
+Each task has `id`, `issue`, `state` (ready/paused/done), `priority` (1..100),
+`depends_on` (task IDs), and a worker `job` matching `config/worker/coding-job.json`.
+The job must use this project's approved ref, explicit context/write paths,
+operator-supplied sandbox commands, a reviewed capability alias and zero budget.
+
+A ready task also requires an open issue labelled `gatewayai:ready`, no existing
+assignee, no open PR mentioning that issue, and dependencies marked done with
+closed GitHub issues. Duplicate ownership, cycles, unknown dependencies,
+incomplete pagination, stale revisions and inconsistent project mappings fail
+closed. Selection is deterministic by priority then task ID. GitHub metadata and
+model text cannot add execution or publishing authority.
+
+```sh
+python3 scripts/controller.py --project gatewayai \
+  --output-directory /private/operator-owned-controller-plans
+```
+
+The output directory must be outside the checkout, owner-only0700. Each new0600
+JSON plan records source/governance/task/inventory hashes, recent commits, reasons
+and a unique run ID. A plan is a review artifact, not a durable execution-state
+backend or an approval. It does not replace the planned PostgreSQL run ledger.
+`awaiting_operator_review` means eligible planning only. Revalidate repository
+ownership/source and explicitly set a budget before any separate worker operation.
+There is no automatic handoff, claim acquisition, scheduling or resume path yet.
+
+VM acceptance used Linux UID65534 with no sudo/Docker/provider/GitHub credentials.
+It fetched current main and correctly blocked because main had no committed task
+manifest at that checkpoint. This is real refresh/deny evidence; positive task
+selection is tested with synthetic issue/PR fixtures. No provider spend or GitHub
+mutation occurred. Larger/private repositories require separate activation.
+
+## Remaining Phase 7 acceptance
+
+PostgreSQL run/event persistence; atomic task claims; bounded dispatch to the
+worker without exposing host authority; independent review; bounded repair;
+source/ownership revalidation before publication; and end-to-end AADI acceptance.
+Telegram action-bound pause/resume remains Phase 8. No service/daemon or new
+container image was installed for this first planning milestone.
