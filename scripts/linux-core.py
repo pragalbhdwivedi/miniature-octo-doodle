@@ -185,7 +185,7 @@ def host_guard(fresh=False):
         raise RuntimeError('Preflight blocked: ' + '; '.join(failed))
 
 
-def install_loopback(project=PROJECT):
+def install_loopback(project=PROJECT, boot_refresh=True):
     """Docker internal-only bridges omit published bindings; proxy on loopback.
 
     Socket activation uses the systemd-provided proxy, with an unprivileged
@@ -219,6 +219,23 @@ def install_loopback(project=PROJECT):
         run(['systemctl', 'daemon-reload'])
         run(['systemctl', 'stop', name + '.service'])
         run(['systemctl', 'enable', '--now', name + '.socket'])
+    if boot_refresh:
+        # Docker can reassign dynamic bridge addresses on boot. Refresh only the
+        # administrator-selected project after its containers become healthy.
+        if not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,62}', project):
+            raise ValueError('Invalid loopback project')
+        refresh = units / 'gatewayai-loopback-refresh.service'
+        marker = '# Managed by GatewayAI linux-core.py\n'
+        if refresh.exists() and not refresh.read_text().startswith(marker):
+            raise ValueError('Refusing unmanaged refresh service')
+        refresh.write_text(marker + '[Unit]\nDescription=Refresh GatewayAI loopback targets after Docker boot\n'
+            'Requires=docker.service\nAfter=docker.service\n'
+            '[Service]\nType=oneshot\nTimeoutStartSec=360\nNoNewPrivileges=yes\n'
+            'ExecStart=/usr/bin/python3 /opt/gatewayai/source/scripts/linux-loopback-refresh.py --project ' + project + '\n'
+            '[Install]\nWantedBy=multi-user.target\n')
+        refresh.chmod(0o644)
+        run(['systemctl', 'daemon-reload'])
+        run(['systemctl', 'enable', refresh.name])
 
 
 def main():
