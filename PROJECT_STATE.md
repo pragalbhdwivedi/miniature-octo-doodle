@@ -46,13 +46,29 @@ consumed to create [draft PR #32](https://github.com/pragalbhdwivedi/miniature-o
 The bounded Telegram-gated draft-publication path is live validated. Broader
 Phase 8 notifications and choose/pause/resume actions remain unimplemented.**
 
-**Optional laptop local-model lane: PARTIAL.** On 2026-10-01 native Windows
-Ollama 0.35.0 and one Apache-2.0 `qwen3:4b-instruct` model were installed at the
-owner's request. Loopback API and a synthetic Python coding response passed;
-Ollama reported 73% GPU / 27% CPU execution on the GTX 1650 Ti at 2,048 tokens.
-Cloud use is disabled. The trial models were removed and C: had 36.70 GiB free.
-WSL loopback access, LiteLLM alias/routing, mobile-laptop VM reachability and
-production coding quality are unvalidated. See [local model](docs/LOCAL_MODEL.md).
+**Phase 9: STARTED / PARTIAL.** Graphify `graphifyy==0.9.72` runs as an
+unprivileged, code-only index of this public repository on VM9125. At main SHA
+`8c57104bcf7d1386bf5f0075a0febaff9e526a22`, its 78 code files yielded
+555 nodes, 1,158 edges and 49 communities; bounded query and a fresh-Git/
+provenance gate passed. The graph has no controller authority and is not yet
+integrated with dispatch. OpenViking, private-source permissions, compaction/
+retrieval evaluation and fresh-main reindexing acceptance are pending. See
+[Graphify](docs/GRAPHIFY.md) and [build evidence](docs/BUILD_STATUS.md).
+
+**Optional laptop local-model lane: PARTIAL.** Native Windows Ollama 0.35.0
+retains Qwen3 4B instruct and now the owner-authorized 15 GB Devstral Small 2
+coding model plus Qwen3 4B thinking supervisor. Cloud use is disabled and the
+laptop listener remains loopback-only. A scheduled outbound SSH reverse tunnel
+and gateway-only VM bridge let the existing LiteLLM/Open WebUI app advertise
+`local-coding` and `local-supervisor`. Both passed synthetic WebUI chat requests;
+an outage produced only an Ollama failure, no cloud fallback or USD debit.
+C: had 17.76 GiB free after download, above the critical 15-GiB floor. The
+bounded PC proposal agent completed one clean public-source test with a
+Git-checkable patch and advisory Qwen review, without edits or publication.
+Production coding quality, next-logon/reboot recovery, phone model selection
+and phone CA trust remain open. Windows trusted roots contain the internal CA;
+Edge opens the HTTPS sign-in page without a warning, while authenticated HTTPS
+model selection is still pending. See [local model](docs/LOCAL_MODEL.md).
 
 AADI Phase 7 gate: refreshed private `pragalbhdwivedi/aadi` `Dev` at
 `cf5de5a465a71e83998488b9c59c1951241fdac8`; controller integration PR #23

@@ -82,7 +82,7 @@ class GatewayPolicy(CustomLogger):
         data.pop("tools", None)
         data["max_completion_tokens"] = output
         data["num_retries"] = 0
-        data["timeout"] = 60
+        data["timeout"] = 300 if all(c["model"].startswith("ollama/") for c in candidates) else 60
         data["fallbacks"] = [{candidates[0]["alias"]: [c["alias"] for c in candidates[1:]]}]
         return data
 

@@ -1,0 +1,12 @@
+[Unit]
+Description=GatewayAI LiteLLM access to laptop Ollama reverse tunnel
+After=docker.service
+Requires=docker.service
+
+[Socket]
+ListenStream=@PROVIDER_EGRESS_GATEWAY@:11435
+FreeBind=true
+NoDelay=true
+
+[Install]
+WantedBy=sockets.target

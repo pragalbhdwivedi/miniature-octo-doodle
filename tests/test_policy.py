@@ -137,6 +137,32 @@ class PolicyTests(unittest.TestCase):
         self.assertNotIn("messages", dump)
         self.assertIn("gpt-5.4-mini", dump)
 
+    def test_optional_local_routes_are_zero_spend_and_never_cloud_fallback(self):
+        local = [{"alias": "local-coding", "model": "ollama/devstral-small-2:24b"}]
+        self.config["resolved_routes"]["local-coding"] = local
+        self.config["prices"][local[0]["model"]] = {"input_micro_usd": 0,
+                                                    "output_micro_usd": 0}
+        body = dict(self.body, model="local-coding")
+        with self.assertRaisesRegex(Denied, 'no_allowed_provider'):
+            self.policy.admit(body)
+        self.config["local_models_enabled"] = True
+        with self.assertRaisesRegex(Denied, 'no_allowed_provider'):
+            self.policy.admit(dict(body, metadata={"allowed_providers": ["openai"]}))
+        token, candidates, _ = self.policy.admit(body)
+        self.assertEqual(candidates, local)
+        self.ledger.attempt(token, local[0]["model"])
+        with self.assertRaises(Denied):
+            self.ledger.attempt(token, self.candidates[0]["model"])
+        with self.ledger.connect() as db:
+            self.assertEqual(db.execute('SELECT debit FROM months').fetchone()[0], 0)
+        self.ledger.release(token)
+        for label in ('private', 'local-private'):
+            with self.assertRaises(Denied):
+                self.policy.admit(dict(body, metadata={"data_class": label}))
+        self.config["resolved_routes"]["mixed"] = local + self.candidates[:1]
+        with self.assertRaisesRegex(Denied, 'mixed_local_cloud_route_denied'):
+            self.policy.admit(dict(body, model="mixed"))
+
     def test_jev_boundaries(self):
         allowed = ["coding-fast", "coding-standard"]
         valid = {"route": "coding-fast", "confidence": 0.95, "in_domain": True}
