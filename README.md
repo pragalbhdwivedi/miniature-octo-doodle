@@ -167,8 +167,9 @@ Phase 7 has started with a [read-only repository planner](docs/AGENT_CONTROLLER.
 It checks committed tasks, current issues/PRs, ownership and dependencies, then
 emits a zero-budget plan for operator review. It cannot execute, publish or merge.
 A separate operator-only dispatcher now adds PostgreSQL claims/audit, exact-request
-approval and one bounded worker attempt. Independent review/repair and publishing
-orchestration remain pending. See [dispatch operations](docs/CONTROLLER_DISPATCH.md). The [reviewed PR stack](docs/PR_STACK_REVIEW.md)
+approval and one bounded worker attempt. The review pipeline adds fresh-context
+review, one repair and exact-artifact draft publication gates. See
+[dispatch operations](docs/CONTROLLER_DISPATCH.md). The [reviewed PR stack](docs/PR_STACK_REVIEW.md)
 records what is merged and what still awaits acceptance.
 
 ## Bounded review and publication increment

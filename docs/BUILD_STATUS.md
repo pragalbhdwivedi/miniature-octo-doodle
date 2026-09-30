@@ -30,8 +30,53 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
-| Agent Controller | PARTIAL | Planner plus PostgreSQL claims/audit and controlled dispatch implemented; live acceptance below, independent review/repair pending |
+| Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
+
+## Phase 7 live review/repair/publication acceptance - 30 September 2026
+
+- PR #22 merged after CI passed at `dca030b99cc090e1c2fd1473cce6e55f9e4b5c45`.
+  VM9125 deployed 22 verified source/config/test files; no new image, service,
+  package, VM, credentials or agent privilege. PostgreSQL schema 2 retained prior
+  run/event history; protected pre-migration backup remains same-host evidence.
+- Root run `4dfa7612da644d3fb07d024482a8da8b` created the committed synthetic
+  candidate in 12.78s with zero provider calls. Initial independent test child
+  `70ec516e8d8f518e88d4ccdecb5eef97` failed the required invalid-bounds case.
+  Fresh-context reviewer returned revise, identifying the missing ValueError.
+- Exactly one repair ran. Fresh test child `d513c35c299a5b04abe6bdb7fcc10806`
+  passed lower/upper/interior/equal/inverted-bound cases in 14.41s; second fresh
+  review approved with no findings. All three sandbox containers were removed.
+- Permanent pipeline reservations: first review $0.266500, repair $0.324640,
+  final review $0.278300 = **$0.869440 of $1**. Three live gateway attempts;
+  conservative admission debits are not provider invoice costs. Context/role
+  independence does not establish different provider/model independence.
+- Separate final artifact review/approval invoked the journaled publisher.
+  [Draft PR #23](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/23)
+  contains only `docs/examples/controller_acceptance.py`; commit
+  `6f286f04523a0f68a04f002fed925f19ca183d4a` has the exact source parent above.
+  Artifact SHA-256 `24177e1ee3c4f3ce633c7ce0d01696ad03699edcc1fdf457cc4baa5fdd4f910c`.
+  Both durable root/pipeline states are published. Main was unchanged by this
+  publication; repeated publication was rejected before any second side effect.
+  Issue #21 is complete; this synthetic draft is deliberately not merged.
+- Final validation: **33 target controller tests passed**, including both real
+  PostgreSQL tests; **104 WSL tests passed / 2 opt-in skips**; **96 Windows tests
+  passed / 10 platform/opt-in skips**. Repository security/YAML checks passed.
+  A repeated test found a fixed request-hash fixture collision; randomized test
+  request hashes corrected it without weakening runtime replay protection.
+- GitHub anonymous API quota initially blocked refresh; waited for reset without
+  passing publisher credentials to the planner. No run/provider call started
+  during that block. Initial candidate failure above was the intended defect.
+- Four core/proxy services healthy, gateway token-table access denied to the
+  controller role, no active gateway requests. September debit **$5.739970 / 31
+  attempts**, monthly ceiling unchanged at $100. Controller DB 8,223,767 bytes;
+  free VM disk **48.45 GiB**, about 0.02 GiB below the previous milestone (rounded
+  whole-VM measurement, not precise attributable usage). No optional downloads.
+  Local VM inventory and Proxmox Notes were updated and read back; existing
+  hardware, network and authentication configuration remained unchanged.
+- Remaining: enable/reconcile AADI only under its own repository approvals and
+  pass end-to-end acceptance. Phase 8 Telegram controls, separate-machine recovery,
+  reverse cutover and outstanding client gates remain unvalidated. Phase 7 stays
+  PARTIAL; this bounded GatewayAI pipeline milestone is complete.
 
 ## Phase 7 review/repair/publication implementation - 30 September 2026
 
@@ -47,8 +92,8 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 - Private controller-only dump taken (13,344 bytes); production schema2 migration
   preserved existing run/audit records. Four live services healthy, 48.46GiB free;
   admission ledger unchanged4.870530USD/28attempts. No new images/packages/services.
-- Live fresh-context review, one repair and orchestrated publication acceptance
-  pending the committed synthetic task reaching main. No Phase7 completion claim.
+- At implementation time live acceptance awaited the committed task on main;
+  the subsequent measured acceptance is recorded above. No Phase7 completion claim.
 
 ## Phase 7 durable dispatch acceptance - 30 September 2026
 
