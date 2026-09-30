@@ -73,8 +73,23 @@ A documented architecture is not implementation evidence.
   synthetic routing/fallback/concurrency and unchanged ledger all passed.
   Restore through validation 143.84s; recovery containers stopped, data retained.
   This validates off-VM copy/readback plus same-VM restore, not a separate clean host.
-- All 48 unit tests pass on Linux VM, including encryption round-trip/tamper rejection.
-  Windows 43 pass/5 skips; WSL 47 pass/1 dependency skip. YAML/security checks pass.
+- Rechecked live backup after adding archived-source equality and measured storage
+  reserve guards: PASS, stop/backup/resume 86.87s.
+- Planned live VM reboot exposed swapped Docker bridge IPs: services and ledger
+  recovered, but stale systemd proxy destinations broke host HTTP. Added an
+  administrator-owned boot refresh service for the explicitly selected project.
+  It waits for all three owned services to be healthy, then refreshes the two
+  unprivileged loopback proxy targets. No worker/application receives host authority.
+- Repeated reboot PASS after readiness: boot ID changed, only the migrated three
+  containers auto-started healthy, refresh service completed successfully in 59s,
+  and its destinations matched current container IPs. An HTTP probe made before
+  refresh completion reset; after the unit completed, localhost/127.0.0.1 HTTP,
+  existing login/key/eight aliases, network isolation, Windows/WSL SSH and laptop
+  tunnel HTTP200 passed. Ledger stayed US$3.569700/21 attempts/zero active requests.
+  SSH password/keyboard-interactive remain disabled; VM free disk 50.514 GiB.
+- All 49 unit tests pass on Linux VM and WSL, including encryption round-trip/tamper
+  rejection and project/readiness guards. Windows 44 pass/5 dependency/POSIX skips.
+  Repository YAML/security and diff checks pass.
 - Remaining: separate approved clean-host/image retrieval recovery, reverse live
   cutover with current ledger, automated retention/key escrow and host/NAS-loss
   resilience. No recovery target has been supplied; earlier clean-machine pause

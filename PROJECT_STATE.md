@@ -120,8 +120,12 @@ No optional modules or model weights were installed. See [Kubernetes operations]
   internal manifest passed after readback. An isolated restore from the returned
   copy passed all volume, database, login/key and synthetic checks in 143.84s.
   Clean-host recovery remains unvalidated.
-- All 48 unit tests passed on the VM. Windows passes 43 with five dependency/POSIX
-  skips; WSL passes 47 with the encryption dependency skipped. Repository checks pass.
+- Live reboot initially exposed changed Docker IPs and stale loopback proxies.
+  Added a selected-project boot refresh after all three services are healthy.
+  Repeat reboot passed after refresh completion: HTTP/auth/model discovery,
+  Windows/WSL SSH and tunnel restored automatically; ledger unchanged, 50.514 GiB free.
+- All 49 unit tests pass on VM and WSL. Windows passes 44 with five dependency/POSIX
+  skips. Repository YAML/security and diff checks pass.
 
 ## Phase 5 initial preparation checkpoint (2026-09-29)
 - Complete private VM handover record is in local `VM_NOTES/9125-gatewayai-control.md`

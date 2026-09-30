@@ -62,6 +62,15 @@ manual container/network change, run `linux-core.py loopback` and `test` to refr
 and verify. The units are `gatewayai-open-webui.socket/service` and
 `gatewayai-litellm.socket/service`. Docker and socket units are enabled at boot;
 containers use `unless-stopped`. Deliberately stopped containers remain stopped.
+Docker may change dynamic bridge addresses on reboot. The root-owned
+`gatewayai-loopback-refresh.service` waits up to 300 seconds for all three
+containers in the explicitly selected project to be healthy, then rewrites the
+proxy targets. It is an administrator deployment service, not a worker/controller
+API; no application receives its Docker authority. The proxies themselves remain
+unprivileged. Wait for this oneshot unit to finish successfully before testing
+HTTP after boot; early connections can reset while readiness/refresh is pending.
+The selected live project is recorded in its systemd unit. Manual container
+recreation still requires the appropriate loopback command.
 
 ## Local backup and restore drill
 
