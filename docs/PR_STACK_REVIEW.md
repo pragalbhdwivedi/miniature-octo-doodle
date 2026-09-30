@@ -48,3 +48,12 @@ fixed the pre-existing smoke JSON escaping exposed by live execution, retaining
 the failed run. Positive zero-spend dispatch and completion-failure reconciliation
 then passed. The implementation and correction are merged; exact tested results
 and remaining Phase7 scope are in BUILD_STATUS.
+
+## Review, repair and publication increment
+
+PR #22 passed push/PR CI (36749975334 / 36750047606), had no open review comments,
+and merged with exact head `c5b90e1b4eba98bd027a7581d418cdd868153628` pinned.
+Merge: `dca030b99cc090e1c2fd1473cce6e55f9e4b5c45`. Live review, one repair,
+re-review and gated publication passed afterward. Draft PR #23 is the synthetic
+single-file result and stays unmerged, like PR #16. Issue #21 is closed; no wider
+Phase 7 or Phase 5 gate is inferred from these bounded results.

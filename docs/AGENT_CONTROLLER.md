@@ -3,7 +3,8 @@
 Phase 7 is STARTED / PARTIAL. The read-only repository planning CLI is implemented
 and deployed for an unprivileged VM acceptance run. A separate operator dispatcher
 now adds PostgreSQL claims/audit and one controlled worker attempt. Independent
-review, repair and publishing orchestration remain pending. Follow
+review, one bounded repair and operator-gated publication are implemented;
+see BUILD_STATUS for live acceptance. Follow
 the [roadmap](ROADMAP.md) and [AADI integration contract](AADI_DEVELOPMENT_INTEGRATION.md).
 
 ## Intended roles
@@ -98,8 +99,9 @@ mutation occurred. Larger/private repositories require separate activation.
 ## Remaining Phase 7 acceptance
 
 PostgreSQL run/event persistence, atomic claims and controlled operator dispatch
-passed the subsequent live milestone. Remaining work: independent review; bounded repair;
-source/ownership revalidation before publication; and end-to-end AADI acceptance.
+passed the subsequent live milestone. The review pipeline implements independent
+review, bounded repair and source/ownership revalidation before publication.
+End-to-end AADI acceptance remains pending and its adapter remains disabled.
 Telegram action-bound pause/resume remains Phase 8. No service/daemon or new
 container image was installed for this first planning milestone.
 

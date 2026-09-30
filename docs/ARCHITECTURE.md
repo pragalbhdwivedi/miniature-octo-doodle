@@ -168,7 +168,7 @@ one budget-reserved LiteLLM call and validates proposed edits before sandbox tes
 A separate publisher binds operator review to artifact hashes and creates only
 new run branches/draft PRs; live publication passed in draft PR #16.
 Phase 7 has a read-only planner and separate durable operator dispatcher;
-independent review, repair and publication orchestration remain unimplemented.
+independent review, bounded repair and draft publication use the operator pipeline below.
 See [WORKER](WORKER.md) and [controller](AGENT_CONTROLLER.md).
 
 ## Service directory and remote access - 30 September 2026
@@ -187,7 +187,7 @@ The read-only planner stays unprivileged. A separate operator CLI refreshes the
 repository, binds approval to exact source/job/image/budget, commits a PostgreSQL
 claim and invokes the bounded worker once. Duplicate/ambiguous runs cannot retry.
 The dedicated database reuses the existing instance without gateway-table changes.
-Independent review, repair and publication orchestration remain pending. See
+The separate schema-2 pipeline adds review, repair and publication gates. See
 [ADR 0017](adr/0017-durable-operator-dispatch.md).
 
 ## Bounded review and publication increment

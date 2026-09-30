@@ -124,8 +124,9 @@ multi-agent hierarchy.
 Status: STARTED / PARTIAL. Read-only repository refresh, task/dependency/ownership
 planning and zero-authority review artifacts are implemented and tested. Live
 unprivileged refresh/deny passed. PostgreSQL persistence and controlled operator
-dispatch are implemented; independent review/repair and publishing orchestration
-remain pending. See [dispatch operations](CONTROLLER_DISPATCH.md). See [controller operations](AGENT_CONTROLLER.md).
+dispatch are implemented, along with independent review, one repair and gated
+draft publication. See BUILD_STATUS for measured acceptance and remaining gates,
+[dispatch operations](CONTROLLER_DISPATCH.md) and [controller operations](AGENT_CONTROLLER.md).
 
 Implement the shared controller that turns a repository's own roadmap and issues
 into bounded development runs.

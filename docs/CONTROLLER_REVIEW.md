@@ -90,5 +90,8 @@ Operator provisioning still owns token scope; API success cannot prove the token
 has no broader permissions. Keep all secrets, requests, model findings, artifacts,
 debits and journals outside Git/sync and preserve them together during recovery.
 
-See BUILD_STATUS for actual live results; fixture tests alone do not establish
-live review, repair quality, publication or separate-machine recovery.
+Live GatewayAI synthetic acceptance passed on 30 September 2026: stricter tests
+and first review rejected the defect, one repair passed fresh tests/review, then
+exact final approval created draft PR #23. The three stages reserved $0.869440
+within $1; duplicate publication was denied. See BUILD_STATUS for exact identities
+and limitations. This does not establish AADI or separate-machine recovery.

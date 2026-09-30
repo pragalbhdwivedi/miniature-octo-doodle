@@ -23,8 +23,10 @@ operator-only exact-request dispatch are deployed and live-tested. The committed
 zero-spend task passed; simulated completion-write outage retained the claim and
 reconciliation recovered the result without re-execution.
 Independent fresh-context review, one bounded repair and operator-gated draft
-publication are implemented; schema-2 migration and test validation passed.
-Live pipeline acceptance remains pending below. Phase7 remains PARTIAL.**
+publication are deployed and live-tested: stricter tests/reviewer rejected the
+synthetic defect, one repair passed new tests/review, and exact-artifact approval
+created draft PR #23. Aggregate conservative debit $0.869440 under $1; duplicate
+publication denied. Phase7 remains PARTIAL for end-to-end AADI acceptance.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -35,8 +37,9 @@ merged at `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
 Phase 4 PR #10, Phase 5 PR #12 (including roadmap PR #11), and dashboard PR #14
 are merged. Historical design PR #7 was closed as superseded. Phase 6 PR #13
 is merged after live publishing acceptance in draft test PR #16. Phase 7's read-only
-planner was merged in PR #15. The next bounded increment adds durable state and
-controlled dispatch; see [dispatch operations](docs/CONTROLLER_DISPATCH.md).
+planner was merged in PR #15, durable dispatch in PR #18 and review/repair/draft
+publication in PR #22. See [dispatch operations](docs/CONTROLLER_DISPATCH.md)
+and [review operations](docs/CONTROLLER_REVIEW.md).
 See `docs/BUILD_STATUS.md` for measured results and remaining Phase 5 gates.
 
 ## Hardware baseline
