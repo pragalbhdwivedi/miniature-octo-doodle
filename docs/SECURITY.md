@@ -151,3 +151,14 @@ write scope. The aggregate PostgreSQL ceiling includes original coding and all
 review/repair calls, with immutable stage reservations before HTTP. No retries or
 refunds. Final artifact/review approval is separate from initial pipeline approval.
 See [review operations](CONTROLLER_REVIEW.md) for context and model-independence limits.
+
+## Telegram approval boundary
+
+The Phase 8 adapter is root-only. It holds a bot token and callback-signing key
+only in protected runtime configuration when enabled; none is configured in the
+current deployment. A signed button and the configured numeric user/private chat
+are both required. PostgreSQL expiry, exact payload binding and one-shot
+consumption prevent callback replay. Telegram receives hashes and a run ID, never
+source contents, provider keys, publisher token or database credentials. A callback
+cannot invoke Docker, GitHub publishing, merge or production deployment. See
+[Telegram operations](CONTROLLER_TELEGRAM.md).

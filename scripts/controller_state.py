@@ -62,3 +62,23 @@ class Store:
     def step_pipeline(self, run_id, expected, state, evidence):
         return self.query('SELECT controller.pipeline_step('+literal(run_id)+" #>> '{}',"+
                           literal(expected)+" #>> '{}',"+literal(state)+" #>> '{}',"+literal(evidence)+');')
+
+    def approval(self, approval_id):
+        return self.query('SELECT coalesce((SELECT to_jsonb(a) FROM controller.approvals a WHERE approval_id='+
+                          literal(approval_id)+" #>> '{}'),'null'::jsonb);")
+
+    def request_approval(self, approval_id, run_id, digest, user_id, chat_id, lifetime_seconds):
+        return self.query('SELECT controller.approval_request('+literal(approval_id)+" #>> '{}',"+
+                          literal(run_id)+" #>> '{}',"+literal(digest)+" #>> '{}',"+
+                          '('+literal(user_id)+" #>> '{}')::bigint,("+literal(chat_id)+" #>> '{}')::bigint,("+
+                          literal(lifetime_seconds)+" #>> '{}')::integer);")
+
+    def decide_approval(self, approval_id, digest, decision, user_id, chat_id, update_id):
+        return self.query('SELECT controller.approval_decide('+literal(approval_id)+" #>> '{}',"+
+                          literal(digest)+" #>> '{}',"+literal(decision)+" #>> '{}',"+
+                          '('+literal(user_id)+" #>> '{}')::bigint,("+literal(chat_id)+" #>> '{}')::bigint,("+
+                          literal(update_id)+" #>> '{}')::bigint);")
+
+    def consume_approval(self, approval_id, run_id, digest, receipt):
+        return self.query('SELECT controller.approval_consume('+literal(approval_id)+" #>> '{}',"+
+                          literal(run_id)+" #>> '{}',"+literal(digest)+" #>> '{}',"+literal(receipt)+');')

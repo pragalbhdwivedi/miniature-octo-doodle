@@ -87,7 +87,8 @@ class PipelineTests(unittest.TestCase):
              'evidence':{'tests_passed':True,'review':{'verdict':'approve'},'candidate_run':'d'*32,'artifact_sha256':'e'*64,'review_sha256':'f'*64}}
         with self.assertRaises(ValueError):p.publish(self.store,self.root,row,'0'*64,self.config,Path('/key'))
         receipt=p.publication_receipt(row)
-        with patch.object(p,'eligible',side_effect=ValueError('ownership changed')),self.assertRaises(ValueError):
+        with patch.object(p.d,'private_json',return_value={}),\
+             patch.object(p,'eligible',side_effect=ValueError('ownership changed')),self.assertRaises(ValueError):
             p.publish(self.store,self.root,row,p.d.digest(receipt),self.config,Path('/key'))
         self.store.step_pipeline.assert_not_called()
         row['state']='rejected'
@@ -97,7 +98,8 @@ class PipelineTests(unittest.TestCase):
         row={'state':'approved','run_id':'a'*32,'spec':self.spec,'approval_sha256':'0'*64,
              'evidence':{'tests_passed':True,'review':{'verdict':'approve'},'candidate_run':'d'*32,'artifact_sha256':'e'*64,'review_sha256':'f'*64}}
         self.root['request']['plan']={'issue':21}
-        with patch.object(p,'eligible'),patch.object(p.publisher,'plan',return_value={'source_sha':'b'*40}),\
+        with patch.object(p,'eligible'),patch.object(p.d,'private_json',return_value={}),\
+             patch.object(p.publisher,'plan',return_value={'source_sha':'b'*40}),\
              patch.object(p.publisher,'publish_reviewed',side_effect=TimeoutError()) as call,self.assertRaises(TimeoutError):
             p.publish(self.store,self.root,row,p.d.digest(p.publication_receipt(row)),self.config,Path('/key'))
         self.assertEqual(call.call_count,1)

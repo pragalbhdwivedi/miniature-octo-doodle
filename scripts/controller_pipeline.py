@@ -174,14 +174,26 @@ def publication_receipt(row):
             'review_sha256':row['evidence']['review_sha256'],'pipeline_approval_sha256':row['approval_sha256']}
 
 
-def publish(store,root,row,approved,config,publisher_config):
+def publish(store,root,row,approved,config,publisher_config,approval_id=None):
     receipt=publication_receipt(row)
     if d.digest(receipt)!=approved:raise ValueError('Exact final publication approval required')
+    if publisher_config is None:raise ValueError('Protected publisher configuration required')
+    d.private_json(Path(publisher_config))
     eligible(root,Path(config['runtime']))
     folder=Path(config['worker_runtime'])/receipt['candidate_run']
     value=publisher.plan(folder,receipt['artifact_sha256'])
     if value['source_sha']!=receipt['source_sha']:raise ValueError('Publication source changed')
-    store.step_pipeline(root['run_id'],'approved','publishing',receipt)
+    if 'telegram_approval_config' in config:
+        if not isinstance(config['telegram_approval_config'],str) or not config['telegram_approval_config']:
+            raise ValueError('Protected Telegram configuration required')
+        d.private_json(Path(config['telegram_approval_config']))
+        if not re.fullmatch('[a-f0-9]{32}',approval_id or ''):
+            raise ValueError('Exact Telegram approval ID required')
+        # One PostgreSQL transaction consumes the decision and enters publishing.
+        # A failure after this point cannot reuse the decision or retry publication.
+        store.consume_approval(approval_id,root['run_id'],approved,receipt)
+    else:
+        store.step_pipeline(root['run_id'],'approved','publishing',receipt)
     try:
         result=publisher.publish_reviewed(folder,receipt['artifact_sha256'],publisher_config,root['request']['plan']['issue'])
         return store.step_pipeline(root['run_id'],'publishing','published',{'receipt':receipt,'publication':result})
@@ -199,6 +211,7 @@ def main():
     parser.add_argument('--spec',type=Path)
     parser.add_argument('--approve-sha256',default='')
     parser.add_argument('--publisher-config',type=Path)
+    parser.add_argument('--telegram-approval-id')
     args=parser.parse_args()
     if os.name!='posix' or os.geteuid()!=0:raise ValueError('Linux operator only')
     if not re.fullmatch('[a-f0-9]{32}',args.run_id):raise ValueError('Run ID required')
@@ -213,7 +226,8 @@ def main():
         if args.action=='review':
             row=execute(store,root,d.private_json(args.spec),args.approve_sha256,config)
         elif args.action=='publish':
-            row=publish(store,root,store.pipeline(args.run_id),args.approve_sha256,config,args.publisher_config)
+            row=publish(store,root,store.pipeline(args.run_id),args.approve_sha256,config,
+                        args.publisher_config,args.telegram_approval_id)
         else:row=store.pipeline(args.run_id)
         if row is None:raise ValueError('No pipeline')
         result={'run_id':row['run_id'],'state':row['state'],'debit_micro_usd':row['debit'],'evidence':row['evidence']}
