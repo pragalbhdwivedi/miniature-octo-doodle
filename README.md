@@ -145,3 +145,13 @@ trust and broader client acceptance remain pending. See [ingress operations](doc
 The updated [roadmap](docs/ROADMAP.md) prioritizes an isolated worker, repository-driven
 controller and Telegram approvals before optional memory/code graph or local models.
 AADI is the first managed development project and retains its own production authority.
+
+## Service directory and remote access - 30 September 2026
+
+DEPLOYED: password-free `dash.aadi.dgoi.local` directory and separate HRMS/console
+HTTPS hostnames reuse existing ingress. Preserved-account login, protected reads,
+logout and origin/anonymous denial passed. No image pull, migration or password
+reset. User confirmed external OpenVPN and phone RDP login. WireGuard server routes
+corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
+acceptance remain open. See [dashboard operation](docs/DASHBOARD.md) and
+[remote-access evidence](docs/REMOTE_ACCESS_CHECK.md).

@@ -154,3 +154,13 @@ sole planned approval channel; WhatsApp is excluded. Human authority remains
 required for merges, production deployments and other consequential actions.
 AADI retains its own architecture and acceptance gates and must operate without
 this development platform. See [the integration contract](AADI_DEVELOPMENT_INTEGRATION.md).
+
+## Service directory and remote access - 30 September 2026
+
+DEPLOYED: password-free `dash.aadi.dgoi.local` directory and separate HRMS/console
+HTTPS hostnames reuse existing ingress. Preserved-account login, protected reads,
+logout and origin/anonymous denial passed. No image pull, migration or password
+reset. User confirmed external OpenVPN and phone RDP login. WireGuard server routes
+corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
+acceptance remain open. See [dashboard operation](DASHBOARD.md) and
+[remote-access evidence](REMOTE_ACCESS_CHECK.md).
