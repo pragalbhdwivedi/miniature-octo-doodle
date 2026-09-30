@@ -167,7 +167,8 @@ No agent/runtime API can invoke the privileged broker. An operator adapter makes
 one budget-reserved LiteLLM call and validates proposed edits before sandbox tests.
 A separate publisher binds operator review to artifact hashes and creates only
 new run branches/draft PRs; live publication passed in draft PR #16.
-Phase 7 now has a read-only planner; execution orchestration remains unimplemented.
+Phase 7 has a read-only planner and separate durable operator dispatcher;
+independent review, repair and publication orchestration remain unimplemented.
 See [WORKER](WORKER.md) and [controller](AGENT_CONTROLLER.md).
 
 ## Service directory and remote access - 30 September 2026

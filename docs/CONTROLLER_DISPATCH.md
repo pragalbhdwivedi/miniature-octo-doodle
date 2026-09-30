@@ -98,3 +98,9 @@ accepts only `gatewayai_controller_test_<8 hex>` databases with the same schema.
 It exercises real concurrent claims, fresh connections, audit ordering, replay,
 review ownership and denied direct mutations. Use BUILD_STATUS for actual runs;
 passing fixtures alone does not prove live repository dispatch.
+
+Live acceptance on 30 September passed the committed zero-spend task, source pin,
+durable claim, worker execution, cleanup and completion-failure reconciliation.
+The first smoke fixture failed safely and was corrected in a new reviewed commit;
+its audit record remains. See [BUILD_STATUS](BUILD_STATUS.md) for exact evidence.
+The synthetic task is now done; prepare blocks until another approved task exists.
