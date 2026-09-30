@@ -29,11 +29,67 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | OmniRoute | NOT STARTED | Optional |
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
-| Isolated coding worker | NOT STARTED | Phase 6, before context/local models |
+| Isolated coding worker | PARTIAL | Phase 6 offline execution/artifact boundary deployed and tested; coding-agent/scoped publication adapters remain |
 | Agent Controller | NOT STARTED | Phase 7; independent of AADI production |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## Phase 6 worker execution boundary - 30 September 2026
+
+- User authorized the next phase. Refreshed GitHub/default main (`3cf3b6d`),
+  current Phase 5 branch (`8e0948a`), open PRs/issues and governing documents.
+  Work is stacked on Phase 5 in `feat/phase6-isolated-worker`; no main/PR merge.
+  Phase 5's remaining recovery and client-trust gates are not marked complete.
+- Implemented an operator-only Linux broker and digest-based Python/Git worker
+  image. Approved public repository fetch records the resolved SHA, then passes
+  an immutable source snapshot/job into an offline non-root container. No host
+  write mount, Docker socket, provider/GitHub key or production state is passed.
+- Resource readback and in-container probes passed: UID65532, capabilities zero,
+  no-new-privileges, seccomp, network denial, read-only input/root, no secret/socket
+  mounts, 1 CPU, 768 MiB RAM/no extra swap, 64 PIDs, 256 MiB workspace and 64 MiB
+  temporary tmpfs, 16 MiB per-file limit. At most eight commands/120s execution,
+  30s per command, 2 MiB output per command and 1 MiB changed artifacts.
+- Positive target run fetched current main, wrote/tested a synthetic permitted
+  file, made a local worker-branch Git commit and exported the reviewed artifact
+  in 10.78s. The broker compares against immutable input, not mutable Git history.
+- Negative target runs passed: 10-second execution timeout (13.99s including
+  fetch/cleanup), output flood, unauthorized README edit committed into worker
+  history, symlink escape and attempted default-branch push all failed closed.
+  No output artifact was accepted and each exact container was removed. Nonzero
+  model budget was rejected before execution. No provider calls occurred.
+- Independent lifetime/resource test passed without broker command scheduling:
+  the image deadline exited137 after 151.35s; that container was removed.
+- Rebuilt from the same cached source/image inputs, created a fresh workspace and
+  fetched again: repeated positive run passed in 10.65s and produced the same
+  patch hash. This is disposable-worker recreation, not a clean-host recovery test.
+- Reviewed image: `sha256:e4933835442bd06ba855e24a347879da62ee2f6f458a22c344e9bc12c7139672`,
+  306,143,291 bytes. Base Python digest pinned; Git installed from signed Debian
+  repositories. VM free 48.72 GiB before and 48.53 GiB after build. No model,
+  Codex CLI, controller, memory service or extra VM installed. Docker reported a
+  legacy-builder deprecation notice; buildx was not installed merely to hide it.
+- New worker tests passed on the target. Initial Windows test fixture used platform-dependent
+  path separators; corrected to PurePosixPath, then the worker tests passed.
+- Ledger immediately after worker negative tests was unchanged at September
+  debit3.612410USD,22attempts,0active. Later concurrent gateway traffic advanced it
+  to4.213670USD/26attempts/0active; no cause/user is inferred. Workers have no
+  network/credentials and made zero provider calls. Final core check passed all
+  four healthy live containers, internal network boundaries, loopback and HTTPS;
+  gateway allowance remains100USD UTC-month. An old exact-debit health assertion
+  failed on this later traffic; replaced in the operator probe by monotonic-ledger
+  and unchanged-allowance checks without altering the live ledger.
+- The independent lifetime SSH wrapper did not return after its remote result
+  had been saved. Read back PASS/151.35s/exit137 and verified no worker containers
+  remained, then cancelled that waiting client. No running job was abandoned.
+- Final validation: 59 WSL tests passed; Windows52passed/7POSIX/dependency skips;
+  all10worker tests passed on the VM. The final hardened broker re-fetched main
+  and repeated the positive runtime in9.03s with the same patch hash. Repository
+  safety and diff checks passed. Complete local VM/Proxmox Notes were compacted
+  to fit the server limit, saved and read back; hardware settings unchanged.
+- Remaining Phase 6: a gateway-backed coding-agent adapter with per-run cost
+  reservations, scoped branch publication outside the sandbox and live
+  coding/publishing acceptance. No autonomous agent or publication path is active.
+  See [worker operations](WORKER.md) and [ADR 0014](adr/0014-zero-spend-worker-boundary.md).
 
 ## Phase 5 live migration and encrypted retention - 2026-09-30
 

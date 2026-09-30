@@ -154,3 +154,15 @@ sole planned approval channel; WhatsApp is excluded. Human authority remains
 required for merges, production deployments and other consequential actions.
 AADI retains its own architecture and acceptance gates and must operate without
 this development platform. See [the integration contract](AADI_DEVELOPMENT_INTEGRATION.md).
+
+## Phase 6 worker execution boundary
+
+The approved operator broker fetches an allowlisted public GitHub revision,
+records its SHA and starts a disposable offline non-root container. The worker
+receives a read-only source/job mount and bounded tmpfs workspace; it has no
+gateway/provider/SSH credentials, host write mount or Docker socket. Commands
+and local Git commits occur only inside it. Export compares allowlisted file
+changes to the immutable input, preserving an audit record outside the worker.
+No agent/runtime API can invoke the privileged broker. Model execution and
+GitHub publication are disabled pending separate adapter implementation within
+Phase 6; Phase 7 task selection/controller is not installed. See [WORKER](WORKER.md).

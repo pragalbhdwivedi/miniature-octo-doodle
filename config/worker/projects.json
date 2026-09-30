@@ -1,0 +1,7 @@
+{
+  "gatewayai": {
+    "url": "https://github.com/pragalbhdwivedi/miniature-octo-doodle.git",
+    "refs": ["refs/heads/main"],
+    "default_branch": "main"
+  }
+}

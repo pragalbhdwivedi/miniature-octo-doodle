@@ -12,7 +12,9 @@ restore and clean container rebuild COMPLETE for the tested same-host scope.
 Phase 4: COMPLETE for local developer Kubernetes validation.
 Phase 5: PARTIAL. Live Windows data/credentials/ledger migrated to the Linux VM;
 API/provider/browser acceptance passed. Encrypted off-VM copy and authenticated
-readback passed. Separate clean-host recovery and reverse cutover remain pending.**
+readback passed. Separate clean-host recovery and reverse cutover remain pending.
+Phase 6: STARTED / PARTIAL. Zero-spend isolated worker execution is deployed and
+tested; coding-agent and scoped publication adapters remain unimplemented.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -85,18 +87,26 @@ restart its stale ledger. The earlier fresh zero-spend VM project is retained
 stopped. WebUI is `http://localhost:3180` through the SSH tunnel, using the existing
 Windows administrator credentials. Protected login location is in local VM notes.
 
-Next: validate recovery on a separate approved clean machine, and reverse cutover
+Recovery still requires a separate approved clean machine, and reverse cutover
 using current data/ledger rather than the old Windows snapshot. An encrypted copy
 has been placed in protected laptop storage and read back with authentication;
 this does not prove recovery after loss of the VM/host. No separate recovery target
 has been named, so the earlier clean-machine pause remains respected.
 See [Linux operations](docs/LINUX_CORE.md) and [Phase 5 gates](docs/DEBIAN_CONTROL_PLANE.md).
 
+On 2026-09-30 the user authorized the next phase. The first Phase 6 milestone
+adds an operator-only broker, allowlisted public repository refresh, offline
+non-root disposable worker, bounded shell/tests and reviewable artifacts.
+It is on `feat/phase6-isolated-worker`, stacked on the unmerged Phase 5 branch.
+Remaining Phase 6 work is a gateway-backed coding-agent adapter with per-run cost
+controls and scoped publication outside the worker. See [worker operations](docs/WORKER.md).
+
 The local k3d deployment remains isolated developer validation: no provider keys,
 zero spending, fresh data and Jev disabled. It does not replace the Compose gateway.
 
 Live Jev integration/evaluation/calibration remains deferred under ADR 0008.
-No optional modules or model weights were installed. See [Kubernetes operations](docs/KUBERNETES.md).
+Only the explicitly requested NPM and Phase 6 worker image have been added;
+no local model weights or context/controller modules. See [Kubernetes operations](docs/KUBERNETES.md).
 
 ## Phase 5 runtime checkpoint (2026-09-30)
 - Direct Windows/WSL and bastion SSH, target admission, Docker/core health,
