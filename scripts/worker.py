@@ -185,9 +185,13 @@ def validate_image(info):
         raise ValueError('Image differs from the reviewed worker runtime contract')
 
 
-def run(job, image, root, coding_config=None):
+def run(job, image, root, coding_config=None, expected_source_sha=None, run_id=None):
     if sys.platform != 'linux' or os.geteuid() != 0:
         raise ValueError('Approved Linux operator required; never expose this CLI to agents')
+    if expected_source_sha is not None and not re.fullmatch('[a-f0-9]{40}', expected_source_sha):
+        raise ValueError('Invalid approved source SHA')
+    if run_id is not None and not re.fullmatch('[a-f0-9]{32}', run_id):
+        raise ValueError('Invalid reserved run ID')
     import fcntl
     registry = json.loads((REPO/'config/worker/projects.json').read_text())
     project = validate_job(job, registry)
@@ -211,7 +215,7 @@ def run(job, image, root, coding_config=None):
             raise ValueError('Docker storage needs 15 GiB floor plus 1 GiB reserve')
         image_info = json.loads(checked(DOCKER+['image', 'inspect', image]))[0]
         validate_image(image_info)
-        run_id = uuid.uuid4().hex
+        run_id = run_id or uuid.uuid4().hex
         folder = root/run_id
         folder.mkdir(mode=0o700)
         source = folder/'input'
@@ -240,6 +244,8 @@ def run(job, image, root, coding_config=None):
             if not re.fullmatch('[a-f0-9]{40}', sha):
                 raise ValueError('Invalid fetched revision')
             record['source_sha'] = sha
+            if expected_source_sha is not None and sha != expected_source_sha:
+                raise ValueError('Source advanced after approval; no execution permitted')
             archive = checked(git+['archive', '--format=tar', sha], env=env,
                               limit=sandbox.MAX_SOURCE, file_limit=64*1024*1024)
             with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
@@ -300,6 +306,7 @@ def run(job, image, root, coding_config=None):
         except Exception as error:
             record['failure_type'] = type(error).__name__
         finally:
+            record['container_started'] = created
             if created:
                 # Cleanup precedes budget audit; a damaged ledger must not skip removal.
                 code, _ = bounded(DOCKER+['rm', '-f', name], timeout=20)

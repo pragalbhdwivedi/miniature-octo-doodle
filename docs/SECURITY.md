@@ -126,7 +126,7 @@ inference and reviewed GitHub publication outside the sandbox. One model call
 reserves a durable conservative per-run debit; the central monthly limit also
 applies. Publication requires exact artifact approval and a repository-scoped
 credential, and creates only new run branches and draft PRs. No merge operation
-is provided. Live publication remains pending.
+is provided. Live publication passed in draft PR #16.
 Container isolation shares the VM kernel; this is bounded execution evidence,
 not approval for arbitrary hostile code or production repositories.
 See [worker operations and remaining gates](WORKER.md).
@@ -137,4 +137,8 @@ The first Phase7 CLI has no credentials, model calls, Docker access or mutation
 operations. It validates public Git/GitHub snapshots, explicit tasks, ownership
 and dependencies and emits review artifacts. An issue body, model response or
 plan status cannot authorize execution. The VM acceptance ran as UID65534;
-PostgreSQL execution state, dispatch and remote approvals remain unimplemented.
+the separate operator dispatcher now uses a dedicated PostgreSQL role/schema.
+Exact source/job/image/budget approval, permanent task/source claims and
+fail-closed ambiguous state constrain dispatch. The planner and worker never
+receive that authority. Remote approvals remain unimplemented.
+See [dispatch boundaries](CONTROLLER_DISPATCH.md).

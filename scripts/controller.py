@@ -146,10 +146,9 @@ def choose(project, snapshot, files, worker_registry):
             base['reasons'].append(name+':'+reason);continue
         job=task['job']
         worker.validate_job(job,worker_registry)
-        if (job['project']!=project or job['ref']!=snapshot['ref'] or job['model_budget_usd']!=0
-                or 'coding' not in job):
-            raise ValueError('Task may only propose a zero-budget coding job for this snapshot')
-        if any(name not in files for name in job['coding']['read_paths']):
+        if job['project']!=project or job['ref']!=snapshot['ref'] or job['model_budget_usd']!=0:
+            raise ValueError('Task may only propose a zero-budget job for this snapshot')
+        if any(name not in files for name in job.get('coding',{}).get('read_paths',[])):
             raise ValueError('Required coding context missing')
         base.update(status='awaiting_operator_review',task_id=name,issue=task['issue'],job=job,
                     max_iterations=1,required_next='Review exact source, job and budget before separate worker execution')

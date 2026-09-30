@@ -1,8 +1,9 @@
 # Agent Controller
 
 Phase 7 is STARTED / PARTIAL. The read-only repository planning CLI is implemented
-and deployed for an unprivileged VM acceptance run. Execution orchestration and
-durable PostgreSQL run state are not implemented. Follow
+and deployed for an unprivileged VM acceptance run. A separate operator dispatcher
+now adds PostgreSQL claims/audit and one controlled worker attempt. Independent
+review, repair and publishing orchestration remain pending. Follow
 the [roadmap](ROADMAP.md) and [AADI integration contract](AADI_DEVELOPMENT_INTEGRATION.md).
 
 ## Intended roles
@@ -58,8 +59,9 @@ reserve. AADI's registry entry is disabled and cannot be selected.
 
 Required governance: PROJECT.md, AGENTS.md, WORK_INSTRUCTIONS.md, PROJECT_STATE.md,
 README.md, ARCHITECTURE, BUILD_STATUS and ROADMAP. Missing files block selection.
-Tasks must be committed in `config/controller/tasks.json`; the checked-in manifest
-is deliberately empty until the owner/reviewer approves actual controller tasks.
+Tasks must be committed in `config/controller/tasks.json`. The manifest contains
+one zero-spend synthetic dispatch acceptance task; it grants no scheduling or
+production authority.
 Each task has `id`, `issue`, `state` (ready/paused/done), `priority` (1..100),
 `depends_on` (task IDs), and a worker `job` matching `config/worker/coding-job.json`.
 The job must use this project's approved ref, explicit context/write paths,
@@ -80,7 +82,8 @@ python3 scripts/controller.py --project gatewayai \
 The output directory must be outside the checkout, owner-only0700. Each new0600
 JSON plan records source/governance/task/inventory hashes, recent commits, reasons
 and a unique run ID. A plan is a review artifact, not a durable execution-state
-backend or an approval. It does not replace the planned PostgreSQL run ledger.
+backend or an approval. The separate dispatcher stores durable claims and audit
+events in PostgreSQL; see [dispatch operations](CONTROLLER_DISPATCH.md).
 `awaiting_operator_review` means eligible planning only. Revalidate repository
 ownership/source and explicitly set a budget before any separate worker operation.
 There is no automatic handoff, claim acquisition, scheduling or resume path yet.
