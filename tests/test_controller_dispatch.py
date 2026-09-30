@@ -37,6 +37,13 @@ class DispatchTests(unittest.TestCase):
         with self.assertRaises(ValueError):d.make_request(plan,self.request['image'],0)
         self.assertEqual(d.make_request(plan,self.request['image'],1)['job']['model_budget_usd'],1)
 
+    def test_committed_smoke_commands_are_valid_python(self):
+        manifest=json.loads((d.ROOT/'config/controller/tasks.json').read_text())
+        for job in [self.job]+[t['job'] for t in manifest['tasks']]:
+            for argv in job['commands']:
+                if argv[:2]==['python3','-c']:
+                    compile(argv[2],'<committed smoke command>','exec')
+
     def test_no_execution_without_committed_claim(self):
         store=Mock();store.claim.side_effect=RuntimeError('duplicate or unavailable')
         run=Mock()
