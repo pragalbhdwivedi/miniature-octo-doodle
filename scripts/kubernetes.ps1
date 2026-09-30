@@ -1,6 +1,7 @@
 param([Parameter(Mandatory)][ValidateSet('cluster','deploy','test','start','stop')][string]$Action)
 . "$PSScriptRoot/common.ps1"
-& "$PSScriptRoot/preflight.ps1"
+$reserve = switch ($Action) { cluster { 8 }; deploy { 4 }; default { 0 } }
+& "$PSScriptRoot/preflight.ps1" -AdditionalGiB $reserve
 $python = Join-Path $RepoRoot '.venv/Scripts/python.exe'
 if (!(Test-Path $python)) { throw 'Create .venv and install requirements-ci.txt first.' }
 $kubeRoot = Join-Path $env:LOCALAPPDATA 'GatewayAI/kubernetes'
@@ -16,7 +17,6 @@ foreach ($identity in @([Security.Principal.WindowsIdentity]::GetCurrent().User,
 [IO.FileSystemAclExtensions]::SetAccessControl([IO.DirectoryInfo]::new($kubeRoot), $acl)
 $k3d = Join-Path $RepoRoot 'tmp/tools/k3d.exe'
 if ($Action -eq 'cluster') {
-  Assert-DiskReserve -FreeGiB ((Get-PSDrive C).Free / 1GB) -AdditionalGiB 8
   New-Item -ItemType Directory -Force (Split-Path $k3d) | Out-Null
   if (!(Test-Path $k3d)) {
     Invoke-WebRequest 'https://github.com/k3d-io/k3d/releases/download/v5.9.0/k3d-windows-amd64.exe' -OutFile $k3d
@@ -27,7 +27,6 @@ if ($Action -eq 'cluster') {
   if ($LASTEXITCODE -ne 0) { throw 'Cluster creation failed; inspect retained nodes before retrying.' }
 }
 if ($Action -in @('cluster','deploy')) {
-  if ($Action -eq 'deploy') { Assert-DiskReserve -FreeGiB ((Get-PSDrive C).Free / 1GB) -AdditionalGiB 4 }
   if (!(Test-Path $k3d)) { throw 'Run the cluster action first.' }
   $config = & $k3d kubeconfig get gatewayai
   if ($LASTEXITCODE -ne 0) { throw 'Dedicated cluster kubeconfig unavailable.' }

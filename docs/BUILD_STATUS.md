@@ -525,3 +525,10 @@ The target machine runs this implementation; main contains merged Phase 1 only.
   requires review/merge. Next: Phase 2 routing, fallbacks, budgets, logging policy
   and local-private isolation. Restore, clean rebuild, reboot recovery, load
   testing and optional modules remain unvalidated/later work.
+
+## PR stack review: Phase 4 storage guard - 30 September 2026
+
+Resolved the open P1 review: cluster/deployment reserves now apply to every
+discovered Docker/repository storage drive before downloads. Synthetic C:50GiB
+and Docker D:18GiB reject both 8GiB and 4GiB reservations; zero-reserve inspection
+passes. No image download or running cluster change during this review.
