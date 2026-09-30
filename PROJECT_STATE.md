@@ -8,16 +8,17 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 
 ## Current phase
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
-restore and clean container rebuild COMPLETE for the tested same-host scope.**
+restore and clean container rebuild COMPLETE for the tested same-host scope.
+Phase 4: PARTIAL, isolated zero-spend Kubernetes core passes API and browser acceptance.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
 Phase 2 [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8)
 merged at `c76406927ae1110e6023f4195c7d4b81c360cd55`, incorporating PR #7's design.
-Phase 3 implementation branch: `feat/phase3-recovery`, based on that main commit.
-Phase 3 is tested locally; delivery is
-[PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9);
-GitHub records its review and merge status.
+Phase 3 [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9)
+merged at `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
+Phase 4 implementation: [PR #10](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/10),
+branch `feat/phase4-kubernetes`, based on that main commit; not yet merged.
 See `docs/BUILD_STATUS.md` for measured results, including live provider and Edge browser tests.
 
 ## Hardware baseline
@@ -64,20 +65,32 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-New-machine recovery validation is paused by user instruction until their
-Kubernetes setup is running. Off-machine backup and new-machine recovery remain
-unvalidated. Same-host cold backup and isolated restore/rebuild passed; see
-`docs/BACKUP_RESTORE.md` and the measured build record. No Kubernetes installation
-or off-machine transfer is started by this review/merge.
-Phase 2 remains accepted with Jev disabled under ADR 0008.
-Live Jev integration/evaluation/calibration is deferred to a separately reviewed
-and authorized change with a key and evaluation allowance. Local validation is
-not production or new-machine recovery certification. Kubernetes and optional
-modules remain later phases. NAT applies to all WSL2
-distributions; direct WSL LAN access and
-Linux-to-Windows localhost semantics change. All 31 running workload identities
-and six volumes were preserved; unrelated applications were not functionally tested.
-No reboot, firewall changes or data deletion was performed.
+Agree the intended Kubernetes target and migration scope before moving existing
+chats, credentials and budget history. Zero-spend browser acceptance has passed.
+The local k3d deployment is an isolated validation instance: no provider keys,
+zero spending, fresh data, Jev disabled. It does not replace the Compose gateway.
+Off-machine backup and new-machine recovery remain unvalidated; the user's pause
+until their Kubernetes setup is running is preserved. A same-host k3d cluster
+does not establish recovery on a separate machine or authorize a remote target.
+
+Live Jev integration/evaluation/calibration remains deferred under ADR 0008.
+No optional modules or model weights were installed. See [Kubernetes operations](docs/KUBERNETES.md).
+
+## Phase 4 local checkpoint
+- Dedicated k3d 5.9.0 / k3s 1.35.5 cluster; existing Docker Desktop context preserved.
+- PostgreSQL, LiteLLM and WebUI ready, three bound PVCs, UI Ingress on loopback 3080.
+- HTTP through both localhost names, admin login, scoped key, eight aliases and
+  zero-budget rejection passed. Synthetic routing/fallback/concurrency tests passed.
+- NetworkPolicy permits gateway-to-database and UI-to-gateway only (plus DNS and
+  Ingress); UI-to-database and external TCP egress denial passed.
+- Edge browser acceptance passed at `http://localhost:3080`: existing admin sign-in,
+  eight-alias picker, `coding-standard` selection and rendered zero-budget denial in
+  a temporary chat. The prior browser automation blocker did not recur this session.
+- Post-browser ledger: zero debit, zero provider attempts, zero active requests;
+  provider keys remain empty and Jev disabled. Screenshot is in `docs/evidence/`.
+- All three deployments remain ready; 41.37 GiB free, no image pull/runtime change.
+- Kubernetes provider inference, Compose-data migration, off-machine recovery and
+  Kubernetes backups remain unvalidated. No production/cutover readiness claim.
 
 ## Phase 3 local recovery checkpoint
 - Consistent cold backup of PostgreSQL, WebUI and policy volumes, existing secrets,
@@ -128,7 +141,7 @@ No reboot, firewall changes or data deletion was performed.
 - Graphify
 - coding agent
 - Agent Controller
-- Kubernetes runtime
+- Kubernetes live provider/data cutover
 - extended observability
 
 ## Storage policy

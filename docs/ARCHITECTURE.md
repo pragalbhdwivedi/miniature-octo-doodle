@@ -121,3 +121,12 @@ network is internal and PostgreSQL has no host port. UI/gateway ports bind to
 The full Agent Controller, live Jev and optional local/provider-aggregation layers
 remain targets. The current policy only admits public/synthetic text to the two
 configured cloud providers; private/local-only inputs fail closed.
+
+## Phase 4 validation deployment
+
+A dedicated local k3d cluster implements the same three core services with separate
+PVCs, internal services and WebUI Ingress. ConfigMaps carry tracked gateway policy;
+per-service Secrets restrict credential distribution. Default-deny NetworkPolicy,
+blank cloud keys and a zero allowance keep this fresh instance unable to spend.
+It operates independently of Compose. Existing Compose records and budget history
+have not been migrated. See [ADR 0010](adr/0010-isolated-kubernetes-validation.md).

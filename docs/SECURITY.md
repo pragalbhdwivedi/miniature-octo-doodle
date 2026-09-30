@@ -84,3 +84,19 @@ or protection from administrators; off-machine copies need protected storage.
 Recovery drills omit cloud keys, use internal networks, zero allowance and no
 automatic restart. Reconcile post-backup monthly debits before any real cutover;
 restoring an old ledger must not reset spend capacity.
+
+## Kubernetes validation boundary
+
+The local k3d instance uses fresh per-service secrets, a separate private kubeconfig,
+K3s secrets encryption, loopback publication, no pod API token and default-deny
+networking. Only DNS, Ingress-to-UI, UI-to-gateway and gateway-to-database are allowed.
+Cloud keys are blank and the allowance is zero. No live Compose credentials or
+records are copied. A local/cluster administrator can still access secrets.
+
+k3d's infrastructure node requires Docker privilege; core application pods have no
+privileged mode, host path or Docker socket. This does not grant an installed coding
+agent host access: no agent is installed. Kubeconfig and credentials stay outside
+Git/OneDrive. Never publish raw k3d node labels (which include its cluster token),
+Secret manifests, credentials.json or cluster logs without redaction.
+Do not activate live spending against a fresh ledger without preserving and
+reconciling existing monthly admission debits. See [Kubernetes operations](KUBERNETES.md).

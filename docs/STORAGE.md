@@ -69,3 +69,15 @@ reserve of three times the measured volume bytes plus 1 GiB, retaining at least
 Failed and successful rehearsals are retained for review; no automatic prune or
 volume deletion occurs. See BUILD_STATUS for measured artifact sizes and remaining
 space. Off-machine encrypted retention is not configured by this local workflow.
+
+## Phase 4 increment
+
+Dedicated k3d infrastructure and its containerd core image copies consumed an
+observed 4.09 GiB host delta (including concurrent activity), leaving 41.30 GiB.
+No model weights are present or duplicated. The single node uses three fresh
+local-path PVCs: PostgreSQL 1 GiB, UI/policy 256 MiB each. Local-path requested
+capacity is not a hard disk quota; continue host preflight monitoring. Cluster
+creation reserves 8 GiB and app deployment 4 GiB above the existing critical floor.
+Stop the cluster to save runtime resources; deleting it can destroy PVC data.
+Kubernetes backups/retention remain unvalidated and are not covered by Compose's
+recovery script. No automatic cleanup is provided.

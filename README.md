@@ -120,7 +120,12 @@ see [ADR 0008](docs/adr/0008-phase2-acceptance-jev-disabled.md).
 No optional component is installed by this project. See [Models and Skills](docs/MODELS_AND_SKILLS.md).
 
 Phase 3 backup, isolated restore and clean container rebuild are implemented and
-tested; delivery is [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9). See the
+tested and merged through [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9). See the
 [recovery runbook](docs/BACKUP_RESTORE.md). The drill preserves the live deployment,
 blocks recovery-copy cloud access and retains all data. Off-machine disaster
 recovery and production cutover are separate, unvalidated steps.
+
+Phase 4 has started: an isolated k3d core with persistent volumes, network policies
+and loopback Ingress passes API, synthetic policy and zero-spend browser acceptance
+checks. It uses fresh test data, zero budget and no cloud keys; Compose
+remains the live provider deployment. See [Kubernetes operations](docs/KUBERNETES.md).

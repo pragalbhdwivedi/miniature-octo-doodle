@@ -1,25 +1,13 @@
 # Kubernetes deployment
 
-This directory is intentionally a scaffold until the Docker core is validated.
+`base/core.yaml` defines the three core services, persistent claims, limited
+service account and default-deny networking. `overlays/local/ingress.yaml`
+exposes only WebUI through the dedicated k3d cluster's loopback Ingress.
 
-Planned structure:
+Use `scripts/kubernetes.ps1`; it supplies private Secrets and tracked ConfigMaps,
+sets local-path storage, performs server validation and waits for readiness.
+Directly applying the base alone does not supply those required resources.
 
-```text
-base/
-overlays/
-  local/
-  ollama/
-  openviking/
-  graphify/
-  omniroute/
-  coding-agent/
-  full/
-```
-
-Rules:
-- base contains only the lightweight core
-- optional components use overlays
-- do not duplicate large local model storage
-- expose the browser UI through Ingress
-- keep PostgreSQL and model runtimes internal by default
-- ChatGPT Work must validate manifests against the selected local Kubernetes runtime before marking Kubernetes COMPLETE
+This is a tested zero-spend validation instance with fresh data. Browser acceptance
+passed; live data/provider migration remains pending. See [operations](../../docs/KUBERNETES.md).
+No optional overlay is installed. Never delete PVCs or clusters to stop the runtime.

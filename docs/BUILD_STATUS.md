@@ -20,8 +20,8 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Budget controls | COMPLETE | US$100/month UTC conservative admission ledger; atomic race, zero/exhausted budget, concurrency, rollover and restart persistence tested |
 | Backup / restore | COMPLETE | Same-host cold backup and isolated restore tested 2026-09-29; off-machine/cutover limits below |
 | Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
-| Kubernetes base | NOT STARTED | |
-| Kubernetes Ingress | NOT STARTED | |
+| Kubernetes base | PARTIAL | Dedicated k3d core ready; pod/PVC persistence, isolation and synthetic policy pass; provider/data migration pending |
+| Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
 | Ollama | NOT STARTED | Optional |
 | Local model | NOT STARTED | Optional |
 | OmniRoute | NOT STARTED | Optional |
@@ -31,6 +31,116 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Agent Controller | NOT STARTED | Planned |
 
 A documented architecture is not implementation evidence.
+
+## Phase 4 browser acceptance follow-up - 2026-09-29
+
+Runtime/source baseline: `17b96db28ba3d88c501ec2fac5a518a1dc405d1e`, open PR #10.
+Documentation/evidence follow-up only; no deployment configuration changed.
+
+- **PASS**: Edge opened `http://localhost:3080`, displayed the sign-in page and
+  signed in with the existing test administrator. The password stayed out of
+  screenshots, Git and chat. Release notes were dismissed; no settings changed.
+- **PASS**: picker displayed all eight aliases: `openai-chat`, `gemini-chat`,
+  `coding-fast`, `coding-standard`, `coding-hard`, `architecture`, `review`,
+  `documentation`. No `local-private` or optional provider appeared.
+- **PASS**: temporary chat selected `coding-standard`; the synthetic message
+  "Synthetic Phase 4 browser acceptance check. Reply OK." rendered the expected
+  `policy: monthly_budget_exhausted` result. This is correct for budget zero.
+- **PASS**: post-browser gateway inspection confirmed zero admission debit, zero
+  provider attempts, zero active requests, empty OpenAI/Gemini credentials and
+  explicitly disabled Jev. All three Kubernetes Deployments remained 1/1 ready.
+- Saved [browser screenshot](evidence/phase4-browser-budget-denial.png), 31,694 bytes,
+  SHA-256 `2e58090090df8361cf6883693d7b4ac969a8bde6b0c9becf949758abf9c75503`.
+  Only synthetic test text and the denial are visible. The temporary chat was not saved.
+- The earlier browser blocker did not recur using the connected Edge browser this
+  session. No security bypass, alternate headless browser, network change, image
+  pull, service restart or live provider request was needed. Root cause remains unknown.
+- Free C: 41.37 GiB, above warning/critical thresholds. No runtime installation;
+  only small documentation and screenshot artifacts were added. Host free-space
+  changes since the prior sample include concurrent activity.
+- Local zero-spend browser acceptance and Ingress are COMPLETE. Phase 4 remains
+  PARTIAL for live provider/data migration; this is not provider response validation,
+  production cutover, Kubernetes backup or separate-machine recovery evidence.
+- Next: choose the intended target and migration scope; preserve/reconcile existing
+  data and monthly budget history before any live activation. Off-machine and
+  new-machine recovery remain pending under the prior pause.
+
+## Phase 3 closeout and Phase 4 start - 2026-09-29
+
+Source: main `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9` (merged PR #9);
+implementation branch `feat/phase4-kubernetes`.
+
+### Phase 3 closeout
+
+- Accepted same-host backup/restore/rebuild scope is complete and merged.
+- Reverified `backup-20260929T134402Z`: SHA-256 inventory and archive safety pass.
+  An initial verify command using only its directory name was rejected before
+  mutation; rerunning with the documented full protected path passed.
+- Existing restore evidence below remains the accepted drill. No off-machine copy,
+  new-machine restore, reboot or cutover occurred. The user's new-machine pause
+  remains; a local k3d instance does not validate a separate recovery host.
+
+### Implemented and deployed
+
+- Checksum-verified Windows k3d 5.9.0, dedicated `gatewayai` cluster with one
+  k3s 1.35.5 server, 6 GiB memory limit, secrets encryption enabled; metrics-server
+  disabled. k3s index digest `2074403abe1bded11ef3dde09d457e13be8e0b64c218b1c4f8269b4565cfbc65`.
+- Three existing digest-pinned core images deployed into fresh PVCs; all three
+  Deployments ready, all PVCs bound. Generated ConfigMaps use tracked code/policy;
+  random test secrets and separate kubeconfig stay in ACL-protected physical AppData.
+- WebUI Ingress on 127.0.0.1:3080; API on 127.0.0.1:6550. Port bindings checked.
+  Existing `docker-desktop` context preserved. Only ClusterIP application services.
+- Blank provider keys, budget zero, Jev disabled; no optional module/model downloaded.
+  Core pods have no service-account token, host path, Docker socket or privilege escalation.
+  The k3d infrastructure node itself requires Docker privilege; no agent receives it.
+
+### Tested results
+
+- Server dry-run succeeded before application deployment.
+- Internal admin login, scoped-key use and key-administration denial, eight aliases,
+  zero-budget inference rejection: PASS.
+- Ingress health, admin sign-in and model discovery using both `127.0.0.1` and
+  `localhost`: PASS. No cloud completion requested.
+- Gateway-to-PostgreSQL TCP allowed, WebUI-to-PostgreSQL blocked; gateway and WebUI
+  external TCP connection to 1.1.1.1:443 blocked: PASS.
+- Native synthetic primary execution, 503/429 fallback, provider restriction,
+  local/private denial, override/tool denial, streaming, four concurrent admissions
+  and fifth denial, exhausted budget: PASS inside Kubernetes with a temporary ledger.
+- Stopped only the three Compose core containers; recreated all three Kubernetes
+  pods; repeated the full tests with Compose still stopped: PASS. All PVC UIDs
+  unchanged; admin account and scoped key remained usable. Compose resumed healthy.
+- 25 Python unit tests, configuration/storage guard regressions, repository safety
+  and full original Compose HTTP/auth smoke tests: PASS.
+- All 31 original running container identities preserved; three k3d containers
+  added. Original admission debit unchanged at 2.875240 USD, allowance 100 USD/month,
+  zero active requests. Unrelated apps were not functionally retested.
+
+### Failures and limits
+
+- First k3d creation used `--no-image-volume` and failed before any node started
+  with `failed to ensure tools node ... No nodes found`. Only the two confirmed
+  never-started nodes and their empty network were removed. Standard image-volume
+  retry succeeded. No existing persistent data or unrelated resource was deleted.
+  Successful retry used the version tag whose local image matches the above digest;
+  the committed bootstrap pins that digest. Fresh bootstrap was not repeated after
+  that pin, to preserve the validated cluster and avoid another image copy.
+- Browser connector reported `ERR_BLOCKED_BY_CLIENT`. Native Computer Use stopped
+  because it could not determine the current browser URL for policy checks. No
+  further browser automation was attempted. Browser rendering/chat remain unvalidated.
+- No live Kubernetes provider inference, Compose-data migration, Kubernetes PVC
+  backup, whole-cluster reboot, off-machine recovery, LAN/TLS exposure or cutover.
+
+### Storage and next action
+
+- Before: 45.39 GiB free; after: 41.30 GiB (4.09 GiB host delta, includes concurrent
+  activity). Above 25 GiB warning / 15 GiB critical. Eight GiB reserved before cluster
+  images; no model weights. Core image copies inside k3s containerd are expected.
+- Global Docker: images 37 / 18.02 GB -> 40 / 18.50 GB; volumes 16 / 425.7 MB ->
+  21 / about 4.28 GB; containers 64 / 31 running -> 67 / 34 running. Build cache
+  unchanged at 10.11 GB. No prune or compaction. Cluster and fresh PVCs retained.
+- Next: complete browser acceptance, select intended target and migration scope,
+  then plan secure data/ledger migration and bounded live provider validation.
+  Separate-machine recovery still needs an identified/authorized target.
 
 ## PR #9 review follow-up - 2026-09-29
 
@@ -415,3 +525,10 @@ The target machine runs this implementation; main contains merged Phase 1 only.
   requires review/merge. Next: Phase 2 routing, fallbacks, budgets, logging policy
   and local-private isolation. Restore, clean rebuild, reboot recovery, load
   testing and optional modules remain unvalidated/later work.
+
+## PR stack review: Phase 4 storage guard - 30 September 2026
+
+Resolved the open P1 review: cluster/deployment reserves now apply to every
+discovered Docker/repository storage drive before downloads. Synthetic C:50GiB
+and Docker D:18GiB reject both 8GiB and 4GiB reservations; zero-reserve inspection
+passes. No image download or running cluster change during this review.
