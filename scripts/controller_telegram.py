@@ -107,9 +107,13 @@ def apply_update(store,config,update):
         raise ValueError('Invalid update ID')
     query=update.get('callback_query')
     if not isinstance(query,dict):return None
-    user=query.get('from',{}).get('id')
+    sender=query.get('from')
     message=query.get('message',{})
-    chat=message.get('chat',{})
+    if not isinstance(sender,dict) or not isinstance(message,dict):
+        raise ValueError('Malformed callback identity')
+    chat=message.get('chat')
+    if not isinstance(chat,dict):raise ValueError('Private callback chat required')
+    user=sender.get('id')
     if user!=t['user_id'] or chat.get('id')!=t['chat_id'] or chat.get('type')!='private':
         raise ValueError('Unapproved Telegram identity or chat')
     data=query.get('data','')

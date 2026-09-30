@@ -37,6 +37,8 @@ class TelegramTests(unittest.TestCase):
         for update in (self.update(data,user=9),self.update(data,chat=9),self.update(data,kind='group'),
                        self.update(data[:-1]+'0'),self.update(data,number=-1)):
             with self.assertRaises(ValueError):t.apply_update(self.store,self.config,update)
+        malformed=self.update(data);malformed['callback_query']['message']=None
+        with self.assertRaises(ValueError):t.apply_update(self.store,self.config,malformed)
         self.store.decide_approval.assert_not_called()
         result=t.apply_update(self.store,self.config,self.update(data))
         self.assertEqual(result['state'],'approved')
