@@ -1,9 +1,9 @@
 # Phase 6 isolated worker
 
 Status: offline execution and gateway-backed one-turn coding DEPLOYED AND TESTED.
-Scoped publication is implemented and mock/plan-tested; live publication awaits
-a repository-scoped credential. Overall Phase 6 remains PARTIAL.
-The Phase 7 controller is not installed.
+Scoped publication passed live acceptance with a supplied fine-grained token in
+draft PR #16. Phase 6 is COMPLETE for this bounded operator-run scope.
+Phase 7 has a deployed read-only planner; execution orchestration remains pending.
 
 The user authorized the next phase on 30 September 2026. Phase 5 recovery and
 client trust gates remain open independently; this does not mark them complete.
@@ -107,8 +107,7 @@ then run a fresh job against a new fetched snapshot. No prior worker workspace
 or secret is required. This is disposable-worker recovery, not live gateway
 restore or separate-machine recovery evidence.
 
-Remaining acceptance: install an operator-provided repository-scoped GitHub
-credential and validate actual branch/draft PR creation. The adapter below has
+Live acceptance created a new branch and draft PR #16 using the supplied token. The adapter below has
 no default-branch update or merge operation. Controller task selection and
 Telegram approvals remain Phases 7 and 8.
 
@@ -175,7 +174,7 @@ sudo python3 scripts/worker_publish.py --run /var/lib/gatewayai-worker/RUN_ID \
 ```
 
 The publisher configuration is root-owned 0600 outside Git/sync, containing
-`repository` and `github_token`. The prepared VM field is empty and disabled.
+`repository` and `github_token`. The VM field is configured with the operator-supplied fine-grained token.
 Use a short-lived GitHub App installation token or fine-grained token limited to
 this repository with Contents and Pull requests write permissions. The CLI checks
 the configured repository; GitHub's credential permissions provide the independent
@@ -193,8 +192,8 @@ proxy or redirects, and generic credential-free errors.
 A private publication journal is written before network mutation. Partial failures
 retain the journal and any created Git objects/branch; automatic retries are
 blocked. Inspect the exact run on GitHub before manual recovery. A late base race
-still leaves the new commit parent bound to the reviewed source. Live publishing
-has not been validated without the scoped credential.
+still leaves the new commit parent bound to the reviewed source. Live publishing passed with the supplied credential; broader token scope cannot
+be independently excluded through these repository API checks.
 
 API references: [LiteLLM virtual keys](https://docs.litellm.ai/docs/proxy/virtual_keys)
 and [GitHub create-reference API](https://docs.github.com/en/rest/git/refs).
