@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>AADI · Service dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="/" aria-label="AADI home"><span class="mark">A</span>AADI<span class="label">WORKSPACE</span></a><span class="network">Internal services</span></header>
+  <main>
+    <section class="intro"><p class="eyebrow">YOUR SERVICES, IN ONE PLACE</p><h1>Where would you like to go?</h1><p class="subtitle">Open your applications and tools. Each service keeps its own sign-in.</p></section>
+    <div class="toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Find an app or service" aria-label="Find an app or service" autocomplete="off"><kbd>/</kbd></label><span id="count" aria-live="polite"></span></div>
+    <div id="services" aria-live="polite"><p>Loading services…</p></div>
+    <p id="empty" hidden>No services match your search.</p>
+    <footer><span>AADI · Shared service directory</span><span>No dashboard account needed</span></footer>
+  </main>
+</body>
+</html>

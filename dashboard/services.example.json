@@ -1,0 +1,5 @@
+{
+  "services": [
+    {"name": "GatewayAI", "symbol": "AI", "group": "Applications", "description": "Chat and AI tools through the shared gateway.", "url": "https://ai.aadi.dgoi.local", "status": "Sign in to open"}
+  ]
+}
