@@ -123,8 +123,9 @@ multi-agent hierarchy.
 ## Phase 7 - Agent Controller v0.1
 Status: STARTED / PARTIAL. Read-only repository refresh, task/dependency/ownership
 planning and zero-authority review artifacts are implemented and tested. Live
-unprivileged refresh/deny passed; PostgreSQL persistence and execution orchestration
-remain pending. See [controller operations](AGENT_CONTROLLER.md).
+unprivileged refresh/deny passed. PostgreSQL persistence and controlled operator
+dispatch are implemented; independent review/repair and publishing orchestration
+remain pending. See [dispatch operations](CONTROLLER_DISPATCH.md). See [controller operations](AGENT_CONTROLLER.md).
 
 Implement the shared controller that turns a repository's own roadmap and issues
 into bounded development runs.

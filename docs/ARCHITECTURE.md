@@ -179,3 +179,12 @@ reset. User confirmed external OpenVPN and phone RDP login. WireGuard server rou
 corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
 acceptance remain open. See [dashboard operation](DASHBOARD.md) and
 [remote-access evidence](REMOTE_ACCESS_CHECK.md).
+
+## Durable operator dispatch
+
+The read-only planner stays unprivileged. A separate operator CLI refreshes the
+repository, binds approval to exact source/job/image/budget, commits a PostgreSQL
+claim and invokes the bounded worker once. Duplicate/ambiguous runs cannot retry.
+The dedicated database reuses the existing instance without gateway-table changes.
+Independent review, repair and publication orchestration remain pending. See
+[ADR 0017](adr/0017-durable-operator-dispatch.md).

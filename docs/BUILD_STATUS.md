@@ -30,8 +30,30 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
-| Agent Controller | PARTIAL | Read-only planner tested; PostgreSQL state, dispatch/review/repair pending |
+| Agent Controller | PARTIAL | Planner plus PostgreSQL claims/audit and controlled dispatch implemented; live acceptance below, independent review/repair pending |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
+
+## Phase 7 persistent state and controlled dispatch - 30 September 2026
+
+- Implemented separate operator-only prepare/dispatch/status/reconcile CLI, exact
+  source/job/image/budget digest approval and fresh eligibility check. Worker source
+  pin rejects drift before model calls or container startup; run ID is reserved.
+- Provisioned a dedicated PostgreSQL database/schema and restricted runtime role
+  in the existing instance. Gateway tables, users, credentials and networks retained;
+  no image, driver, service or model installed. VM preflight free48.49GiB.
+- Real PostgreSQL test database: concurrent duplicate claims admit one caller;
+  new connection sees durable state; single-flight/ambiguous/review ownership,
+  permanent task/source replay denial, atomic audit order and terminal transition
+  denial pass. Direct table deletion/update and schema creation denied.
+- Target controller suite: 21 tests passed, including real PostgreSQL acceptance.
+  Full WSL suite: 93 passed, one opt-in DB skip; Windows: 85 passed, nine platform/DB
+  skips. Repository safety/diff checks pass. Gateway table access denied to runtime
+  role; it has no superuser/create-role/create-database privilege. Controller DB
+  7,986,199 bytes before dispatch, VMfree48.47GiB; separate test DB retained.
+- Four live services healthy, monthly debit unchanged4.870530USD/28attempts.
+  Committed-task live dispatch acceptance pending merge of the reviewed manifest.
+- Approval remains operator-only; no daemon, automatic retry, independent reviewer,
+  repair loop, publisher invocation or AADI activation. Phase7 remains PARTIAL.
 
 ## Live scoped publisher acceptance - 30 September 2026
 

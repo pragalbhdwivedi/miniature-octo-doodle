@@ -18,8 +18,10 @@ gateway coding, per-run budgets and live reviewed draft-PR publishing passed.
 Fine-grained token repository restriction remains an operator provisioning
 responsibility; API success does not independently prove absence of broader scope.
 Phase 7: STARTED / PARTIAL. Read-only repository planner implemented and tested;
-unprivileged VM refresh correctly blocks without a committed approved backlog.
-Execution orchestration, PostgreSQL run state and independent review remain pending.**
+unprivileged planning remains read-only. Dedicated PostgreSQL claims/audit and
+operator-only exact-request dispatch are implemented; database concurrency and
+denial tests passed. Live committed-task dispatch acceptance is pending below.
+Independent review, repair and publication orchestration remain pending.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -30,7 +32,8 @@ merged at `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
 Phase 4 PR #10, Phase 5 PR #12 (including roadmap PR #11), and dashboard PR #14
 are merged. Historical design PR #7 was closed as superseded. Phase 6 PR #13
 is merged after live publishing acceptance in draft test PR #16. Phase 7's read-only
-planner is implemented/tested in PR #15, now based on main; orchestration remains pending.
+planner was merged in PR #15. The next bounded increment adds durable state and
+controlled dispatch; see [dispatch operations](docs/CONTROLLER_DISPATCH.md).
 See `docs/BUILD_STATUS.md` for measured results and remaining Phase 5 gates.
 
 ## Hardware baseline

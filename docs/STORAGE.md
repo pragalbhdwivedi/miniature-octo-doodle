@@ -115,3 +115,9 @@ Phase7's read-only planner adds small Python/configuration files and private JSO
 review artifacts. Temporary public Git snapshots are removed after each refresh;
 the 15GiB floor plus1GiB reserve is checked first. VMfree48.52GiB after acceptance.
 No image/model/database allocation or package installation for this milestone.
+
+Phase 7 durable dispatch reuses PostgreSQL and the worker image. Only a dedicated
+small database, schema and private request/artifact files are added. No automatic
+retention is enabled. Preserve claims, requests and worker/budget evidence together
+when recovering; restoring old claims must not reopen execution capacity. See
+[dispatch recovery](CONTROLLER_DISPATCH.md) and BUILD_STATUS for measured footprint.
