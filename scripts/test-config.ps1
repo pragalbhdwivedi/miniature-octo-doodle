@@ -51,6 +51,12 @@ try {
   Must-Fail { Assert-DiskReserve -FreeGiB 26.99 -AdditionalGiB 12 } 'projected reserve violation'
   Must-Fail { Assert-DiskReserve -FreeGiB 14.99 -AdditionalGiB 0 } 'critical threshold violation'
   Must-Fail { Assert-DiskReserve -FreeGiB 50 -AdditionalGiB 0 -CriticalGiB 1 } 'weakened disk policy'
+  function Get-PSDrive { param($Name) [pscustomobject]@{ Free = $(if ($Name -eq 'C') { 50GB } else { 18GB }) } }
+  try {
+    Must-Fail { Assert-StorageReserves -DriveNames @('C','D') -AdditionalGiB 8 } 'Docker D drive cluster reserve'
+    Must-Fail { Assert-StorageReserves -DriveNames @('C','D') -AdditionalGiB 4 } 'Docker D drive deployment reserve'
+    Assert-StorageReserves -DriveNames @('C','D') -AdditionalGiB 0
+  } finally { Remove-Item Function:Get-PSDrive }
   Set-Content "$fixture/.env" $original
   $env:OPENAI_ALIAS = 'unrelated-shell-value'
   function docker { $global:LASTEXITCODE = 42 }

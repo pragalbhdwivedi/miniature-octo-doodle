@@ -1,7 +1,7 @@
-param([switch]$ForInstall)
+param([switch]$ForInstall, [ValidateRange(0,1000000)][double]$AdditionalGiB = 0)
 . "$PSScriptRoot/common.ps1"
 $values = if (Test-Path $EnvPath) { Read-LocalEnv } else { Read-LocalEnv -Path "$RepoRoot/.env.example" }
-$additional = if ($ForInstall) { [double]$values.CORE_ESTIMATED_GB } else { 0 }
+$additional = if ($ForInstall) { [math]::Max([double]$values.CORE_ESTIMATED_GB, $AdditionalGiB) } else { $AdditionalGiB }
 if ($ForInstall -and $additional -lt 12) { throw 'The core pull reserve must be at least 12 GiB.' }
 if ($env:OS -ne 'Windows_NT') { throw 'Target preflight requires Windows with Docker Desktop / WSL2.' }
 
@@ -14,12 +14,7 @@ foreach ($name in @('DataFolder','DiskImageLocation')) {
   if ($settings.$name) { $storagePaths += [string]$settings.$name }
 }
 $drives = $storagePaths | ForEach-Object { [IO.Path]::GetPathRoot($_).TrimEnd('\').TrimEnd(':') } | Sort-Object -Unique
-foreach ($driveName in $drives) {
-  $drive = Get-PSDrive -Name $driveName
-  $free = [math]::Round($drive.Free / 1GB, 2)
-  Write-Host "${driveName}: $free GiB free; projected additional reserve $additional GiB"
-  Assert-DiskReserve -FreeGiB $free -AdditionalGiB $additional -CriticalGiB ([double]$values.DISK_CRITICAL_GB) -WarningGiB ([double]$values.DISK_WARNING_GB)
-}
+Assert-StorageReserves -DriveNames $drives -AdditionalGiB $additional -CriticalGiB ([double]$values.DISK_CRITICAL_GB) -WarningGiB ([double]$values.DISK_WARNING_GB)
 & docker --version
 if ($LASTEXITCODE -ne 0) { throw 'Docker CLI unavailable.' }
 & docker compose version

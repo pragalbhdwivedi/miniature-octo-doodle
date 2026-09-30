@@ -969,3 +969,10 @@ The target machine runs this implementation; main contains merged Phase 1 only.
 - Public CA handover created locally in Git-excluded LOCAL_CERTIFICATES as DER
   and PEM with installation notes; certificate fingerprint matches the issued CA.
   No private key copied. Phone/other-PC import remains a user/device acceptance step.
+
+## PR stack review: Phase 4 storage guard - 30 September 2026
+
+Resolved the open P1 review: cluster/deployment reserves now apply to every
+discovered Docker/repository storage drive before downloads. Synthetic C:50GiB
+and Docker D:18GiB reject both 8GiB and 4GiB reservations; zero-reserve inspection
+passes. No image download or running cluster change during this review.
