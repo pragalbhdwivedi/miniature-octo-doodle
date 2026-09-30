@@ -36,4 +36,19 @@ assert all(ui[key] == 'False' for key in ('ENABLE_OLLAMA_API', 'ENABLE_DIRECT_CO
 for line in (root / '.env.example').read_text().splitlines():
     if '_IMAGE=' in line and not line.startswith('#'):
         assert '@sha256:' in line, 'Images must have immutable digest pins'
+
+# Opt-in ingress must not broaden the default core or publish administration.
+ingress = yaml.safe_load((root / 'compose.npm.yaml').read_text(encoding='utf-8'))
+assert set(ingress['services']) == {'npm'}
+proxy = ingress['services']['npm']
+assert proxy['ports'] == ['${NPM_BIND_IP:?Set the approved VM VLAN address}:80:80',
+                          '${NPM_BIND_IP:?Set the approved VM VLAN address}:443:443',
+                          '127.0.0.1:81:81']
+assert set(proxy['networks']) == {'edge', 'webui_ingress'}
+assert not proxy.get('privileged') and proxy.get('network_mode') != 'host'
+assert not any('docker.sock' in volume for volume in proxy['volumes'])
+assert not any(name.startswith('INITIAL_ADMIN_') for name in proxy['environment'])
+overlay = yaml.safe_load((root / 'compose.ingress-core.yaml').read_text(encoding='utf-8'))
+assert set(overlay['services']) == {'open-webui'}
+assert set(overlay['services']['open-webui']) == {'networks'}
 print('Repository YAML and core security contract passed.')

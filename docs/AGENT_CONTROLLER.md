@@ -1,6 +1,8 @@
 # Agent Controller
 
-The Agent Controller is a future orchestration layer, not part of the initial install.
+The Agent Controller is planned for Phase 7, after the Debian foundation and
+isolated worker. No controller runtime is implemented or deployed yet. Follow
+the [roadmap](ROADMAP.md) and [AADI integration contract](AADI_DEVELOPMENT_INTEGRATION.md).
 
 ## Intended roles
 - Architect
@@ -14,12 +16,20 @@ The Agent Controller is a future orchestration layer, not part of the initial in
 ## Integration
 The controller will:
 - read source from Git/GitHub
-- use Graphify for code relationships
-- use OpenViking for persistent context
+- work correctly from refreshed Git alone before adding Graphify/OpenViking
+- optionally use Graphify for code relationships and OpenViking for context in Phase 9
 - enforce deterministic policy before model/tool selection
-- use TypeSafe Jev for validated structured routing/risk/classification decisions
+- keep Jev disabled until separately approved live evaluation in Phase 11
 - call LiteLLM for approved model access
 - work in isolated repositories/workspaces
+- record runs and exact action-bound approvals, with Telegram as the sole human
+  control channel (Phase 8); WhatsApp is excluded
+- create reviewable branches and draft PRs; human approval is required for merge
+  and production deployment
+
+AADI is the first managed development project. Its repository remains authoritative
+for its own requirements, branch rules and production architecture. This controller
+does not become an AADI production runtime dependency.
 
 ## Decision boundary
 The controller must treat three things separately:

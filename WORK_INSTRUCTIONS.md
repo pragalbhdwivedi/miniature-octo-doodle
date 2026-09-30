@@ -79,15 +79,25 @@ Storage conservation is a hard requirement.
 - do not duplicate local model storage
 
 ### Later milestones
-- Ollama / llama.cpp
-- one small local coding model
-- OmniRoute
-- OpenViking
-- Graphify
-- coding agent
-- security-scanned reusable agent skills
-- Agent Controller
-- expanded observability
+Follow the updated [roadmap](docs/ROADMAP.md); the milestone numbers above are
+historical implementation steps, not additional roadmap phases.
+
+- Phase 5: dedicated Linux control-plane VM, protected configuration and recovery.
+  The user-selected template 9001 is Ubuntu 24.04; ADR 0012 supersedes Debian-only
+  target selection while retaining Debian compatibility.
+  Start with [target admission](docs/DEBIAN_CONTROL_PLANE.md). Local k3d is developer
+  validation only; it is not the AADI production architecture.
+- Phase 6: isolated coding worker with bounded shell/tests and no production authority.
+- Phase 7: repository-driven Agent Controller; Git alone must suffice initially.
+- Phase 8: Telegram-only approvals and exact-run pause/resume; no WhatsApp integration.
+- Phase 9: OpenViking/Graphify context, after the controller works without them.
+- Phases 10-12: multi-agent roles, separately approved advanced routing/Jev, then
+  full Kubernetes deployment when operational evidence justifies it.
+
+Ollama/llama.cpp, local models, OmniRoute, extra observability and third-party
+skills remain optional lanes requiring the existing installation checks. They
+are not prerequisites for the worker/controller. AADI governs its own requirements
+and production deployment; this platform is not an AADI runtime dependency.
 
 ## Before pulling large images
 Report:

@@ -44,45 +44,196 @@ Kubernetes setup is running. Off-machine backup remains unvalidated as well.
 - clean rebuild test
 - disk reporting
 
-## Phase 4 - Kubernetes
-Status: PARTIAL. Isolated k3d core, PVCs, Ingress HTTP/auth, network isolation and
-synthetic policy and zero-spend Edge browser checks pass. Existing-data migration
-and live Kubernetes provider inference are not yet validated.
-See [Kubernetes operations](KUBERNETES.md).
+## Phase 4 - Developer Kubernetes validation
+Status: COMPLETE for the local developer-validation scope. PR #10 contains the
+implementation; browser, policy/isolation and persistence evidence is recorded in
+[BUILD_STATUS](BUILD_STATUS.md). This does not claim live migration or production readiness.
 
-- k3d
-- base manifests
-- Ingress
-- same core services
+This phase validates the existing gateway stack on a disposable/local Kubernetes
+environment. k3d/K3s is a **developer-validation mechanism only** for this repository;
+it is not the production orchestration target for AADI.
+
+- k3d-based local validation where useful
+- base manifests and Ingress
+- same core services and policy boundaries
+- persistence/recreation checks
 - no duplicate large model storage
+- no claim that a passing k3d test approves an AADI production cluster
 
-## Phase 5 - Optional local AI
-- Ollama / llama.cpp
-- GPU validation
-- one small coding model only
+## Phase 5 - Dedicated always-on control-plane VM
+Target update: the user selected Proxmox template 9001 (Ubuntu 24.04) on
+2026-09-29, superseding the original Debian-only choice below. See
+[ADR 0012](adr/0012-template-9001-ubuntu-target.md). Debian remains a supported
+candidate; the selected VM uses Ubuntu. Provider/policy contracts are unchanged.
 
-## Phase 6 - Optional provider aggregation
-- Claude
-- OmniRoute
-- provider policy controls
+Status: PARTIAL; direct Windows/WSL SSH and target admission pass. Docker and the
+fresh zero-spend Linux core are deployed, with private secrets, browser acceptance
+and same-VM backup/restore evidence. Live migration and off-machine/clean-host
+recovery remain outstanding. See the [acceptance plan](DEBIAN_CONTROL_PLANE.md)
+and [Linux operations](LINUX_CORE.md).
 
-## Phase 7 - Agent context
-- OpenViking
-- Graphify
+Move the proven core from the Windows/WSL2 development host to the selected Linux
+VM without changing the repository's provider/policy contracts.
 
-## Phase 8 - Coding agent and skills
-- isolated workspaces
-- approval gates
-- cost / iteration limits
-- third-party skill provenance/security scanning
-- selected reusable engineering skills
+- PostgreSQL
+- LiteLLM
+- Open WebUI
+- deterministic policy and budgets
+- Agent Controller runtime foundation
+- protected secrets outside Git
+- backup/restore and clean-host recovery evidence
+- no GPU requirement for the control plane
+- Windows Docker remains a supported development environment, not the permanent
+  always-on controller
 
-## Phase 9 - Agent Controller
-- architect
-- planner
+Target progression:
+
+```text
+Windows + Docker/WSL2 development
+        ->
+dedicated Linux control-plane VM (selected Ubuntu template 9001)
+        ->
+full Kubernetes deployment when scale/recovery evidence justifies it
+```
+
+## Phase 6 - Isolated coding worker v0.1
+Build the first execution worker before adding persistent agent memory or a large
+multi-agent hierarchy.
+
+- clone/fetch approved repositories
+- one isolated workspace or Git worktree per run
+- bounded shell and test execution
+- Codex/coding-agent executor behind explicit policy
+- Git branch/commit/push support
+- no direct push to protected/default branches
+- no unrestricted Docker socket by default
+- no production credentials or production kubeconfig
+- disposable worker recovery/rebuild
+- iteration, time and cost ceilings
+
+## Phase 7 - Agent Controller v0.1
+Implement the shared controller that turns a repository's own roadmap and issues
+into bounded development runs.
+
+- project registry/adapters
+- mandatory repository refresh before each run
+- task/issue/PR ownership reconciliation
+- dependency-aware task selection
+- prompt construction from current repository evidence
+- capability-alias model selection through LiteLLM
+- run state and audit records in PostgreSQL
+- planner -> implementer -> deterministic tests -> independent reviewer
+- automatic repair within configured limits
+- push only to reviewable branches
+- create/update draft pull requests
+- pause instead of inventing requirements when human authority is required
+
+The first managed project is
+[`pragalbhdwivedi/aadi`](https://github.com/pragalbhdwivedi/aadi). AADI remains
+the source of truth for its own requirements, issue sequence, architecture and
+approval gates. This repository supplies development tooling; it does not become
+an AADI runtime dependency.
+
+See [AADI development integration](AADI_DEVELOPMENT_INTEGRATION.md).
+
+## Phase 8 - Telegram approval and pause/resume
+Add a single human control channel for development decisions.
+
+- Telegram bot restricted to approved user/account identity
+- PR-ready, blocked, approval-required and budget-limit notifications
+- structured approve/reject/choose/pause/resume actions
+- resume the exact stored run after a response
+- signed/expiring approval records bound to the exact action or payload
+- no approval inferred from silence
+
+**WhatsApp is out of scope and must not be added as a fallback or secondary
+approval channel.**
+
+Initial autonomous authority is limited to:
+
+```text
+select bounded task
+-> create isolated branch/workspace
+-> implement
+-> test
+-> bounded repair
+-> push agent branch
+-> create/update draft PR
+```
+
+Human approval remains mandatory for merge, deployment, production changes,
+database migrations affecting real data, external communications, credentials,
+spending outside approved limits and other consequential actions.
+
+## Phase 9 - Agent context and repository intelligence
+Add context systems only after the controller can work correctly from Git alone.
+
+- OpenViking persistent development context
+- Graphify/code graph
+- permission-aware context selection
+- stale-context detection against fresh Git state
+- no context store may override repository source of truth
+- context compaction and retrieval evaluation
+
+These components improve efficiency; they are not prerequisites for the first
+working AADI development controller.
+
+## Phase 10 - Multi-agent development
+Expand logical roles only after the single-controller workflow is reliable.
+
+- architect/planner
 - implementer
 - tester
 - reviewer
 - security reviewer
-- documentation agent
-- deterministic policy + Jev + LiteLLM orchestration
+- documentation/release evidence agent
+- bounded parallelism only for non-conflicting tasks
+- independent review prompts/models where useful
+- shared run/audit state rather than chat-memory coordination
+
+Multiple AI agents never substitute for required human approval.
+
+## Phase 11 - Advanced model routing and Jev live evaluation
+Keep deterministic authority ahead of probabilistic routing.
+
+- labelled routing/task-complexity evaluation
+- TypeSafe Jev shadow/live evaluation only after separate approval
+- calibration and low-confidence behaviour
+- model performance/cost history
+- provider/model selection by capability rather than hard-coded model names
+- outage and quota handling
+- local/private route evaluation
+- provider fallback may not broaden data/trust exposure
+
+Jev remains advisory decision intelligence. It cannot grant repository,
+production, tool, secret or approval authority.
+
+## Phase 12 - Full Kubernetes service deployment
+Move the proven control-plane services and scalable worker execution to a
+supported Kubernetes deployment when operational evidence warrants it.
+
+- controller and gateway services
+- worker Jobs with isolated service accounts/workspaces
+- persistent state and tested recovery
+- NetworkPolicies and scoped secrets
+- resource/budget/concurrency controls
+- observability and run audit
+- no assumption that k3d/K3s development validation is the AADI production target
+
+For AADI specifically, its own repository and ADRs govern the production
+Kubernetes architecture. This platform may supply development workers and model
+routing without dictating AADI's runtime topology.
+
+## Optional capability lanes
+The following do not block the controller roadmap and may be evaluated when
+storage, security and current need justify them:
+
+- Ollama / llama.cpp
+- one small local coding model
+- Anthropic / Claude
+- OmniRoute
+- additional observability
+- security-reviewed reusable engineering skills
+
+Provider/model additions must remain behind LiteLLM capability aliases and the
+deterministic policy layer.

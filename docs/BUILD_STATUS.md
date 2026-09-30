@@ -20,17 +20,306 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Budget controls | COMPLETE | US$100/month UTC conservative admission ledger; atomic race, zero/exhausted budget, concurrency, rollover and restart persistence tested |
 | Backup / restore | COMPLETE | Same-host cold backup and isolated restore tested 2026-09-29; off-machine/cutover limits below |
 | Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
-| Kubernetes base | PARTIAL | Dedicated k3d core ready; pod/PVC persistence, isolation and synthetic policy pass; provider/data migration pending |
+| Kubernetes developer validation (Phase 4) | COMPLETE | Revised PR #11 scope: dedicated k3d core, pod/PVC persistence, API/browser, isolation and synthetic policy pass; no live migration claim |
 | Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
+| Linux control-plane VM (Phase 5) | PARTIAL | Live data/ledger migration, provider/browser and encrypted off-VM readback restore pass; clean-host recovery/reverse cutover pending |
+| Internal SSH bastion | COMPLETE | Internal scope: both laptop clients, GatewayAI ProxyJump, denied operations and guest reboot passed 2026-09-30; outside-VPN validation pending |
 | Ollama | NOT STARTED | Optional |
 | Local model | NOT STARTED | Optional |
 | OmniRoute | NOT STARTED | Optional |
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
-| Coding agent | NOT STARTED | Optional |
-| Agent Controller | NOT STARTED | Planned |
+| Isolated coding worker | NOT STARTED | Phase 6, before context/local models |
+| Agent Controller | NOT STARTED | Phase 7; independent of AADI production |
+| Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## Phase 5 live migration and encrypted retention - 2026-09-30
+
+- Tested frozen-source handoff: consistent snapshot, three Windows containers
+  stopped, restart=no and local startup guard. Before any VM activation, verified
+  no activation journal existed and restored Windows to healthy operation. This
+  proves pre-activation rollback only; stale Windows data is unsafe after live use.
+- Final frozen snapshot: 71,827,888 bytes. Independent Linux restore matched all
+  three volume trees exactly and passed database integrity, existing admin/scoped
+  key, eight aliases, zero-budget deny, synthetic routing/fallback/concurrency and
+  unchanged policy ledger in 156.74 seconds through validation; stopped afterward.
+- Activated only that verified snapshot. Windows remains stopped/restart disabled;
+  the former fresh zero-spend VM core is retained stopped. Existing private
+  credentials and data were preserved. Jev remains disabled. No optional install.
+- Live core healthy; localhost/127.0.0.1 HTTP, existing administrator, scoped-key
+  administration denial and all eight aliases passed. UI/database networks remain
+  internal, only LiteLLM is attached to provider egress, and no container publishes
+  host ports. Existing loopback socket proxies now target the migrated project.
+- Original allowance US$100 per UTC month and US$2.875240 debit retained exactly,
+  with 15 attempts/zero active requests before any VM inference. OpenAI probe:
+  HTTP200/exact OK, 4.82s, 18 total tokens; Gemini: HTTP200/exact OK, 1.93s, 10 tokens.
+  After both probes debit was US$2.971400, 17 attempts/zero active requests.
+- Edge PASS through SSH tunnel: preserved account signed in, model selection worked,
+  OpenAI rendered `VM migration verified` and Gemini rendered `Gemini VM verified`
+  in a temporary chat. Evidence: `docs/evidence/phase5-live-migration.png`.
+  Including WebUI follow-up generation, final admission debit US$3.569700,
+  21 attempts/zero active requests. These debits are conservative reservations,
+  not provider invoices or a claim of actual billed cost.
+- Migrated cold backup/resume passed in 88.53s. Authenticated Fernet encryption used
+  the already-installed cryptography 41.0.7 library. No dependency install.
+  A 95,887,460-byte encrypted file and independent recovery-key file were retained
+  in current-user/SYSTEM-only laptop storage outside Git/OneDrive. Ciphertext SHA256
+  matched after download; a returned copy authenticated and passed its inner manifest.
+- Restored exclusively from that returned/decrypted copy into another isolated
+  project: exact three-volume bytes/modes/owners, PostgreSQL full read, both SQLite
+  integrity checks, restored login/scoped key/eight aliases, budget rejection,
+  synthetic routing/fallback/concurrency and unchanged ledger all passed.
+  Restore through validation 143.84s; recovery containers stopped, data retained.
+  This validates off-VM copy/readback plus same-VM restore, not a separate clean host.
+- Rechecked live backup after adding archived-source equality and measured storage
+  reserve guards: PASS, stop/backup/resume 86.87s.
+- Planned live VM reboot exposed swapped Docker bridge IPs: services and ledger
+  recovered, but stale systemd proxy destinations broke host HTTP. Added an
+  administrator-owned boot refresh service for the explicitly selected project.
+  It waits for all three owned services to be healthy, then refreshes the two
+  unprivileged loopback proxy targets. No worker/application receives host authority.
+- Repeated reboot PASS after readiness: boot ID changed, only the migrated three
+  containers auto-started healthy, refresh service completed successfully in 59s,
+  and its destinations matched current container IPs. An HTTP probe made before
+  refresh completion reset; after the unit completed, localhost/127.0.0.1 HTTP,
+  existing login/key/eight aliases, network isolation, Windows/WSL SSH and laptop
+  tunnel HTTP200 passed. Ledger stayed US$3.569700/21 attempts/zero active requests.
+  SSH password/keyboard-interactive remain disabled; VM free disk 50.514 GiB.
+- All 49 unit tests pass on Linux VM and WSL, including encryption round-trip/tamper
+  rejection and project/readiness guards. Windows 44 pass/5 dependency/POSIX skips.
+  Repository YAML/security and diff checks pass.
+- Remaining: separate approved clean-host/image retrieval recovery, reverse live
+  cutover with current ledger, automated retention/key escrow and host/NAS-loss
+  resilience. No recovery target has been supplied; earlier clean-machine pause
+  remains respected. Outside-VPN testing remains pending by user choice.
+
+## Phase 5 cross-host data rehearsal - 2026-09-30
+
+- Windows cold backup passed environment/mount/configuration freshness, database
+  credentials, clean stop, hashes/archive safety and healthy resumption. Size
+  74,831,038 bytes; source interruption 50.62 seconds. Laptop free disk 39.28 GiB.
+- Restored that backup on the approved Linux VM in a separate, internal-only
+  Compose project: all three volume trees matched bytes, modes and owners before
+  startup; PostgreSQL full dump read, both SQLite integrity checks, existing admin,
+  scoped key, eight aliases, zero-budget rejection and synthetic routing/fallback/
+  concurrency passed. The retained policy ledger was unchanged. Total restore
+  through validation 194.85 seconds; containers stopped afterward, data retained.
+- Existing Windows live and VM zero-spend deployments were preserved. No provider
+  request was made by the restored project. This is cross-host data portability
+  evidence using already-installed images, not a clean-machine recovery claim.
+- This rehearsal preceded the live cutover measured above. Reverse live rollback
+  remains unvalidated. No optional installation.
+
+## Phase 5 Linux core and recovery - 2026-09-30
+
+- User resumed VM deployment. Direct Windows and WSL key SSH passed with
+  ProxyJump explicitly disabled after adding a narrow Omada laptop-address to
+  target-SSH rule. Existing AADI/bastion rules and VPN configuration remain.
+  The direct alias is address-dependent; the existing bastion remains available.
+- Installed Docker Engine 29.8.1, containerd 2.3.6 and Compose 5.5.1 from Docker's
+  official Ubuntu repository: four packages, 73.0 MB downloaded / 284 MB package
+  footprint. No optional Buildx/rootless/model package or extra image installed.
+- Fresh VM preflight PASS: native Ubuntu 24.04/KVM, 4 CPUs, 7.755 GiB visible RAM,
+  enabled/active Docker, no existing containers, free ports and 54.837 GiB free
+  before the three pinned image pulls. No Windows Docker service/data changes.
+- Implemented guarded Linux private configuration/start/test/status operations,
+  sharing the existing Kubernetes validation renderer. Runtime secrets have
+  root ownership, directory 0700/files 0600 and survive repeated startup.
+  Provider keys blank, budget zero, Jev disabled; activation is rejected.
+- All three services healthy. Host HTTP, admin sign-in, scoped-key administration
+  denial, eight-model discovery, zero-budget denial and synthetic HTTP
+  primary/fallback/streaming/concurrency tests passed. UI-to-database and external
+  TCP egress denial passed; gateway-to-database succeeded.
+- **Found/fixed:** Docker internal-only networks accepted Compose's port declarations
+  but installed no host bindings. Added unprivileged systemd socket proxies on
+  127.0.0.1:3000/4000 using the installed systemd binary, with no socket/secret
+  access. Container networks remain internal; PostgreSQL remains unpublished.
+- Edge browser PASS through SSH at `http://localhost:3180`: separate administrator
+  login, all eight aliases, coding-standard selection and rendered
+  `policy: monthly_budget_exhausted` in a temporary chat. Screenshot:
+  `docs/evidence/phase5-browser-budget-denial.png`. This is zero-spend acceptance,
+  not live provider inference on the VM.
+- Cold backup `backup-20260930T050013Z`: 8,261,945 bytes; stop/backup/resume 74.64 s.
+  Protected same-VM storage includes source, runtime secrets and three volume
+  archives with SHA-256 manifest. Source containers resumed healthy.
+- Independent restore `restore-20260930T050129Z`: 76.91 s; exact restored file
+  contents, original admin/scoped-key access, eight aliases, budget denial,
+  PostgreSQL full dump read and WebUI SQLite integrity passed. Fresh volumes and
+  containers use archived source/config, no ports and internal networks. Recovery
+  containers stopped; artifacts/volumes retained. No production cutover.
+- Repeated startup recreated the gateway container; private credential hash
+  remained identical and the full host/API/synthetic/isolation tests passed again.
+- Planned VM reboot PASS: boot ID changed, credential hash stayed identical,
+  Docker and both socket units activated automatically, and all three containers
+  became healthy. After readiness, host/API/synthetic/isolation tests passed again;
+  Windows/WSL direct SSH and tunneled HTTP passed. A probe during early startup
+  reset its connection and was not counted as acceptance. This is guest reboot
+  evidence, not host power-loss or NAS recovery evidence.
+- Post-reboot ledger: zero debit and zero provider attempts. VM free disk
+  55,597,940,736 bytes (51.78 GiB). Three images total 2.887 GB; six volumes
+  including retained recovery total 141.1 MB; six containers, three active,
+  230.4 MB writable layers. No build cache or model footprint.
+- Local checks: all 42 unit tests pass under WSL; Windows passes 40 with two
+  POSIX-only tests skipped. Repository
+  YAML/security contract and diff checks passed.
+- This earlier fresh-core checkpoint preceded the migration and encrypted
+  retention results above. Separate clean-host/reverse cutover gates remain open.
+  Outside-network OpenVPN remains pending by user choice. No Phase 6/7 component
+  installed. See [operations and remaining gates](LINUX_CORE.md).
+
+## Internal SSH bastion acceptance - 2026-09-30
+
+- Created an independent Ubuntu template clone: 1 vCPU, 1 GiB RAM, 32 GiB thin
+  QCOW2 root on existing shared NAS storage. No backing file; measured root
+  allocation 837,000,704 bytes. Guest filesystem free 30,139,219,968 bytes;
+  Windows C: free 39.39 GiB. No laptop VM disk or optional image/model installed.
+- SSH listens on TCP7000 only, with required public-key authentication; password,
+  keyboard-interactive and root SSH disabled. Existing Windows/WSL public keys
+  installed, no private keys copied. Dedicated forwarding-only user permits
+  onward SSH ports 22/7000; separate key-only administrator retained.
+- Narrow Omada LAN rules and guest firewall permit the path. Existing AADI rules
+  and OpenVPN configuration preserved; no WAN SSH exposure added.
+- Windows and WSL administrator login and GatewayAI ProxyJump passed. Onward
+  TCP7000 passed. Forwarding-account shell and onward TCP8006 were denied.
+  Effective SSH policy and absence of port22 listener verified. Five sampled
+  internal SSH banners and inbound target-VLAN access passed; not every host tested.
+- First cloud-init bootstrap failed because `/run/sshd` did not exist. Corrected
+  both the guest script and vendor snippet, then reran successfully. Planned
+  reboot changed boot ID; cloud-init completed, SSH/guest agent were active,
+  firewall persisted and both laptop client paths passed again.
+- Complete private local VM records in GatewayAI and AADI, with Proxmox Notes
+  readback, capture cluster/node, disk paths, networking, accounts and test limits.
+  GatewayAI's VM record now documents its working bastion access path.
+- Outside-network OpenVPN validation is explicitly pending by user instruction.
+  Backup/restore, hypervisor restart and NAS outage recovery remain unvalidated.
+  Docker/GatewayAI application deployment stays stopped; Phase 5 is PARTIAL.
+- Next: external VPN acceptance when the user is ready, or resume Phase 5 core
+  deployment when requested. See [operations](SSH_BASTION.md).
+
+## VM inventory documentation - 2026-09-29
+
+User requested complete per-VM records in the owning project folder and Proxmox
+Notes, including cluster/node identity, CPU/RAM, disk backend/volume/path, network,
+startup/backup and username/access details. Added this standing rule to project
+agent instructions and excluded `VM_NOTES/` from Git.
+
+Created complete local records for GatewayAI's control plane and AADI's existing
+ChatGPT Work VM. Current configuration/storage paths and effective SSH policy
+were read from Proxmox/guest-agent; both named accounts have public-key access
+with SSH password and keyboard-interactive authentication disabled. Passwords
+were not read or changed. Actual passwords/private keys are excluded from project
+files and Proxmox Notes.
+
+Saved both records to Proxmox Notes, retained existing descriptions and verified
+exact readback. Compared before/after configurations excluding description/digest:
+no non-note setting changed. Git-ignore checks passed for both local records.
+Application readiness and routed-SSH/recovery limitations remain unchanged.
+
+## User-selected Proxmox VM creation - 2026-09-29
+
+The user explicitly requested a VM from template 9001. Refreshed GitHub main is
+still `3cf3b6d`; implementation continues on draft PR #12, based on PR #10 and
+including PR #11's roadmap. Live template inspection identified Ubuntu 24.04,
+so [ADR 0012](adr/0012-template-9001-ubuntu-target.md) records the explicit change
+from the earlier Debian-only target. Private addressing, keys and raw operator
+evidence remain outside this public repository.
+
+- **CREATED:** independent full QCOW2 clone, 4 vCPU / 8192 MiB / 60 GiB, on the
+  selected cluster node and existing shared storage. No backing file; new MAC,
+  SMBIOS UUID and generation identity. Existing VNet/firewall flag preserved;
+  no extra guest VLAN tag. Automatic host-boot startup enabled.
+- **PASS:** guest Ubuntu 24.04.5, expected hostname/address, 4 visible CPUs,
+  7.755 GiB RAM, expanded root filesystem and 55.20 GiB free after installation.
+  DNS and outbound HTTPS worked. No Docker/Compose or application service exists.
+- **PASS:** existing Windows and WSL RSA public keys authenticate as the template
+  administrator, including `sudo -n true`. Existing template authorized keys were
+  retained. No password was reset and no private SSH key was copied.
+- **Access limit:** direct routed SSH times out from the current laptop network
+  and Proxmox management network. Same-VNet ping/SSH works. A temporary isolated
+  network namespace on the target node supplied the SSH verification path. Its
+  address was checked against guest configurations and failed ARP resolution before
+  use. Target MAC matched Proxmox configuration; observed host key was pinned and
+  subsequently confirmed through the guest agent. The namespace/veth were removed
+  and absence checked. No router ACL, host routing or firewall policy was changed.
+  This does **not** establish durable administrator access.
+- **Fixed on this clone only:** template did not contain `qemu-guest-agent`.
+  Installed the Ubuntu package and `liburing2` (413 kB downloaded, approximately
+  1.3 MB package footprint). Guest-agent ping/exec now pass. Template unchanged.
+- **PASS:** controlled guest reboot changed boot ID; cloud-init completed, guest
+  agent activated automatically, disk/resources persisted, and both Windows/WSL
+  SSH and sudo passed again. This is guest reboot evidence, not Proxmox host reboot,
+  power-loss, application persistence or recovery evidence.
+- **PASS:** all 26 pre-existing guests retained their configuration hashes,
+  node identity and running/stopped status. No existing VM/volume was replaced.
+- **PASS:** 35 Windows unit tests, including native Ubuntu admission and WSL/
+  container rejection; all ten preflight tests also passed under WSL. Repository
+  YAML/security checks passed. Real VM preflight passes OS, VM, CPU/RAM, runtime
+  disk reserve and free application ports. Overall BLOCKED is expected because
+  Docker/Compose and their storage/service checks remain unavailable.
+- **Storage:** full clone reserved 60 GiB virtual capacity; final shared-storage
+  allocation reports 974,664,192 bytes root disk plus 30,208 bytes cloud-init.
+  Shared storage has 4,256,244,957,184 bytes available. These sparse/storage reports
+  are not backup capacity guarantees. Local C: sample 41.25 GiB free. No AI images,
+  model weights, provider credentials or live application data were transferred.
+- **Failures/limits:** clone progress reached 100% before its final task exit;
+  configuration lookup before completion correctly failed without mutation.
+  The local helper then rejected mixed progress/JSON output; independent task
+  status proved `OK`, and cloning was not retried. Configuration readback normalized
+  Proxmox's string-valued memory field before proceeding. Initial cloud-init
+  reported a deprecated `user` field with no errors; after reboot status was done.
+- **Next:** establish durable administrator SSH access, install the core Linux
+  Docker prerequisites, then implement and validate the zero-spend application
+  deployment. Phase 5 application/browser/backup/clean-host recovery remain pending.
+
+
+## Updated roadmap, Phase 4 closeout and Phase 5 preparation - 2026-09-29
+
+Refreshed main: `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
+Phase 4 open PR #10: `1130fcf23223b3a7a85049be0ea345e1c91b60ee`.
+User roadmap open PR #11: `223bb00a9b57efed54a90bee9cffa9012cf03364`.
+Both histories are integrated for review on `feat/phase5-debian-foundation`;
+main and the existing PR branches are unchanged.
+
+- **Scope reconciliation:** PR #11 explicitly makes Phase 4 local developer
+  validation only. Existing browser/PVC evidence plus the fresh runtime suite
+  satisfy that scope, so Phase 4 is COMPLETE. This supersedes the older PARTIAL
+  wording below; live migration was not performed or silently marked tested.
+- **PASS, current runtime:** `scripts/kubernetes.ps1 test` passed internal admin
+  login, restricted-key administration denial, eight aliases and zero-budget
+  rejection; HTTP Ingress/auth/model discovery through both localhost names;
+  gateway-to-DB allowance, UI-to-DB and external TCP denial; native synthetic
+  primary/503/429 fallback, provider/private/tool/override policy, streaming,
+  concurrency and exhausted budget. No provider request or deployment change.
+- **Prior measured evidence retained:** the browser screenshot and all-three-pod
+  recreation with Compose stopped were not repeated; their configuration has not
+  changed. Those results remain recorded in the entries below.
+- **Implemented:** read-only `scripts/debian-preflight.py` and
+  [Debian acceptance plan](DEBIAN_CONTROL_PLANE.md). No installer, Linux secret
+  generator, startup wrapper, controller runtime or Linux backup implementation
+  is claimed. Main continues to contain only the merged Phase 1-3 implementation.
+- **PASS:** 34 Python unit tests on Windows, including nine Debian preflight
+  guard tests; those nine also passed under WSL Ubuntu. Repository safety/YAML
+  checks and configuration/storage regressions passed. Native Windows and WSL
+  Ubuntu 24.04 preflight runs both
+  exited 1 with BLOCKED as intended, before any Docker request. Fixture acceptance
+  is not Debian-machine evidence.
+- **Storage:** C: 41.33 GiB before work, 41.30 GiB after tests (concurrent host
+  activity included). Docker inventory: 40 images / 18.5 GB,
+  67 containers / 34 running, 21 volumes / 4.287 GB and 10.11 GB build cache.
+  Only small source/documentation files added; no image/model install, runtime
+  volumes, destructive cleanup, target connection or live-data migration.
+- **Pending:** VM identity/SSH access, actual Debian preflight, Linux deployment
+  and secret permissions, browser/provider acceptance, reboot and recovery.
+  Off-machine backups/new-machine recovery retain their explicit unvalidated
+  status and the user's prior pause. No new remote web address/login exists.
+- **Next:** identify the dedicated VM, run read-only target admission and implement
+  the Linux fresh zero-spend deployment path before any approved live cutover.
+
+The later order is isolated worker, controller, Telegram-only approvals, then
+context and advanced orchestration. Optional models remain uninstalled; Jev stays
+disabled. See [ADR 0011](adr/0011-debian-controller-progression.md).
 
 ## Phase 4 browser acceptance follow-up - 2026-09-29
 
@@ -525,6 +814,56 @@ The target machine runs this implementation; main contains merged Phase 1 only.
   requires review/merge. Next: Phase 2 routing, fallbacks, budgets, logging policy
   and local-private isolation. Restore, clean rebuild, reboot recovery, load
   testing and optional modules remain unvalidated/later work.
+
+## Internal ingress deployment - 30 September 2026
+
+- User requested Nginx Proxy Manager on the existing VM. Prepared opt-in single-
+  container Compose with required digest/address/private-state parameters,
+  loopback-only administration and a dedicated WebUI ingress network boundary.
+- Live read-only preflight: three healthy core containers, 50.51 GiB free,
+  80/81/443 unused. Upstream setup/network documentation reviewed.
+- User selected all internal VLANs + existing OpenVPN, private certificates, and
+  the `*.aadi.dgoi.local` namespace. GatewayAI is `ai.aadi.dgoi.local`.
+- NPM 2.16.0 digest-pinned image pulled (1,909,394,336 installed image bytes);
+  VM free space changed from 50.51 to 48.73 GiB. No other optional image/model.
+- Omada rejected wildcard LAN DNS syntax. Explicit GatewayAI DNS record saved
+  for all 13 configured LANs; laptop resolution verified. Stable LAN-to-LAN TCP
+  destination rule saved for ingress 80/443 only. No WAN forwarding configured.
+- Separate NPM project and internal WebUI network deployed; only WebUI recreated.
+  Administration stays loopback-only, with generated credentials in protected
+  storage outside Git/sync. Bootstrap API avoids the image's password-logging
+  environment bootstrap. Core accounts, keys, data and allowance retained.
+- Strict Windows Python certificate verification initially failed due to missing
+  leaf Authority Key Identifier. Leaf reissued with AKI/SKI, then strict
+  certificate/hostname verification passed. WSL system trust HTTPS HTTP/2 200.
+  Windows curl/Schannel revocation-status check failed; no validation bypass used.
+- HTTPS existing sign-in, eight aliases, unauthenticated rejection and a synthetic
+  OpenAI streamed response passed. Laptop LAN ports 81/3000/4000/5432 unavailable.
+  September admission debit 3.569700 -> 3.612410 USD, 21 -> 22 attempts, zero active;
+  $100 UTC-month ceiling unchanged. This is reserved admission cost, not an invoice.
+- NPM cold backup encrypted with the protected recovery key; 34,788 bytes,
+  off-VM copy SHA-256 matched. Authenticated decrypt, SQLite integrity, existing
+  admin/route, healthy isolated NPM and nginx configuration checks passed. The
+  no-port/no-provider restored copy is stopped with restart=no and retained.
+  This checks ingress recovery on the existing host, not clean-host recovery.
+- Reboot passed: four healthy live containers, WSL system-trusted HTTPS 200,
+  successful loopback refresh and unchanged ledger. Free disk 48.72 GiB.
+  The first check incorrectly expected the completed oneshot to remain active;
+  service Result=success/ExecMainStatus=0 and both loopback endpoints verified it.
+- User requested unattended Windows CA installation. CurrentUser CLI commands
+  waited on local confirmation; the user-policy store denied access. Waiting
+  commands stopped. This shell is non-admin; Edge authority-invalid remains.
+  Prepared fingerprint-checked administrator import helper; elevated execution
+  and subsequent browser acceptance are unvalidated. No trust checks bypassed.
+- Repository safety/YAML and 49-test Windows suite passed (44 run, five platform
+  skips); initial global Python lacked PyYAML, so the existing project venv was
+  used with no installation. Local/proxmox inventory updated and read back;
+  oversized note attempts were rejected before a compact complete note saved.
+- Browser, all-VLAN clients and outside-VPN validation pending. Details:
+  [ingress](INGRESS.md). No merge or next-phase readiness claim.
+- Public CA handover created locally in Git-excluded LOCAL_CERTIFICATES as DER
+  and PEM with installation notes; certificate fingerprint matches the issued CA.
+  No private key copied. Phone/other-PC import remains a user/device acceptance step.
 
 ## PR stack review: Phase 4 storage guard - 30 September 2026
 

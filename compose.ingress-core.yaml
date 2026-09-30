@@ -1,0 +1,11 @@
+# Merge into the selected live core, never start a second core project.
+# Create this internal network once before starting either Compose project.
+services:
+  open-webui:
+    networks:
+      webui-ingress:
+        aliases: [gatewayai-webui]
+networks:
+  webui-ingress:
+    external: true
+    name: gatewayai-webui-ingress

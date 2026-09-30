@@ -50,5 +50,28 @@ The canonical target is modular. LiteLLM is the central AI gateway. Git/GitHub r
 ## Deployment discipline
 Docker Compose first. Kubernetes second. Do not require both to be active at once.
 
+## VM documentation
+User instruction, 29 September 2026: whenever creating a VM, create or update
+`VM_NOTES/<vmid>-<name>.md` in the owning project folder before handing it over.
+Include creation/verification date, project/purpose, VMID/name, cluster name,
+hypervisor host/node and address, source template/OS, CPU model/sockets/vCPU,
+RAM/ballooning, every disk's capacity/format and storage backend/server/share/
+volume/path, NIC/MAC/bridge/VLAN/firewall/IP/prefix/gateway/DNS, startup/boot order,
+guest agent, tags/pool, backup/HA/replication state, username, authentication
+method and tested access/status limits. Mark unavailable facts as unverified.
+Also write the same operational inventory to the Proxmox VM Notes (description)
+section, preserving pre-existing notes. Read it back to verify it saved. Keep the
+project record and Proxmox notes consistent after changes; never include a
+password, private key or token in Proxmox Notes.
+State explicitly whether SSH password login is disabled, enabled or unverified;
+do not equate key authentication working with password login being disabled.
+
+Keep host-specific notes local and Git-excluded. Never put actual passwords or
+private keys in project Markdown, even ignored files in a synced folder. If a
+password is provisioned, place it in a protected local credential file outside
+Git/sync and record only its location in the VM note. For SSH-only access, say
+so and record which existing public keys were installed; never copy private keys.
+This recording rule also applies to AADI and future project folders.
+
 ## Production safety
 Coding agents must not receive unrestricted production credentials, Docker host socket access, or arbitrary host shell execution by default.

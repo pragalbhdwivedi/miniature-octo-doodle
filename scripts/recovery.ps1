@@ -1,7 +1,8 @@
 param(
   [Parameter(Mandatory)][ValidateSet('backup','restore','verify')][string]$Action,
   [string]$Backup,
-  [string]$Name
+  [string]$Name,
+  [switch]$KeepStopped
 )
 . "$PSScriptRoot/common.ps1"
 & "$PSScriptRoot/preflight.ps1"
@@ -26,5 +27,9 @@ foreach ($identity in @($sid, [Security.Principal.SecurityIdentifier]::new('S-1-
 $arguments = @("$PSScriptRoot/recovery.py", $Action, '--root', $recoveryRoot)
 if ($Backup) { $arguments += @('--backup', $Backup) }
 if ($Name) { $arguments += @('--name', $Name) }
+if ($KeepStopped) {
+  if ($Action -ne 'backup') { throw 'KeepStopped applies only to a migration backup.' }
+  $arguments += '--keep-stopped'
+}
 & python @arguments
 if ($LASTEXITCODE -ne 0) { throw 'Recovery operation failed; existing volumes are preserved. See the last safe progress message.' }

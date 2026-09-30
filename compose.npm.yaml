@@ -1,0 +1,35 @@
+# Opt-in ingress. Configure only after hostname, TLS and client networks are chosen.
+name: gatewayai-ingress
+services:
+  npm:
+    image: ${NPM_IMAGE:?Set a reviewed digest-pinned Nginx Proxy Manager image}
+    restart: unless-stopped
+    ports:
+      - "${NPM_BIND_IP:?Set the approved VM VLAN address}:80:80"
+      - "${NPM_BIND_IP:?Set the approved VM VLAN address}:443:443"
+      - "127.0.0.1:81:81"
+    environment:
+      TZ: Asia/Calcutta
+      DISABLE_IPV6: "true"
+      IP_RANGES_FETCH_ENABLED: "false"
+    volumes:
+      - ${NPM_STATE_DIR:?Set a protected absolute Linux directory}/data:/data
+      - ${NPM_STATE_DIR:?Set a protected absolute Linux directory}/letsencrypt:/etc/letsencrypt
+    networks: [edge, webui_ingress]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, /usr/bin/check-health]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+networks:
+  edge: {}
+  webui_ingress:
+    external: true
+    name: gatewayai-webui-ingress

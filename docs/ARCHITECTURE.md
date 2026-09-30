@@ -130,3 +130,27 @@ per-service Secrets restrict credential distribution. Default-deny NetworkPolicy
 blank cloud keys and a zero allowance keep this fresh instance unable to spend.
 It operates independently of Compose. Existing Compose records and budget history
 have not been migrated. See [ADR 0010](adr/0010-isolated-kubernetes-validation.md).
+
+## Operational progression and controller boundary
+
+The revised roadmap accepts Phase 4 as developer validation only. Next is a
+dedicated Linux VM running the core with Compose; full Kubernetes services are
+Phase 12. The user subsequently selected Ubuntu template 9001, superseding the
+Debian-only choice in [ADR 0011](adr/0011-debian-controller-progression.md).
+See [ADR 0012](adr/0012-template-9001-ubuntu-target.md). The selected VM now runs
+the migrated live Compose core with protected configuration, internal UI/database
+networks and gateway-only provider egress. Loopback systemd socket proxies support
+SSH-tunneled browser access. The VM owns current data and budget history; Windows
+is frozen. See [Linux operations](LINUX_CORE.md). A user-requested internal Nginx
+Proxy Manager entry point is deployed: internal DNS/Omada TCP 80/443 -> NPM ->
+dedicated internal WebUI network -> existing UI/gateway. It routes
+`ai.aadi.dgoi.local` within the `*.aadi.dgoi.local` namespace and does not join the
+database network. See tested boundaries and open browser gates in [ingress](INGRESS.md).
+
+Build an isolated worker (Phase 6), then a controller that refreshes each managed
+repository and works from Git alone (Phase 7). OpenViking/Graphify are later context
+enhancements, and Jev remains disabled until separately approved. Telegram is the
+sole planned approval channel; WhatsApp is excluded. Human authority remains
+required for merges, production deployments and other consequential actions.
+AADI retains its own architecture and acceptance gates and must operate without
+this development platform. See [the integration contract](AADI_DEVELOPMENT_INTEGRATION.md).
