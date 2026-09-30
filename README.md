@@ -152,3 +152,13 @@ branches/commits and reviewed artifact export. The live gateway is unchanged.
 Gateway-backed one-turn coding and per-run budgets passed live acceptance. Scoped
 draft-PR publishing is implemented and locally tested; live publication awaits a
 repository-scoped credential, so Phase 6 remains partial. No sandbox receives credentials.
+
+## Service directory and remote access - 30 September 2026
+
+DEPLOYED: password-free `dash.aadi.dgoi.local` directory and separate HRMS/console
+HTTPS hostnames reuse existing ingress. Preserved-account login, protected reads,
+logout and origin/anonymous denial passed. No image pull, migration or password
+reset. User confirmed external OpenVPN and phone RDP login. WireGuard server routes
+corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
+acceptance remain open. See [dashboard operation](docs/DASHBOARD.md) and
+[remote-access evidence](docs/REMOTE_ACCESS_CHECK.md).

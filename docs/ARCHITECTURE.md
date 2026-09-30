@@ -168,3 +168,13 @@ one budget-reserved LiteLLM call and validates proposed edits before sandbox tes
 A separate publisher binds operator review to artifact hashes and creates only
 new run branches/draft PRs; live publishing awaits a scoped credential.
 Phase 7 task selection/controller is not installed. See [WORKER](WORKER.md).
+
+## Service directory and remote access - 30 September 2026
+
+DEPLOYED: password-free `dash.aadi.dgoi.local` directory and separate HRMS/console
+HTTPS hostnames reuse existing ingress. Preserved-account login, protected reads,
+logout and origin/anonymous denial passed. No image pull, migration or password
+reset. User confirmed external OpenVPN and phone RDP login. WireGuard server routes
+corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
+acceptance remain open. See [dashboard operation](DASHBOARD.md) and
+[remote-access evidence](REMOTE_ACCESS_CHECK.md).

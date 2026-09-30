@@ -247,3 +247,13 @@ the synthetic ingress probe; $100 UTC-month ceiling unchanged. An encrypted NPM
 backup and isolated restore passed; the restored copy is stopped. Reboot passed
 with four healthy live containers, working HTTPS and unchanged ledger. Browser
 and all-VLAN/external-VPN acceptance remain open. See docs/INGRESS.md.
+
+## Service directory and remote access - 30 September 2026
+
+DEPLOYED: password-free `dash.aadi.dgoi.local` directory and separate HRMS/console
+HTTPS hostnames reuse existing ingress. Preserved-account login, protected reads,
+logout and origin/anonymous denial passed. No image pull, migration or password
+reset. User confirmed external OpenVPN and phone RDP login. WireGuard server routes
+corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
+acceptance remain open. See [dashboard operation](docs/DASHBOARD.md) and
+[remote-access evidence](docs/REMOTE_ACCESS_CHECK.md).

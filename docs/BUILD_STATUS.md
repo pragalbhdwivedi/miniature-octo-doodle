@@ -970,6 +970,16 @@ The target machine runs this implementation; main contains merged Phase 1 only.
   and PEM with installation notes; certificate fingerprint matches the issued CA.
   No private key copied. Phone/other-PC import remains a user/device acceptance step.
 
+## Service directory and remote access - 30 September 2026
+
+DEPLOYED: password-free `dash.aadi.dgoi.local` directory and separate HRMS/console
+HTTPS hostnames reuse existing ingress. Preserved-account login, protected reads,
+logout and origin/anonymous denial passed. No image pull, migration or password
+reset. User confirmed external OpenVPN and phone RDP login. WireGuard server routes
+corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
+acceptance remain open. See [dashboard operation](DASHBOARD.md) and
+[remote-access evidence](REMOTE_ACCESS_CHECK.md).
+
 ## PR stack review: Phase 4 storage guard - 30 September 2026
 
 Resolved the open P1 review: cluster/deployment reserves now apply to every
