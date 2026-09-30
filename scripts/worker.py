@@ -185,7 +185,7 @@ def validate_image(info):
         raise ValueError('Image differs from the reviewed worker runtime contract')
 
 
-def run(job, image, root, coding_config=None, expected_source_sha=None, run_id=None):
+def run(job, image, root, coding_config=None, expected_source_sha=None, run_id=None, initial_proposal=None):
     if sys.platform != 'linux' or os.geteuid() != 0:
         raise ValueError('Approved Linux operator required; never expose this CLI to agents')
     if expected_source_sha is not None and not re.fullmatch('[a-f0-9]{40}', expected_source_sha):
@@ -195,6 +195,8 @@ def run(job, image, root, coding_config=None, expected_source_sha=None, run_id=N
     import fcntl
     registry = json.loads((REPO/'config/worker/projects.json').read_text())
     project = validate_job(job, registry)
+    if initial_proposal is not None and 'coding' in job:
+        raise ValueError('Cannot combine supplied proposal and coding authority')
     if 'coding' in job and coding_config is None:
         raise ValueError('Operator coding configuration required')
     if coding_config and Path(coding_config).resolve().is_relative_to(REPO):
@@ -256,7 +258,10 @@ def run(job, image, root, coding_config=None, expected_source_sha=None, run_id=N
             record['job_sha256'] = hashlib.sha256((source/'job.json').read_bytes()).hexdigest()
             for p in source.iterdir():
                 p.chmod(0o444)
-            proposal = None
+            proposal = initial_proposal
+            if proposal is not None:
+                artifacts(proposal, original, job['write_paths'])
+                record['initial_proposal_sha256'] = hashlib.sha256(json.dumps(proposal, sort_keys=True).encode()).hexdigest()
             if 'coding' in job:
                 proposal, debit = coding.generate(job, original, run_id, root, coding_config, sandbox.relative)
                 artifacts(proposal, original, job['write_paths'])

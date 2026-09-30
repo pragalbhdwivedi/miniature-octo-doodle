@@ -14,6 +14,35 @@ s=importlib.util.module_from_spec(spec);spec.loader.exec_module(s)
 
 @unittest.skipUnless(os.environ.get('GATEWAYAI_CONTROLLER_TEST_CONFIG'),'Opt-in PostgreSQL target required')
 class PostgresTests(unittest.TestCase):
+    def test_pipeline_budget_transitions_and_replay(self):
+        config=json.loads(Path(os.environ['GATEWAYAI_CONTROLLER_TEST_CONFIG']).read_text())
+        self.assertRegex(config['database'],r'^gatewayai_controller_test_[a-f0-9]{8}$')
+        store=s.Store(**config)
+        version=store.query('SELECT to_jsonb(version) FROM controller.schema_version;')
+        if version!=2:self.skipTest('Review pipeline schema not applied')
+        run=uuid.uuid4().hex
+        req={'run_id':run,'plan':{'project':'synthetic','task_id':run,'source_sha':'a'*40}}
+        store.claim(req,'b'*64);store.finish(run,'review_required',{'artifact_sha256':'c'*64})
+        spec={'source_sha':'a'*40,'artifact_sha256':'c'*64,'budget_micro_usd':1000}
+        store.begin_pipeline(run,spec,'d'*64,100)
+        with self.assertRaises(RuntimeError):store.begin_pipeline(run,spec,'d'*64,100)
+        other={'run_id':uuid.uuid4().hex,'plan':{'project':'synthetic','task_id':uuid.uuid4().hex,'source_sha':'a'*40}}
+        with self.assertRaises(RuntimeError):store.claim(other,'e'*64)
+        store.reserve_pipeline(run,'review0',200,'f'*64)
+        with self.assertRaises(RuntimeError):store.reserve_pipeline(run,'review0',200,'f'*64)
+        store.step_pipeline(run,'reviewing','repairing',{})
+        store.reserve_pipeline(run,'repair',400,'f'*64)
+        store.step_pipeline(run,'repairing','re_reviewing',{})
+        with self.assertRaises(RuntimeError):store.reserve_pipeline(run,'review1',301,'f'*64)
+        store.reserve_pipeline(run,'review1',300,'f'*64)
+        self.assertEqual(store.pipeline(run)['debit'],1000)
+        store.step_pipeline(run,'re_reviewing','approved',{})
+        with self.assertRaises(RuntimeError):store.step_pipeline(run,'approved','repairing',{})
+        store.step_pipeline(run,'approved','publishing',{})
+        store.step_pipeline(run,'publishing','published',{'synthetic':True})
+        self.assertEqual(store.get(run)['state'],'published')
+        with self.assertRaises(RuntimeError):store.step_pipeline(run,'published','publishing',{})
+
     def test_atomic_claims_audit_restart_and_replay(self):
         config=json.loads(Path(os.environ['GATEWAYAI_CONTROLLER_TEST_CONFIG']).read_text())
         self.assertRegex(config['database'],r'^gatewayai_controller_test_[a-f0-9]{8}$')

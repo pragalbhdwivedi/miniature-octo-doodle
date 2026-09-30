@@ -22,7 +22,9 @@ unprivileged planning remains read-only. Dedicated PostgreSQL claims/audit and
 operator-only exact-request dispatch are deployed and live-tested. The committed
 zero-spend task passed; simulated completion-write outage retained the claim and
 reconciliation recovered the result without re-execution.
-Independent review, repair and publication orchestration remain pending.**
+Independent fresh-context review, one bounded repair and operator-gated draft
+publication are implemented; schema-2 migration and test validation passed.
+Live pipeline acceptance remains pending below. Phase7 remains PARTIAL.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.

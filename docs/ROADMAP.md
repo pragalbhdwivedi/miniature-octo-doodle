@@ -252,3 +252,12 @@ storage, security and current need justify them:
 
 Provider/model additions must remain behind LiteLLM capability aliases and the
 deterministic policy layer.
+
+## Bounded review and publication increment
+
+Independent fresh-context review and operator-owned sandbox tests now gate the
+artifact. One repair may run within the aggregate $1 original/review/repair
+ceiling, followed by new tests and review. Publication requires a separate exact
+final-artifact approval and current source/ownership, then creates only a draft PR.
+See [review operations](CONTROLLER_REVIEW.md) and BUILD_STATUS for actual acceptance.
+No scheduler, merge/deployment authority, AADI activation or Telegram integration.

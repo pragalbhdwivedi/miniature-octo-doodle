@@ -142,3 +142,12 @@ Exact source/job/image/budget approval, permanent task/source claims and
 fail-closed ambiguous state constrain dispatch. The planner and worker never
 receive that authority. Remote approvals remain unimplemented.
 See [dispatch boundaries](CONTROLLER_DISPATCH.md).
+
+## Review and repair boundary
+
+The fresh-context reviewer has no edit/tool/publication authority. Operator-defined
+sandbox tests veto approval; repair cannot change their command arrays or original
+write scope. The aggregate PostgreSQL ceiling includes original coding and all
+review/repair calls, with immutable stage reservations before HTTP. No retries or
+refunds. Final artifact/review approval is separate from initial pipeline approval.
+See [review operations](CONTROLLER_REVIEW.md) for context and model-independence limits.

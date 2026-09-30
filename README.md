@@ -170,3 +170,12 @@ A separate operator-only dispatcher now adds PostgreSQL claims/audit, exact-requ
 approval and one bounded worker attempt. Independent review/repair and publishing
 orchestration remain pending. See [dispatch operations](docs/CONTROLLER_DISPATCH.md). The [reviewed PR stack](docs/PR_STACK_REVIEW.md)
 records what is merged and what still awaits acceptance.
+
+## Bounded review and publication increment
+
+Independent fresh-context review and operator-owned sandbox tests now gate the
+artifact. One repair may run within the aggregate $1 original/review/repair
+ceiling, followed by new tests and review. Publication requires a separate exact
+final-artifact approval and current source/ownership, then creates only a draft PR.
+See [review operations](docs/CONTROLLER_REVIEW.md) and BUILD_STATUS for actual acceptance.
+No scheduler, merge/deployment authority, AADI activation or Telegram integration.
