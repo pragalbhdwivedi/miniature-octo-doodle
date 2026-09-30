@@ -874,3 +874,10 @@ reset. User confirmed external OpenVPN and phone RDP login. WireGuard server rou
 corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
 acceptance remain open. See [dashboard operation](DASHBOARD.md) and
 [remote-access evidence](REMOTE_ACCESS_CHECK.md).
+
+## PR stack review: Phase 4 storage guard - 30 September 2026
+
+Resolved the open P1 review: cluster/deployment reserves now apply to every
+discovered Docker/repository storage drive before downloads. Synthetic C:50GiB
+and Docker D:18GiB reject both 8GiB and 4GiB reservations; zero-reserve inspection
+passes. No image download or running cluster change during this review.

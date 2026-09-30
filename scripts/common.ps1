@@ -55,3 +55,14 @@ function Assert-DiskReserve {
   if (($FreeGiB - $AdditionalGiB) -lt $CriticalGiB) { throw "Disk reserve failed: $FreeGiB GiB free minus $AdditionalGiB GiB estimated would leave less than $CriticalGiB GiB." }
   if (($FreeGiB - $AdditionalGiB) -lt $WarningGiB) { Write-Warning 'Projected free space is below the warning threshold.' }
 }
+
+function Assert-StorageReserves {
+  param([string[]]$DriveNames, [double]$AdditionalGiB, [double]$CriticalGiB = 15, [double]$WarningGiB = 25)
+  if (!$DriveNames.Count) { throw 'No storage drive was resolved.' }
+  foreach ($driveName in ($DriveNames | Sort-Object -Unique)) {
+    $drive = Get-PSDrive -Name $driveName -ErrorAction Stop
+    $free = $drive.Free / 1GB
+    Write-Host "${driveName}: $([math]::Round($free, 2)) GiB free; projected additional reserve $AdditionalGiB GiB"
+    Assert-DiskReserve -FreeGiB $free -AdditionalGiB $AdditionalGiB -CriticalGiB $CriticalGiB -WarningGiB $WarningGiB
+  }
+}
