@@ -22,7 +22,7 @@ These validated routes do not imply that the other items below are installed.
 | **TypeSafe Jev** | typed choice/score/probability for routing, risk, task classification and escalation | selected Phase 2 evaluation target; not installed |
 | **LiteLLM** | central provider/model gateway, aliases, routing, fallbacks, budgets | core gateway; Phase 2 routing controls pending |
 | **OmniRoute** | optional aggregation of multiple/free providers | experimental later component |
-| **Ollama / llama.cpp** | local inference | optional later component |
+| **Ollama / llama.cpp** | local inference | Ollama Windows laptop evaluation installed on owner request; llama.cpp and VM LiteLLM route not installed. See [local model](LOCAL_MODEL.md) |
 
 ## Generative, decision, image, and speech models/families discussed
 

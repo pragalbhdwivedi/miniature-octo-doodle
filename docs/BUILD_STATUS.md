@@ -24,14 +24,64 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
 | Linux control-plane VM (Phase 5) | PARTIAL | Live data/ledger migration, provider/browser and encrypted off-VM readback restore pass; clean-host recovery/reverse cutover pending |
 | Internal SSH bastion | COMPLETE | Internal scope: both laptop clients, GatewayAI ProxyJump, denied operations and guest reboot passed 2026-09-30; outside-VPN validation pending |
-| Ollama | NOT STARTED | Optional |
-| Local model | NOT STARTED | Optional |
+| Ollama | PARTIAL | Native Windows 0.35.0, loopback API and cloud-disabled setting tested; WSL/gateway integration pending |
+| Local model | PARTIAL | One `qwen3:4b-instruct` retained; Apache-2.0 license, synthetic code response and 73% GPU offload tested; production quality unvalidated |
 | OmniRoute | NOT STARTED | Optional |
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
-| Telegram approvals | PARTIAL | Exact draft-publication callback/DB tests pass; live private identity, VM-to-Telegram delivery and owner-confirmed phone receipt pass; live callback pending, transport disabled |
+| Telegram approvals | PARTIAL | Exact private callback was consumed for live draft PR #32; bounded publication gate passed, broader Phase 8 actions/notifications pending |
+
+## Optional laptop local model - 1 October 2026
+
+- The owner explicitly requested GPU/RAM use on the laptop. Windows has 63.37 GiB
+  RAM and an NVIDIA GTX 1650 Ti with 4 GiB VRAM. Native Ollama 0.35.0 was installed
+  for the current user; its service listens only at `127.0.0.1:11434` and reports
+  cloud disabled. User configuration also sets `OLLAMA_NO_CLOUD=1` and the loopback
+  host; the Windows Startup entry is present (post-reboot behavior untested).
+- The retained official Ollama model is `qwen3:4b-instruct` (ID `0edcdef34593`,
+  2.5 GB, Apache-2.0 license). A local API coding prompt returned a working
+  `is_even` Python function in 7.21 s at 2,048-token context. `ollama ps` reported
+  73% GPU / 27% CPU, so this is not a full-GPU or full-context performance claim.
+  The initial research-licensed Qwen2.5 Coder 3B evaluation model and the Qwen3
+  4B thinking variant were removed. Only one model remains; C: had 36.70 GiB free.
+- WSL Ubuntu could not connect to Windows `127.0.0.1:11434`. No LAN listener,
+  firewall exception, VM LiteLLM route or controller model alias was enabled.
+  Windows-local evaluation is validated; gateway-backed coding with this laptop
+  model remains pending. See [local model operations](LOCAL_MODEL.md).
+
+## Phase 8 live callback and exact publication attempt - 1 October 2026
+
+- Issue #28 selected a committed zero-spend synthetic task from main. Its worker
+  changed only `docs/examples/telegram_acceptance.py`; all four commands passed
+  and the container was removed. Independent fresh tests and review approved the
+  two-line patch, with a conservative $0.265740 debit under its $1 ceiling.
+- Production dispatch was switched to the root-owned Telegram configuration, with
+  the previous dispatch file retained protected. Publishing without an approval
+  ID was denied; the pipeline remained `approved` and no draft PR was created.
+- The owner pressed the live private-chat Approve button. PostgreSQL recorded the
+  exact run/receipt decision with the configured user/chat and Telegram update ID.
+  Callback acknowledgment to Telegram failed after the database commit; a manual
+  poll reconciled and advanced the protected offset without a second decision.
+  The decision then expired before consumption. The pipeline remained `approved`,
+  approval `approved` but unconsumed; no publication journal or GitHub worker
+  branch existed. The expired approval was not replayed.
+- Issue #30 and merged task PR #31 register a fresh synthetic source/task identity;
+  issue #28's task is `paused`. The fresh zero-spend worker and independent tests/
+  review passed with only `docs/examples/telegram_acceptance_retry.py` changed.
+  Conservative debit is $0.265980 under $1. VM9125's unauthenticated GitHub API
+  quota reached zero before the request stage, so no button was sent until the
+  20:26 UTC reset. A fresh private-chat request then received the owner's Approve
+  callback. Poll returned `approved`; publication atomically consumed that exact
+  decision and changed the pipeline to `published`. Draft PR #32 was created on
+  `worker/2310ff55a67956fda49879bfec62e6d7` from the reviewed main SHA
+  `fcaf6c76f7b02c24c28335232cf6bccf6e1327b5`. GitHub readback showed draft,
+  open, base `main`, one file/two additions, with the exact reviewed two-line
+  `docs/examples/telegram_acceptance_retry.py` diff. No merge or deployment.
+  The first expired approval remains unconsumed and unpublished. The live bounded
+  Telegram draft-publication gate passed; general notifications and structured
+  choose/pause/resume controls are still Phase 8 work.
 
 ## Phase 8 bot provisioning checkpoint - 1 October 2026
 
