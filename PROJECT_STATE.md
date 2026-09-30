@@ -72,13 +72,15 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-Establish a durable administrator SSH path to the new control-plane VM, then
-install core Docker Engine/Compose and implement Linux startup/private configuration
+The durable administrator SSH path now passes from Windows and WSL through the
+dedicated internal bastion on TCP 7000, including after its reboot. Outside-VPN
+acceptance is pending by user choice. See [SSH access](docs/SSH_BASTION.md).
+Docker/application deployment remains stopped following the user's instruction;
+when resumed, install core Docker Engine/Compose and implement Linux startup/private configuration
 for a fresh zero-spend core. The user explicitly selected Proxmox template 9001,
 verified as Ubuntu 24.04.5; this supersedes the earlier Debian-only target.
-The VM is created. Both Windows and WSL public-key SSH/sudo passed through a
-temporary isolated test path. Direct routed SSH remains blocked; no router/ACL
-change was made. Existing Windows startup/recovery scripts are not a validated
+The VM is created. Narrow Omada LAN ACLs now permit the bastion path; direct
+laptop-to-target SSH is not claimed. Existing Windows startup/recovery scripts are not a validated
 Linux application deployment path. See [the runbook](docs/DEBIAN_CONTROL_PLANE.md).
 
 Preserve existing chats, credentials and monthly budget history during any later

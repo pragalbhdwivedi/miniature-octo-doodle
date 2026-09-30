@@ -7,8 +7,10 @@ are accepted by preflight; WSL/containers remain rejected.
 
 Status: PARTIAL. The selected Ubuntu VM is created and guest validation has passed.
 Docker/application deployment is NOT STARTED; target preflight correctly reports
-BLOCKED for missing Docker/Compose. Routed administrator SSH still requires a
-durable access path; temporary isolated SSH verification is not that path.
+BLOCKED for missing Docker/Compose. Durable Windows and WSL administrator SSH
+through the [internal bastion](SSH_BASTION.md) passed on 2026-09-30, also after
+bastion reboot. Outside-VPN acceptance is pending by user choice. Application
+deployment remains stopped until the user resumes that work.
 
 ## Target and admission
 

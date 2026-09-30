@@ -6,6 +6,7 @@
 *.p12
 *.pfx
 secrets/
+creds/
 data/
 models/
 backups/

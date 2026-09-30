@@ -22,7 +22,8 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
 | Kubernetes developer validation (Phase 4) | COMPLETE | Revised PR #11 scope: dedicated k3d core, pod/PVC persistence, API/browser, isolation and synthetic policy pass; no live migration claim |
 | Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
-| Linux control-plane VM (Phase 5) | PARTIAL | User-selected Ubuntu template cloned; guest/reboot/SSH checks pass through temporary isolated path; durable routed SSH and Docker/application deployment pending |
+| Linux control-plane VM (Phase 5) | PARTIAL | Ubuntu guest checks and durable Windows/WSL bastion SSH pass; Docker/application deployment remains stopped |
+| Internal SSH bastion | COMPLETE | Internal scope: both laptop clients, GatewayAI ProxyJump, denied operations and guest reboot passed 2026-09-30; outside-VPN validation pending |
 | Ollama | NOT STARTED | Optional |
 | Local model | NOT STARTED | Optional |
 | OmniRoute | NOT STARTED | Optional |
@@ -33,6 +34,35 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## Internal SSH bastion acceptance - 2026-09-30
+
+- Created an independent Ubuntu template clone: 1 vCPU, 1 GiB RAM, 32 GiB thin
+  QCOW2 root on existing shared NAS storage. No backing file; measured root
+  allocation 837,000,704 bytes. Guest filesystem free 30,139,219,968 bytes;
+  Windows C: free 39.39 GiB. No laptop VM disk or optional image/model installed.
+- SSH listens on TCP7000 only, with required public-key authentication; password,
+  keyboard-interactive and root SSH disabled. Existing Windows/WSL public keys
+  installed, no private keys copied. Dedicated forwarding-only user permits
+  onward SSH ports 22/7000; separate key-only administrator retained.
+- Narrow Omada LAN rules and guest firewall permit the path. Existing AADI rules
+  and OpenVPN configuration preserved; no WAN SSH exposure added.
+- Windows and WSL administrator login and GatewayAI ProxyJump passed. Onward
+  TCP7000 passed. Forwarding-account shell and onward TCP8006 were denied.
+  Effective SSH policy and absence of port22 listener verified. Five sampled
+  internal SSH banners and inbound target-VLAN access passed; not every host tested.
+- First cloud-init bootstrap failed because `/run/sshd` did not exist. Corrected
+  both the guest script and vendor snippet, then reran successfully. Planned
+  reboot changed boot ID; cloud-init completed, SSH/guest agent were active,
+  firewall persisted and both laptop client paths passed again.
+- Complete private local VM records in GatewayAI and AADI, with Proxmox Notes
+  readback, capture cluster/node, disk paths, networking, accounts and test limits.
+  GatewayAI's VM record now documents its working bastion access path.
+- Outside-network OpenVPN validation is explicitly pending by user instruction.
+  Backup/restore, hypervisor restart and NAS outage recovery remain unvalidated.
+  Docker/GatewayAI application deployment stays stopped; Phase 5 is PARTIAL.
+- Next: external VPN acceptance when the user is ready, or resume Phase 5 core
+  deployment when requested. See [operations](SSH_BASTION.md).
 
 ## VM inventory documentation - 2026-09-29
 
