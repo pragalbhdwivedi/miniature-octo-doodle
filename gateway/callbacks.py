@@ -6,7 +6,7 @@ import threading
 import time
 from fastapi import HTTPException
 from litellm.integrations.custom_logger import CustomLogger
-from gateway.policy import Denied, Ledger, Policy
+from gateway.policy import Denied, Ledger, Policy, streaming_timeout
 
 
 class GatewayPolicy(CustomLogger):
@@ -136,7 +136,7 @@ class GatewayPolicy(CustomLogger):
     async def async_post_call_streaming_iterator_hook(self, user_api_key_dict, response, request_data):
         completed = False
         try:
-            async with asyncio.timeout(120):
+            async with asyncio.timeout(streaming_timeout(request_data, self.policy.config)):
                 async for item in response:
                     yield item
             completed = True

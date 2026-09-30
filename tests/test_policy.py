@@ -6,7 +6,7 @@ from unittest.mock import patch
 from pathlib import Path
 
 from gateway.jev import normalize_choice, select_route
-from gateway.policy import Denied, Ledger, Policy
+from gateway.policy import Denied, Ledger, Policy, streaming_timeout
 
 
 class PolicyTests(unittest.TestCase):
@@ -162,6 +162,15 @@ class PolicyTests(unittest.TestCase):
         self.config["resolved_routes"]["mixed"] = local + self.candidates[:1]
         with self.assertRaisesRegex(Denied, 'mixed_local_cloud_route_denied'):
             self.policy.admit(dict(body, model="mixed"))
+
+    def test_stream_ceiling_uses_configured_provider_not_request_timeout(self):
+        self.config['resolved_routes']['local-coding'] = [
+            {'alias': 'local-coding', 'model': 'ollama/devstral-small-2:24b'}]
+        self.assertEqual(streaming_timeout({'model': 'local-coding'}, self.config), 300)
+        self.assertEqual(streaming_timeout({'model': 'coding-standard', 'timeout': 300}, self.config), 120)
+        self.assertEqual(streaming_timeout({'model': 'unknown', 'timeout': 300}, self.config), 120)
+        self.config['resolved_routes']['mixed'] = self.config['resolved_routes']['local-coding'] + self.candidates[:1]
+        self.assertEqual(streaming_timeout({'model': 'mixed'}, self.config), 120)
 
     def test_jev_boundaries(self):
         allowed = ["coding-fast", "coding-standard"]

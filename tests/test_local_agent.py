@@ -15,13 +15,20 @@ class LocalAgentTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.repo = Path(self.temp.name)
+        self.repo = Path(self.temp.name)/'source'
+        self.repo.mkdir()
+        self.remote = Path(self.temp.name)/'remote.git'
+        subprocess.run(['git', 'init', '-q', '--bare', str(self.remote)], check=True)
         self.command('init', '-q', '-b', 'main')
-        self.command('remote', 'add', 'origin', agent.REPOSITORY+'.git')
+        self.command('remote', 'add', 'origin', str(self.remote))
+        original = agent.REPOSITORY
+        agent.REPOSITORY = str(self.remote).removesuffix('.git')
+        self.addCleanup(setattr, agent, 'REPOSITORY', original)
         (self.repo/'example.py').write_text('def answer():\n    return 41\n', encoding='utf-8')
         self.command('add', 'example.py')
         self.command('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
                      'commit', '-q', '-m', 'fixture')
+        self.command('push', '-q', 'origin', 'main')
 
     def command(self, *args):
         subprocess.run(['git', '-C', str(self.repo), *args], check=True,
@@ -87,6 +94,18 @@ class LocalAgentTests(unittest.TestCase):
                      'https://github.com/pragalbhdwivedi/aadi.git')
         with self.assertRaisesRegex(agent.AgentError, 'approved public'):
             agent.source_state(self.repo)
+
+    def test_unpublished_or_stale_main_is_denied_before_model_call(self):
+        (self.repo/'example.py').write_text('def answer():\n    return 42\n', encoding='utf-8')
+        self.command('add', 'example.py')
+        self.command('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                     'commit', '-q', '-m', 'unpublished')
+        with self.assertRaisesRegex(agent.AgentError, 'current public main'):
+            agent.source_state(self.repo)
+        self.command('push', '-q', 'origin', 'main')
+        self.assertEqual(agent.source_state(self.repo)[1],
+                         subprocess.check_output(['git', '-C', str(self.repo),
+                                                  'rev-parse', 'HEAD']).decode().strip())
 
 
 if __name__ == '__main__':

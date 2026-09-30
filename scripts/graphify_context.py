@@ -1,29 +1,33 @@
 """Read-only, public-source Graphify retrieval with a fresh-Git gate.
 
 The graph is advisory context. It never supplies controller authority or source
-content, and this command is not wired into production dispatch.
+content. Build and provenance stamp are one operation, bound to the same Git SHA.
 """
 
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
+import tempfile
 
 
 REPOSITORY = 'https://github.com/pragalbhdwivedi/miniature-octo-doodle'
 MAX_RESULT_BYTES = 16384
+MAX_GRAPH_BYTES = 64 * 1024 * 1024
 
 
 class ContextError(ValueError):
     pass
 
 
-def command(*args, timeout=30):
-    result = subprocess.run(args, capture_output=True, timeout=timeout, check=False)
+def command(*args, timeout=30, cwd=None):
+    result = subprocess.run(args, capture_output=True, timeout=timeout, check=False, cwd=cwd)
     if result.returncode:
-        raise ContextError('Source refresh or graph query failed')
+        detail = (result.stderr or result.stdout).decode('utf-8', errors='replace')[-300:]
+        raise ContextError('Source refresh or graph query failed: '+detail.strip())
     return result.stdout
 
 
@@ -47,15 +51,38 @@ def source_sha(repo):
     return sha
 
 
-def make_manifest(repo, index):
-    """Record provenance only after a completed extraction from current main."""
-    sha = source_sha(repo)
-    graph = Path(index).resolve()/'graphify-out'/'graph.json'
-    digest = hashlib.sha256(graph.read_bytes()).hexdigest()
+def build(repo, index, graphify, runner=command):
+    """Extract a new graph and stamp only the exact revision just extracted."""
+    repo = Path(repo).resolve(strict=True)
+    index = Path(index).resolve()
+    if index.is_relative_to(repo) or index.is_symlink():
+        raise ContextError('Graph index must be outside source and not a symlink')
+    before = source_sha(repo)
+    with tempfile.TemporaryDirectory(prefix='graph-build-', dir=index.parent) as temporary:
+        work = Path(temporary)
+        runner(str(graphify), 'extract', str(repo), '--code-only', '--max-workers',
+               '2', '--out', str(work), timeout=300, cwd=index.parent)
+        runner(str(graphify), 'cluster-only', str(work), '--no-label', '--no-viz',
+               timeout=120, cwd=index.parent)
+        graph = work/'graphify-out'/'graph.json'
+        if not graph.is_file() or graph.stat().st_size > MAX_GRAPH_BYTES:
+            raise ContextError('Graph extraction missing or oversized')
+        graph_bytes = graph.read_bytes()
+        if source_sha(repo) != before:
+            raise ContextError('Source advanced during graph extraction')
+    index.mkdir(mode=0o700, exist_ok=True)
+    output = index/'graphify-out'
+    output.mkdir(mode=0o700, exist_ok=True)
+    graph_tmp = output/'graph.json.next'
+    graph_tmp.write_bytes(graph_bytes)
+    os.replace(graph_tmp, output/'graph.json')
     manifest = {'schema': 'gatewayai.graph-context.v1', 'repository': REPOSITORY,
-                'source_sha': sha, 'graph_sha256': digest, 'classification': 'public'}
-    target = Path(index).resolve()/'source.json'
-    target.write_text(json.dumps(manifest, sort_keys=True)+'\n', encoding='utf-8')
+                'source_sha': before, 'graph_sha256': hashlib.sha256(graph_bytes).hexdigest(),
+                'classification': 'public'}
+    target = index/'source.json'
+    next_manifest = index/'source.json.next'
+    next_manifest.write_text(json.dumps(manifest, sort_keys=True)+'\n', encoding='utf-8')
+    os.replace(next_manifest, target)
     return target
 
 
@@ -70,14 +97,15 @@ def query(repo, index, graphify, question, role='public-worker', token_budget=50
     index = Path(index).resolve(strict=True)
     manifest = json.loads((index/'source.json').read_text(encoding='utf-8'))
     graph = index/'graphify-out'/'graph.json'
-    if (manifest.get('schema') != 'gatewayai.graph-context.v1'
+    if (graph.stat().st_size > MAX_GRAPH_BYTES
+            or manifest.get('schema') != 'gatewayai.graph-context.v1'
             or manifest.get('repository') != REPOSITORY
             or manifest.get('classification') != 'public'
             or manifest.get('source_sha') != sha
             or manifest.get('graph_sha256') != hashlib.sha256(graph.read_bytes()).hexdigest()):
         raise ContextError('Graph provenance is stale or altered')
     output = command(str(graphify), 'query', question, '--graph', str(graph),
-                     '--budget', str(token_budget), timeout=45)
+                     '--budget', str(token_budget), timeout=45, cwd=index.parent)
     if len(output) > MAX_RESULT_BYTES:
         raise ContextError('Graph query exceeded output limit')
     return {'schema': 'gatewayai.graph-result.v1', 'repository': REPOSITORY,
@@ -94,16 +122,16 @@ def main():
     parser.add_argument('--query')
     parser.add_argument('--role', default='public-worker')
     parser.add_argument('--budget', type=int, default=500)
-    parser.add_argument('--stamp', action='store_true')
+    parser.add_argument('--build', action='store_true')
     args = parser.parse_args()
     try:
-        if args.stamp and not args.query:
-            print(make_manifest(args.repo, args.index))
-        elif args.query and args.graphify and not args.stamp:
+        if args.build and args.graphify and not args.query:
+            print(build(args.repo, args.index, args.graphify))
+        elif args.query and args.graphify and not args.build:
             print(json.dumps(query(args.repo, args.index, args.graphify, args.query,
                                    args.role, args.budget), ensure_ascii=False))
         else:
-            raise ContextError('Choose --stamp or --query with --graphify')
+            raise ContextError('Choose --build or --query with --graphify')
     except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
         raise SystemExit('Graph context stopped: '+str(exc)) from None
 

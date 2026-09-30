@@ -48,27 +48,35 @@ Phase 8 notifications and choose/pause/resume actions remain unimplemented.**
 
 **Phase 9: STARTED / PARTIAL.** Graphify `graphifyy==0.9.72` runs as an
 unprivileged, code-only index of this public repository on VM9125. At main SHA
-`8c57104bcf7d1386bf5f0075a0febaff9e526a22`, its 78 code files yielded
-555 nodes, 1,158 edges and 49 communities; bounded query and a fresh-Git/
-provenance gate passed. The graph has no controller authority and is not yet
-integrated with dispatch. OpenViking, private-source permissions, compaction/
-retrieval evaluation and fresh-main reindexing acceptance are pending. See
-[Graphify](docs/GRAPHIFY.md) and [build evidence](docs/BUILD_STATUS.md).
+`8c57104bcf7d1386bf5f0075a0febaff9e526a22`, the latest rebuild yielded
+580 nodes and 1,191 edges after adding the optional SQL parser. A same-run
+extract/provenance gate, bounded query and read-only exact-plan graph preview
+passed. The graph has no dispatch or publication authority. OpenViking v0.4.22
+is installed separately on VM9125 with a VM-local embedding model, laptop-hosted
+text VLM and loopback-only API. Its authenticated public-document vector ingest
+and search passed in both `vectors_only` and `semantic_and_vectors` modes.
+Private-source permissions, automatic controller consumption, compaction quality
+and clean-host memory recovery are pending. See
+[Graphify](docs/GRAPHIFY.md), [OpenViking](docs/OPENVIKING.md) and
+[build evidence](docs/BUILD_STATUS.md).
 
 **Optional laptop local-model lane: PARTIAL.** Native Windows Ollama 0.35.0
 retains Qwen3 4B instruct and now the owner-authorized 15 GB Devstral Small 2
 coding model plus Qwen3 4B thinking supervisor. Cloud use is disabled and the
 laptop listener remains loopback-only. A scheduled outbound SSH reverse tunnel
 and gateway-only VM bridge let the existing LiteLLM/Open WebUI app advertise
-`local-coding` and `local-supervisor`. Both passed synthetic WebUI chat requests;
+`local-coding` and `local-supervisor`. Both passed synthetic WebUI chat requests,
+and the owner confirmed both models worked from the phone;
 an outage produced only an Ollama failure, no cloud fallback or USD debit.
-C: had 17.76 GiB free after download, above the critical 15-GiB floor. The
+C: had 17.76 GiB free after download, but later measurements were 7.37 and
+12.93 GiB,
+**below the critical 15-GiB floor**; optional laptop installs/downloads are
+stopped pending recovery of free space. The
 bounded PC proposal agent completed one clean public-source test with a
 Git-checkable patch and advisory Qwen review, without edits or publication.
-Production coding quality, next-logon/reboot recovery, phone model selection
-and phone CA trust remain open. Windows trusted roots contain the internal CA;
+Production coding quality and next-logon/reboot recovery remain open. Windows trusted roots contain the internal CA;
 Edge opens the HTTPS sign-in page without a warning, while authenticated HTTPS
-model selection is still pending. See [local model](docs/LOCAL_MODEL.md).
+model selection in Edge is still pending. See [local model](docs/LOCAL_MODEL.md).
 
 AADI Phase 7 gate: refreshed private `pragalbhdwivedi/aadi` `Dev` at
 `cf5de5a465a71e83998488b9c59c1951241fdac8`; controller integration PR #23

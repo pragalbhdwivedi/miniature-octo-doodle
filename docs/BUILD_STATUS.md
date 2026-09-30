@@ -27,8 +27,8 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Ollama | PARTIAL | Native Windows 0.35.0 loopback/cloud-disabled; VM reverse tunnel and LiteLLM bridge pass; next-logon/reboot persistence unverified |
 | Local model | PARTIAL | Existing Qwen3 instruct plus 15 GB Devstral coding and 2.5 GB Qwen3 thinking; both new aliases pass through WebUI/LiteLLM; production quality and laptop-off availability unvalidated |
 | OmniRoute | NOT STARTED | Optional |
-| OpenViking | NOT STARTED | Phase 9 setup awaits embedding/VLM, persistence and recovery design; no install or ingestion |
-| Graphify (Phase 9) | PARTIAL | VM9125 public code-only AST index: 78 files, 555 nodes, 1,158 edges, 49 communities; live bounded query and fresh-Git gate passed; controller integration/quality evaluation pending |
+| OpenViking | PARTIAL | VM9125 v0.4.22 loopback-only; local embedding and text VLM; authenticated public vector and semantic ingest/search passed; private data, backup/restore pending |
+| Graphify (Phase 9) | PARTIAL | VM9125 public code-only AST/SQL index: 580 nodes, 1,191 edges; live same-run build, fresh-Git query and exact-plan advisory preview passed; automatic controller use/quality evaluation pending |
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
 | Telegram approvals | PARTIAL | Exact private callback was consumed for live draft PR #32; bounded publication gate passed, broader Phase 8 actions/notifications pending |
@@ -39,7 +39,11 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   `devstral-small-2:24b` (15 GB) and `qwen3:4b-thinking` (2.5 GB) were pulled to
   the native Windows Ollama 0.35.0 user store; the earlier `qwen3:4b-instruct`
   remains. C: free fell from 33.9 GiB before these pulls to 17.76 GiB after;
-  the 15-GiB stop floor was not crossed. Listener remains only
+  the 15-GiB stop floor was not crossed immediately after the pulls. A later
+  measurements found 7.37 and then 12.93 GiB free, both below the 15-GiB stop floor. Further
+  optional laptop downloads/installs have stopped. The dynamic pagefile was
+  allocated ~13.4 GiB at that time, but its causal role was not established.
+  Listener remains only
   `127.0.0.1:11434`, with cloud disabled in the environment/server setting.
 - Devstral returned correct synthetic Python odd/even code via the laptop API
   in 45.3 s (15.0 s load, 92% CPU/8% GPU, 2,048-token context). LiteLLM's
@@ -69,11 +73,13 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   `%USERPROFILE%\creds\gatewayai-internal-ca.crt` for other devices. On 1 October,
   Windows showed the expected CA thumbprint in both CurrentUser and LocalMachine
   trusted roots, and Edge opened the HTTPS Open WebUI sign-in page with no
-  certificate warning. Authenticated browser model selection on this HTTPS
-  origin and phone trust/model selection remain untested. Earlier authenticated
+  certificate warning. The owner subsequently confirmed both models worked on
+  the phone; this is user-reported acceptance, not an independently captured
+  browser/certificate trace. Authenticated Edge browser model selection remains
+  untested. Earlier authenticated
   API checks used a manually verified CA chain and per-request certificate-check
   override.
-- Production-quality coding, user phone model selection, laptop reboot/logon
+- Production-quality coding, laptop reboot/logon
   recovery, new-machine rebuild of the local model route and refreshed off-VM
   recovery are pending. See [local model operations](LOCAL_MODEL.md).
 - During the bounded PC-agent evaluation, Ollama stalled unloading Devstral
@@ -87,28 +93,55 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   API still listed ten models including both local aliases and
   `local-supervisor` answered a synthetic `OK` request. This is a bounded
   proposal test, not production coding quality or browser-picker acceptance.
+- PR #34 review found that the agent could read a clean unpublished checkout,
+  the Graphify stamp could label a different extraction, and local streaming
+  could time out at 120 seconds despite the 300-second local provider ceiling.
+  The agent now checks live remote-main HEAD before model calls; Graphify
+  extracts and stamps one SHA; and only configured all-Ollama streams receive
+  300 seconds. Targeted stale/mid-build/route tests passed. The callback was
+  deployed to VM9125 with root-only rollback copies, followed by a LiteLLM-only
+  recreation; a >120-second live stream remains unvalidated.
 
 ## Phase 9 first context milestone - 1 October 2026
 
 - A dedicated `gatewayai-context` account on VM9125 owns Graphify `graphifyy==0.9.72`
   in a private venv, a shallow public main clone at
   `8c57104bcf7d1386bf5f0075a0febaff9e526a22`, and an AST-only index. The
-  extraction scanned 78 code files, produced 555 nodes/1,158 edges/49 communities,
-  and omitted three SQL files without the optional parser. It made no LLM call.
+  first extraction scanned 78 code files, produced 555 nodes/1,158 edges/49 communities,
+  and omitted three SQL files. The optional `tree-sitter-sql==0.3.11` parser was
+  then installed in the VM venv and a fresh rebuild yielded 580 nodes/1,191 edges.
+  It made no LLM call.
   `cluster-only --no-label --no-viz` and a bounded `publishing` query passed.
-- A read-only source/provenance gate stamped the graph SHA-256, checked the exact
+- A read-only source/provenance gate extracts and stamps the same source run,
+  checks the exact
   public GitHub origin, clean source and current remote main, then returned a
   capped advisory query result. Unit tests deny stale source, changed graph and
-  unauthorized role. No controller prompt, credential, worker authority or live
-  provider route consumes graph context yet. Venv ~200 MiB, index ~2.1 MiB and
+  unauthorized role and mid-extraction source change. A read-only exact-main
+  controller-plan preview now pairs a plan hash with an advisory graph result;
+  it cannot dispatch, call a model or publish. No controller prompt, credential,
+  worker authority or live provider route consumes graph context yet. Venv ~200 MiB, index ~2.1 MiB and
   VM root ~49 GiB free after installation; no container/model/listener was added.
+  The preview was live-tested with a synthetic exact-main plan on VM9125,
+  returning advisory-only/zero-model/zero-action output; the fixture was removed.
   The local VM inventory and Proxmox Notes were updated and read back. Proxmox's
   8,192-character description limit allowed only a path pointer; detailed
   measured status is in the Git-excluded local VM note.
-- OpenViking remains uninstalled. Its embedding/VLM and persistence/recovery
-  requirements are unresolved; no memory ingestion, compaction or retrieval
-  acceptance is claimed. Graphify controller integration, SQL coverage and
-  fresh-main reindexing/retrieval-quality evaluation also remain pending.
+- OpenViking was then installed as a separate pinned Compose project on VM9125.
+  Its only published port is VM loopback 127.0.0.1:1933; the internal Ollama
+  embedding container has no published port. The 274 MB `nomic-embed-text`
+  model is on VM disk and the VLM route uses the laptop `qwen3:4b-thinking`.
+  Health/doctor passed, including a 768-dimensional embedding probe. A
+  public main-SHA document completed `vectors_only` ingestion and authenticated
+  search found one result. Anonymous read returned 401, root-key data read 403,
+  operator-key data read 200. Config/credentials/workspace are root-only;
+  protected operator/root credentials are in `%USERPROFILE%\creds` outside Git.
+  VM root free was ~38 GiB and data root ~269 MiB after deployment. Separate
+  clean-host recovery, private-data isolation and automatic controller use are
+  unvalidated. The semantic ingestion task exceeded the first five-minute
+  observation window but later completed; authenticated search found two
+  results with the same 401/403/200 access boundary. Restarting just the two
+  OpenViking containers and searching the same item again passed, proving the
+  tested same-VM workspace survived container restart.
 
 ## Initial laptop local model checkpoint - 1 October 2026 (superseded above)
 

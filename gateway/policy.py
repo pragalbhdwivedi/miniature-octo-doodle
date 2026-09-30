@@ -27,6 +27,17 @@ def budget_micro(value):
     return int(amount * 1000000)
 
 
+def streaming_timeout(request_data, config):
+    """Give only configured all-Ollama routes the longer stream ceiling."""
+    route = request_data.get("model") if isinstance(request_data, dict) else None
+    candidates = (config.get("resolved_routes") or {}).get(route) if isinstance(route, str) else None
+    if (isinstance(candidates, list) and candidates
+            and all(isinstance(item, dict) and isinstance(item.get("model"), str)
+                    and item["model"].startswith("ollama/") for item in candidates)):
+        return 300
+    return 120
+
+
 class Ledger:
     def __init__(self, path, limit, concurrency=4, lease_seconds=300):
         self.path, self.limit = str(path), budget_micro(limit)

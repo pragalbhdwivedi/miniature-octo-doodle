@@ -51,6 +51,11 @@ def source_state(repo):
         raise AgentError('Invalid source SHA')
     if git(repo, 'status', '--porcelain'):
         raise AgentError('Repository has uncommitted changes')
+    remote_line = git(repo, 'ls-remote', 'origin', 'refs/heads/main').decode('ascii').strip()
+    if not re.fullmatch(r'[a-f0-9]{40}\trefs/heads/main', remote_line):
+        raise AgentError('Approved public main is unavailable')
+    if sha != remote_line.split('\t', 1)[0]:
+        raise AgentError('Source must match current public main')
     return repo, sha
 
 

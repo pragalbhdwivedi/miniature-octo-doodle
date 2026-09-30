@@ -137,6 +137,19 @@ python scripts/local_agent.py --repo . --task "Review a small public code change
   --supervisor-model qwen3:4b-thinking
 ```
 
+The owner also confirmed both local aliases worked from a phone through the
+existing HTTPS WebUI. This is user-reported acceptance; the next-logon/reboot
+tunnel recovery and authenticated Edge picker remain unverified. A later C:
+measurements found 7.37 and then 12.93 GiB free, below the project's 15-GiB critical
+floor, so no further optional laptop model/image installs are allowed until
+space has been recovered and remeasured.
+
+The local agent now requires its clean public checkout HEAD to equal the live
+remote `main` SHA before calling either model. The live LiteLLM callback now
+uses the configured 300-second stream ceiling only for all-Ollama routes;
+cloud/mixed/unrecognized routes retain 120 seconds. Unit checks cover both
+boundaries; a >120-second live stream has not yet been demonstrated.
+
 The live two-model result and laptop disk/performance measurements are recorded
 in `docs/BUILD_STATUS.md`; do not infer production coding quality from one
 synthetic run. Model files remain in Ollama's user store, never in Git/OneDrive.

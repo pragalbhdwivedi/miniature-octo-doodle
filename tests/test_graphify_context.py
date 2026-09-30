@@ -21,9 +21,6 @@ class GraphContextTests(unittest.TestCase):
         self.repo = root/'source'
         self.repo.mkdir()
         self.index = root/'index'
-        (self.index/'graphify-out').mkdir(parents=True)
-        (self.index/'graphify-out'/'graph.json').write_text('{"nodes": []}',
-                                                            encoding='utf-8')
         subprocess.run(['git', 'init', '-q', '--bare', str(self.remote)], check=True)
         self.git('init', '-q', '-b', 'main')
         self.git('remote', 'add', 'origin', str(self.remote))
@@ -37,18 +34,31 @@ class GraphContextTests(unittest.TestCase):
         subprocess.run(['git', '-C', str(self.repo), *args], check=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+    def build(self, mutate=False):
+        def extractor(*args, timeout, cwd):
+            if args[1] == 'extract':
+                target = Path(args[-1])/'graphify-out'
+                target.mkdir()
+                (target/'graph.json').write_text(json.dumps({
+                    'source': (self.repo/'example.py').read_text(encoding='utf-8')}),
+                    encoding='utf-8')
+                if mutate:
+                    (self.repo/'example.py').write_text('VALUE = 3\n', encoding='utf-8')
+            return b''
+        return context.build(self.repo, self.index, 'graphify', runner=extractor)
+
     def test_stale_checkout_and_modified_graph_are_denied(self):
         original = context.REPOSITORY
         context.REPOSITORY = str(self.remote).removesuffix('.git')
         self.addCleanup(setattr, context, 'REPOSITORY', original)
-        context.make_manifest(self.repo, self.index)
+        self.build()
         with self.assertRaisesRegex(context.ContextError, 'role'):
             context.query(self.repo, self.index, 'graphify', 'example', 'private-worker')
         (self.index/'graphify-out'/'graph.json').write_text('{"nodes":[1]}',
                                                             encoding='utf-8')
         with self.assertRaisesRegex(context.ContextError, 'provenance'):
             context.query(self.repo, self.index, 'graphify', 'example')
-        context.make_manifest(self.repo, self.index)
+        self.build()
         (self.repo/'example.py').write_text('VALUE = 2\n', encoding='utf-8')
         with self.assertRaisesRegex(context.ContextError, 'clean'):
             context.query(self.repo, self.index, 'graphify', 'example')
@@ -57,7 +67,7 @@ class GraphContextTests(unittest.TestCase):
         original = context.REPOSITORY
         context.REPOSITORY = str(self.remote).removesuffix('.git')
         self.addCleanup(setattr, context, 'REPOSITORY', original)
-        context.make_manifest(self.repo, self.index)
+        self.build()
         (self.repo/'example.py').write_text('VALUE = 2\n', encoding='utf-8')
         self.git('add', 'example.py')
         self.git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
@@ -65,6 +75,18 @@ class GraphContextTests(unittest.TestCase):
         self.git('push', '-q', 'origin', 'main')
         with self.assertRaisesRegex(context.ContextError, 'provenance'):
             context.query(self.repo, self.index, 'graphify', 'example')
+
+    def test_build_binds_extraction_to_source_and_rejects_midbuild_change(self):
+        original = context.REPOSITORY
+        context.REPOSITORY = str(self.remote).removesuffix('.git')
+        self.addCleanup(setattr, context, 'REPOSITORY', original)
+        self.build()
+        old_manifest = (self.index/'source.json').read_bytes()
+        old_graph = (self.index/'graphify-out'/'graph.json').read_bytes()
+        with self.assertRaisesRegex(context.ContextError, 'clean'):
+            self.build(mutate=True)
+        self.assertEqual((self.index/'source.json').read_bytes(), old_manifest)
+        self.assertEqual((self.index/'graphify-out'/'graph.json').read_bytes(), old_graph)
 
 
 if __name__ == '__main__':
