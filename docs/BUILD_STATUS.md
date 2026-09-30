@@ -52,6 +52,10 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 - Four core/proxy containers healthy; loopback refresh successful. September debit
   unchanged at 4.870530 USD, 28 attempts. VM free 48.49 GiB; no images/packages/models
   installed. Only small job/artifact/configuration files added (no isolated disk delta).
+- PR #13 merged at `5c9684b129849edad7758093a095d422dbe1e5b7` after
+  CI36741350063/36741342519 success. Local suite: 66 passed, seven platform skips;
+  safety/diff checks passed. Local VM inventory and Proxmox Notes synchronized
+  and read back; hardware/auth settings unchanged.
 - Phase 6 bounded acceptance complete. Phase 5 recovery/client gates remain open;
   controller orchestration is separate Phase 7 work. Acceptance PR stays draft.
 

@@ -29,8 +29,8 @@ Phase 3 [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9)
 merged at `3cf3b6db7b1005c1be4eb541151d0e6fc1d5cdc9`.
 Phase 4 PR #10, Phase 5 PR #12 (including roadmap PR #11), and dashboard PR #14
 are merged. Historical design PR #7 was closed as superseded. Phase 6 PR #13
-has now passed live publishing acceptance in draft test PR #16. Phase 7's read-only
-planner is implemented/tested in stacked PR #15; orchestration remains pending.
+is merged after live publishing acceptance in draft test PR #16. Phase 7's read-only
+planner is implemented/tested in PR #15, now based on main; orchestration remains pending.
 See `docs/BUILD_STATUS.md` for measured results and remaining Phase 5 gates.
 
 ## Hardware baseline

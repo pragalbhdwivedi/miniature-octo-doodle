@@ -11,7 +11,9 @@ dashboard files were left untouched; review used an isolated Git worktree.
 | #11 roadmap | Merged through PR12 ancestry | Existing roadmap commits retained; no duplicate implementation. |
 | #12 Linux control plane | Reviewed, reconciled and merged | 49 WSL tests and fresh CI passed. Operational Phase5 remains partial for the documented recovery/client gates. |
 | #14 service dashboard | Reviewed, reconciled and merged | URL rendering uses text nodes/protocol checks; application login/CSRF boundaries retained; fresh CI green. Existing live acceptance retained; no repeat deployment. |
-| #13 isolated coding worker | Reviewed/reconciled; draft retained | 73 existing WSL tests pass, refreshed main includes dashboard/storage fix. Live publisher acceptance blocked by missing scoped credential. |
+| #13 isolated coding worker | Reviewed and merged | Live draft PR #16 verified exact artifact/source and unchanged main; fresh CI passed. |
+| #15 read-only controller | Reviewed and reconciled onto main | Read-only scope; 84-test suite. Execution orchestration remains pending. |
+| #16 publication acceptance | Draft retained | Synthetic single-file live publishing proof; no application feature to merge. |
 
 The P1 finding was substantive: Kubernetes cluster/deploy checked only C: while
 Docker Desktop could use another drive. Preflight now applies the 8/4GiB reserves
@@ -26,14 +28,15 @@ Exact merge/check evidence:
   `b5c676afebe03c089c079519e5a256eda24f6a0a`; CI36700039221/36700034415 success.
 - PR14 merge `b5843bbe091ccab9a12d95dd812dc167dc88db16`; reconciled head
   `44568e93c4e06fff532066fdbcf0736773b6f9ef`; CI36700234967/36700228151 success.
-- PR13 reconciled head `52fb798` preserves both worker and dashboard evidence.
-  It is not merged and Phase6 completion is not claimed.
+- PR13 merge `5c9684b129849edad7758093a095d422dbe1e5b7`; head
+  `f0c13148bbdc31762de84176a5b05a72e77f7ce0`; CI36741350063/36741342519 success.
 
 Reviewed boundaries include selected-project Docker operations, private secret
 storage, preserved volumes/ledger, zero-spend recovery copies, pinned images,
 default-deny Kubernetes networks, offline worker execution, exact artifact review
 and create-only publishing. Source review/unit/CI evidence does not close the
-separate live publisher, clean-host restore, reverse cutover or client gates.
+separate clean-host restore, reverse cutover or client gates. Live publisher
+acceptance is now recorded in BUILD_STATUS; broader token scope is not API-proven.
 
-Phase7 starts on a draft branch stacked on PR13. It introduces only a read-only
+Phase7 PR15 is reconciled onto main after PR13 merged. It introduces only a read-only
 planner; durable PostgreSQL run state and execution orchestration remain pending.
