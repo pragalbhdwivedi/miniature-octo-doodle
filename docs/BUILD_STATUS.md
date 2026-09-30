@@ -31,7 +31,39 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Graphify | NOT STARTED | Optional |
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
-| Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
+| Telegram approvals | PARTIAL | Exact draft-publication decision and callback/DB tests pass; live bot identity and delivery untested, transport disabled |
+
+## Phase 8 Telegram approval foundation and AADI gate - 30 September 2026
+
+- Phase 7 AADI readiness was refreshed against private `pragalbhdwivedi/aadi`
+  `Dev` SHA `cf5de5a465a71e83998488b9c59c1951241fdac8`. Its controller roadmap
+  PR #23 is open; other active AADI issues/PRs already own product work. AADI
+  requires synthetic, scoped changes and preserves production approval. The current
+  GatewayAI planner/worker fetches only public repositories; its model policy admits
+  public/synthetic text. AADI was **not enabled, cloned into a worker, prompted to a
+  provider or published**. A scoped private-source and permitted-model design plus
+  an AADI-owned bounded task are still needed for end-to-end Phase 7 acceptance.
+- Implemented a separate root-only, one-shot Telegram adapter for exact draft-PR
+  publication approval. Callback buttons MAC-bind the random approval ID, decision
+  and final receipt hash. Numeric user/private-chat checks, 15-minute expiry,
+  duplicate/forged/rejected decision denial and protected polling offset are tested.
+  A callback only records a decision; the operator still refreshes authority and
+  invokes the journaled publisher. No bot daemon or merge/deployment method.
+- Schema 3 is additive and migrates only schema 2. A dedicated test DB on VM9125
+  passed atomic request/decision/consume-to-publishing, identity and hash denial,
+  expiry bounds and replay tests. **40 target controller tests passed** including
+  real PostgreSQL; Windows **113 tests, 11 skips**, WSL **113 tests, 3 skips**.
+  Security/YAML validation and diff checks passed. The first repeated DB run found
+  a test-only duplicate Telegram update ID; the fixture now generates a unique ID,
+  and the target suite passed on rerun. No live Telegram API request occurred.
+- Production controller schema and config remain at schema 2 / no Telegram key
+  while implementation review is pending. The owner has no bot token/user ID yet.
+  A protected bot configuration, live identity/delivery/callback test, and wider
+  Phase 8 choose/pause/resume/notification types remain pending. Phase 9 memory and
+  graph components remain deferred until the Git-only AADI controller path works.
+- No images, packages, VMs, optional models or services were added. The test copy
+  uses the existing PostgreSQL instance and retained worker image. Production
+  gateway ledger and Phase 5 recovery/client gates were not changed.
 
 ## Phase 7 live review/repair/publication acceptance - 30 September 2026
 

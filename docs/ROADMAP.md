@@ -153,6 +153,11 @@ an AADI runtime dependency.
 See [AADI development integration](AADI_DEVELOPMENT_INTEGRATION.md).
 
 ## Phase 8 - Telegram approval and pause/resume
+Status: STARTED / PARTIAL. Exact draft-publication decision state and synthetic
+Telegram callback/real PostgreSQL tests pass. No bot token or approved user/chat
+is configured, so live delivery and full pause/resume remain unvalidated. See
+[Telegram operations](CONTROLLER_TELEGRAM.md) and BUILD_STATUS.
+
 Add a single human control channel for development decisions.
 
 - Telegram bot restricted to approved user/account identity

@@ -28,6 +28,19 @@ synthetic defect, one repair passed new tests/review, and exact-artifact approva
 created draft PR #23. Aggregate conservative debit $0.869440 under $1; duplicate
 publication denied. Phase7 remains PARTIAL for end-to-end AADI acceptance.**
 
+**Phase 8: STARTED / PARTIAL. Schema-3 exact-action Telegram approval state,
+signed callback validation and one-shot manual poll/request CLIs are implemented.
+Windows/WSL fixture tests and real PostgreSQL test-copy transitions passed.
+No bot token or approved Telegram user/chat identity is configured; live delivery,
+phone decision and exact-run resumption remain unvalidated. The production bot
+path stays disabled.**
+
+AADI Phase 7 gate: refreshed private `pragalbhdwivedi/aadi` `Dev` at
+`cf5de5a465a71e83998488b9c59c1951241fdac8`; controller integration PR #23
+is open. The existing public-only worker and cloud public/synthetic-text policy
+cannot ingest private AADI source. Its adapter remains disabled pending a scoped
+private-source/data-path design and an approved bounded AADI task.
+
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
 Phase 2 [PR #8](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/8)

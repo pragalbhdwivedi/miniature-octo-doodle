@@ -179,4 +179,10 @@ artifact. One repair may run within the aggregate $1 original/review/repair
 ceiling, followed by new tests and review. Publication requires a separate exact
 final-artifact approval and current source/ownership, then creates only a draft PR.
 See [review operations](docs/CONTROLLER_REVIEW.md) and BUILD_STATUS for actual acceptance.
-No scheduler, merge/deployment authority, AADI activation or Telegram integration.
+No scheduler, merge/deployment authority or AADI activation.
+
+Phase 8 has started with an [exact draft-publication Telegram approval gate](docs/CONTROLLER_TELEGRAM.md).
+Its callback and PostgreSQL transitions pass synthetic/isolated tests; live bot
+delivery is disabled until protected bot credentials and an approved private chat
+are available. AADI remains disabled because its repository is private and the
+existing worker/model boundary admits only public/synthetic source.

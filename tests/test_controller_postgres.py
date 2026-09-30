@@ -19,7 +19,7 @@ class PostgresTests(unittest.TestCase):
         self.assertRegex(config['database'],r'^gatewayai_controller_test_[a-f0-9]{8}$')
         store=s.Store(**config)
         version=store.query('SELECT to_jsonb(version) FROM controller.schema_version;')
-        if version!=2:self.skipTest('Review pipeline schema not applied')
+        if version not in (2,3):self.skipTest('Review pipeline schema not applied')
         run=uuid.uuid4().hex
         req={'run_id':run,'plan':{'project':'synthetic','task_id':run,'source_sha':'a'*40}}
         store.claim(req,uuid.uuid4().hex*2);store.finish(run,'review_required',{'artifact_sha256':'c'*64})
@@ -42,6 +42,35 @@ class PostgresTests(unittest.TestCase):
         store.step_pipeline(run,'publishing','published',{'synthetic':True})
         self.assertEqual(store.get(run)['state'],'published')
         with self.assertRaises(RuntimeError):store.step_pipeline(run,'published','publishing',{})
+
+    def test_telegram_exact_decision_and_atomic_publication_gate(self):
+        config=json.loads(Path(os.environ['GATEWAYAI_CONTROLLER_TEST_CONFIG']).read_text())
+        self.assertRegex(config['database'],r'^gatewayai_controller_test_[a-f0-9]{8}$')
+        store=s.Store(**config)
+        if store.query('SELECT to_jsonb(version) FROM controller.schema_version;')!=3:
+            self.skipTest('Telegram approval schema not applied')
+        run=uuid.uuid4().hex;identity=uuid.uuid4().hex
+        req={'run_id':run,'plan':{'project':'synthetic','task_id':identity,'source_sha':'a'*40}}
+        store.claim(req,uuid.uuid4().hex*2)
+        store.finish(run,'review_required',{'artifact_sha256':'c'*64})
+        store.begin_pipeline(run,{'source_sha':'a'*40,'artifact_sha256':'c'*64,'budget_micro_usd':1000},'d'*64,0)
+        store.step_pipeline(run,'reviewing','approved',{'tests_passed':True})
+        approval_id=uuid.uuid4().hex;digest='e'*64;update_id=uuid.uuid4().int%(2**62)
+        for lifetime in (0,3601):
+            with self.assertRaises(RuntimeError):
+                store.request_approval(uuid.uuid4().hex,run,digest,12345,12345,lifetime)
+        self.assertEqual(store.request_approval(approval_id,run,digest,12345,12345,900)['state'],'pending')
+        with self.assertRaises(RuntimeError):store.request_approval(uuid.uuid4().hex,run,digest,12345,12345,900)
+        with self.assertRaises(RuntimeError):store.decide_approval(approval_id,digest,'approved',12346,12345,update_id)
+        with self.assertRaises(RuntimeError):store.decide_approval(approval_id,'f'*64,'approved',12345,12345,update_id)
+        self.assertEqual(store.decide_approval(approval_id,digest,'approved',12345,12345,update_id)['state'],'approved')
+        with self.assertRaises(RuntimeError):store.decide_approval(approval_id,digest,'rejected',12345,12345,update_id)
+        with self.assertRaises(RuntimeError):store.consume_approval(approval_id,run,'f'*64,{})
+        self.assertEqual(store.consume_approval(approval_id,run,digest,{'receipt':'reviewed'})['state'],'consumed')
+        self.assertEqual(store.pipeline(run)['state'],'publishing')
+        with self.assertRaises(RuntimeError):store.consume_approval(approval_id,run,digest,{})
+        store.step_pipeline(run,'publishing','published',{})
+        self.assertEqual(store.get(run)['state'],'published')
 
     def test_atomic_claims_audit_restart_and_replay(self):
         config=json.loads(Path(os.environ['GATEWAYAI_CONTROLLER_TEST_CONFIG']).read_text())
