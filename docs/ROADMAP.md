@@ -36,8 +36,9 @@ main, merged through PR #9 (`3cf3b6d`). Same-host isolated rehearsal passed;
 off-machine retention, new-machine recovery and production cutover remain outside
 this evidence. See [recovery operations](BACKUP_RESTORE.md).
 
-New-machine recovery validation is paused by user instruction until their
-Kubernetes setup is running. Off-machine backup remains unvalidated as well.
+New-machine recovery validation remains paused pending an approved target.
+Phase 5 subsequently validated an encrypted off-VM copy and same-host restore
+from its authenticated readback; separate-machine recovery remains unvalidated.
 
 - backup
 - restore
@@ -66,10 +67,10 @@ Target update: the user selected Proxmox template 9001 (Ubuntu 24.04) on
 [ADR 0012](adr/0012-template-9001-ubuntu-target.md). Debian remains a supported
 candidate; the selected VM uses Ubuntu. Provider/policy contracts are unchanged.
 
-Status: PARTIAL; direct Windows/WSL SSH and target admission pass. Docker and the
-fresh zero-spend Linux core are deployed, with private secrets, browser acceptance
-and same-VM backup/restore evidence. Live migration and off-machine/clean-host
-recovery remain outstanding. See the [acceptance plan](DEBIAN_CONTROL_PLANE.md)
+Status: PARTIAL; live Windows data/ledger migration, provider/browser acceptance,
+reboot and encrypted off-VM readback/restore passed. Internal HTTPS is deployed;
+broader client trust/access, separate clean-host recovery and reverse live cutover
+remain outstanding. See the [acceptance plan](DEBIAN_CONTROL_PLANE.md)
 and [Linux operations](LINUX_CORE.md).
 
 Move the proven core from the Windows/WSL2 development host to the selected Linux
@@ -97,6 +98,14 @@ full Kubernetes deployment when scale/recovery evidence justifies it
 ```
 
 ## Phase 6 - Isolated coding worker v0.1
+Status: COMPLETE for bounded operator scope on 30 September 2026. The zero-spend execution
+boundary is deployed/tested: approved public repository refresh, bounded offline
+commands/tests, isolated local branch/commit and immutable-source artifact review.
+Gateway-backed one-turn coding and per-run budgets are deployed/live-tested.
+Scoped draft-PR publication passed live in PR #16; bounded Phase 6 scope is complete.
+Token repository restrictions remain the operator provisioning responsibility.
+See [worker operations](WORKER.md). Phase 5's open gates remain open.
+
 Build the first execution worker before adding persistent agent memory or a large
 multi-agent hierarchy.
 

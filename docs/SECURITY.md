@@ -113,3 +113,20 @@ signing key stays on the laptop, outside Git/sync; only its public certificate i
 distributed. NPM leaf keys, admin credentials and database are protected runtime
 files and encrypted backup contents. They must never enter this public repository.
 See [ingress](INGRESS.md) for trust distribution, manual renewal and acceptance limits.
+
+## Worker execution
+
+The Phase 6 broker is a Linux administrator tool, not an agent capability.
+Never expose its Docker authority through WebUI, a model tool or a public API.
+Workers are non-root, offline, read-only except for bounded tmpfs, with resource
+limits and no secrets. Input is an allowlisted public source snapshot; output
+must match exact allowed paths against the immutable source. Git history inside
+the worker cannot hide unauthorized edits. Operator-only adapters handle gateway
+inference and reviewed GitHub publication outside the sandbox. One model call
+reserves a durable conservative per-run debit; the central monthly limit also
+applies. Publication requires exact artifact approval and a repository-scoped
+credential, and creates only new run branches and draft PRs. No merge operation
+is provided. Live publication remains pending.
+Container isolation shares the VM kernel; this is bounded execution evidence,
+not approval for arbitrary hostile code or production repositories.
+See [worker operations and remaining gates](WORKER.md).

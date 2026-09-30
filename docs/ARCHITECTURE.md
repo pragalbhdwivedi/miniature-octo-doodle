@@ -155,6 +155,20 @@ required for merges, production deployments and other consequential actions.
 AADI retains its own architecture and acceptance gates and must operate without
 this development platform. See [the integration contract](AADI_DEVELOPMENT_INTEGRATION.md).
 
+## Phase 6 worker execution boundary
+
+The approved operator broker fetches an allowlisted public GitHub revision,
+records its SHA and starts a disposable offline non-root container. The worker
+receives a read-only source/job mount and bounded tmpfs workspace; it has no
+gateway/provider/SSH credentials, host write mount or Docker socket. Commands
+and local Git commits occur only inside it. Export compares allowlisted file
+changes to the immutable input, preserving an audit record outside the worker.
+No agent/runtime API can invoke the privileged broker. An operator adapter makes
+one budget-reserved LiteLLM call and validates proposed edits before sandbox tests.
+A separate publisher binds operator review to artifact hashes and creates only
+new run branches/draft PRs; live publication passed in draft PR #16.
+Phase 7 task selection/controller is not installed. See [WORKER](WORKER.md).
+
 ## Service directory and remote access - 30 September 2026
 
 DEPLOYED: password-free `dash.aadi.dgoi.local` directory and separate HRMS/console

@@ -1,7 +1,7 @@
 # miniature-octo-doodle
 
 A modular, self-hosted AI development platform, developed on Windows + WSL2 with
-a dedicated Linux control-plane VM as the next operational target.
+a dedicated Linux control-plane VM now hosting the live gateway.
 
 This repository is the permanent source of truth for the platform. It is designed to start lean on a laptop with limited free disk space, while preserving a documented path to a larger multi-agent coding system.
 
@@ -118,7 +118,7 @@ for limits and budget semantics. New installations default to zero spending.
 Phase 2 is COMPLETE for the accepted deterministic scope, with Jev explicitly
 disabled by user decision. Live Jev integration/evaluation/calibration is deferred;
 see [ADR 0008](docs/adr/0008-phase2-acceptance-jev-disabled.md).
-The user-requested internal Nginx Proxy Manager is installed; other optional
+The user-requested internal Nginx Proxy Manager and Phase 6 worker are installed; other optional
 components remain deferred. See [Models and Skills](docs/MODELS_AND_SKILLS.md).
 
 Phase 3 backup, isolated restore and clean container rebuild are implemented and
@@ -145,6 +145,13 @@ trust and broader client acceptance remain pending. See [ingress operations](doc
 The updated [roadmap](docs/ROADMAP.md) prioritizes an isolated worker, repository-driven
 controller and Telegram approvals before optional memory/code graph or local models.
 AADI is the first managed development project and retains its own production authority.
+
+Phase 6 has started with a tested [isolated worker execution boundary](docs/WORKER.md):
+fresh approved-repository snapshots, bounded offline commands/tests, local worker
+branches/commits and reviewed artifact export. The live gateway is unchanged.
+Gateway-backed one-turn coding and per-run budgets passed live acceptance. Scoped
+draft-PR publishing passed live acceptance in PR #16, completing the bounded
+Phase 6 scope. Token restriction is an operator provisioning responsibility. No sandbox receives credentials.
 
 ## Service directory and remote access - 30 September 2026
 

@@ -29,11 +29,138 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | OmniRoute | NOT STARTED | Optional |
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
-| Isolated coding worker | NOT STARTED | Phase 6, before context/local models |
+| Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | NOT STARTED | Phase 7; independent of AADI production |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
+## Live scoped publisher acceptance - 30 September 2026
+
+- Supplied fine-grained token installed root-only outside Git/sandbox. Repository
+  API authentication passed; the API response does not prove the token lacks
+  broader repository permissions. Scope restriction remains operator-owned.
+- Fresh zero-spend run `3c8b04fae1294d85b662abfa3b82f5d2` fetched main
+  `b5843bbe091ccab9a12d95dd812dc167dc88db16`, recreated the previously reviewed
+  synthetic clamp example, passed lower/upper/interior/equal/inverted-limit tests,
+  local commit and export in 20.08s. Container removed; zero provider calls.
+- Reviewed exact eight-line patch, sole path `docs/examples/worker_acceptance.py`,
+  mode 0644 and artifact digest
+  `5c6f2172036378342409f114cef9e83e11f2f624d52f2da252d61bb3d1f8e75d`.
+- Live adapter created draft [PR #16](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/16),
+  commit `8ccedb8d461ec66e1cec3c1fb757b07b3c481f04`. GitHub readback confirms exactly
+  the reviewed file, draft state, exact source parent and unchanged default branch.
+  Private journal retained; no retry, force push, merge or deployment by worker.
+- Four core/proxy containers healthy; loopback refresh successful. September debit
+  unchanged at 4.870530 USD, 28 attempts. VM free 48.49 GiB; no images/packages/models
+  installed. Only small job/artifact/configuration files added (no isolated disk delta).
+- Phase 6 bounded acceptance complete. Phase 5 recovery/client gates remain open;
+  controller orchestration is separate Phase 7 work. Acceptance PR stays draft.
+
 A documented architecture is not implementation evidence.
+
+## Phase 6 coding, run budgets and scoped publisher - 30 September 2026
+
+- Continued PR #13 from `058807a`; refreshed GitHub PRs/issues and repository
+  governance. Separate dashboard PR #14/untracked files were preserved.
+- Implemented operator-only one-turn LiteLLM coding adapter: allowlisted public
+  source/governance context, fixed aliases, JSON file proposals, exact write paths,
+  independent sandbox tests and immutable input/artifact hashes. No new image,
+  service, CLI package, provider, controller or VM was installed.
+- Per-run budget defaults to zero, maximum1USD. Durable SQLite reservation uses
+  the gateway's reviewed conservative ceilings for both possible attempts; actual
+  mounted policy prices/attempt count are checked. Duplicate/concurrent IDs,
+  insufficient budgets, changed ceilings and replay fail closed. Ambiguous failures
+  are never refunded; the existing100USD UTC-month ledger remains authoritative.
+- Dedicated chat-only key created in protected root0600 configuration outside
+  Git/sync. Gateway management endpoint denied. No credential enters the sandbox.
+- Live run `3f1942325ad648fb9156281ef28f9daf`: fresh main `3cf3b6d`, model-generated
+  clamp function, lower/upper/interior/equal/inverted-limit tests, local commit and
+  artifact export passed in18.25s; exact container removed. Reserved0.656860USD
+  within the1USD ceiling. Gateway ledger confirms Gemini primary HTTP503 then
+  approved OpenAI fallback accepted; two provider attempts, one client call.
+- Zero-budget run was denied before HTTP. First acceptance harness expected a zero
+  debit field before the ledger existed; added explicit zero counters and reran.
+  No provider call occurred for either denied run.
+- Reviewed synthetic artifact SHA256
+  `5c6f2172036378342409f114cef9e83e11f2f624d52f2da252d61bb3d1f8e75d`;
+  publisher's read-only plan passed against its recorded source/job/artifact hashes.
+- Implemented separate exact-hash publisher: approved repository/default-base SHA,
+  new `worker/<run-id>` branch only, draft PR only, no update/force/delete/merge.
+  Stale base, cross-project credentials, default-branch output, changed artifact,
+  sensitive paths and incomplete runs fail closed. Private attempt journal blocks
+  automatic retries after partial failure. Scoped token provisioning remains open;
+  VM publisher configuration has an empty token and is disabled. Live GitHub
+  branch/PR publication is NOT validated; no acceptance PR was created.
+- Tests:73 WSL passed; Windows venv66passed/7platform/dependency skips;
+  24worker tests passed on VM. Initial global Windows Python lacked PyYAML;
+  reran with the existing project venv, without installing packages. New Windows
+  SQLite cleanup failures were fixed by explicitly closing connections.
+  Repository YAML/security checks passed. Final offline source/edit/test/export
+  regression passed in8.11s after adapter hardening; container removed, zero calls.
+  Updated local VM notes and Proxmox Notes were read back; existing dashboard
+  notes and all hardware/authentication settings were preserved.
+- Core health after acceptance: four healthy containers, preserved network
+  boundaries/loopback, no worker residue,100USD monthly allowance unchanged.
+  Admission ledger moved4.213670->4.870530USD,26->28provider attempts,0active;
+  delta equals the worker reservation. These are conservative debits, not invoices.
+  VM free disk48.52GiB; no new image/storage-volume allocation.
+- Phase6 remains PARTIAL until scoped credential and live publishing acceptance.
+  Phase5 clean-host recovery/reverse-cutover/client gates are unchanged.
+
+## Phase 6 worker execution boundary - 30 September 2026
+
+- User authorized the next phase. Refreshed GitHub/default main (`3cf3b6d`),
+  current Phase 5 branch (`8e0948a`), open PRs/issues and governing documents.
+  Work is stacked on Phase 5 in `feat/phase6-isolated-worker`; no main/PR merge.
+  Phase 5's remaining recovery and client-trust gates are not marked complete.
+- Implemented an operator-only Linux broker and digest-based Python/Git worker
+  image. Approved public repository fetch records the resolved SHA, then passes
+  an immutable source snapshot/job into an offline non-root container. No host
+  write mount, Docker socket, provider/GitHub key or production state is passed.
+- Resource readback and in-container probes passed: UID65532, capabilities zero,
+  no-new-privileges, seccomp, network denial, read-only input/root, no secret/socket
+  mounts, 1 CPU, 768 MiB RAM/no extra swap, 64 PIDs, 256 MiB workspace and 64 MiB
+  temporary tmpfs, 16 MiB per-file limit. At most eight commands/120s execution,
+  30s per command, 2 MiB output per command and 1 MiB changed artifacts.
+- Positive target run fetched current main, wrote/tested a synthetic permitted
+  file, made a local worker-branch Git commit and exported the reviewed artifact
+  in 10.78s. The broker compares against immutable input, not mutable Git history.
+- Negative target runs passed: 10-second execution timeout (13.99s including
+  fetch/cleanup), output flood, unauthorized README edit committed into worker
+  history, symlink escape and attempted default-branch push all failed closed.
+  No output artifact was accepted and each exact container was removed. Nonzero
+  model budget was rejected before execution. No provider calls occurred.
+- Independent lifetime/resource test passed without broker command scheduling:
+  the image deadline exited137 after 151.35s; that container was removed.
+- Rebuilt from the same cached source/image inputs, created a fresh workspace and
+  fetched again: repeated positive run passed in 10.65s and produced the same
+  patch hash. This is disposable-worker recreation, not a clean-host recovery test.
+- Reviewed image: `sha256:e4933835442bd06ba855e24a347879da62ee2f6f458a22c344e9bc12c7139672`,
+  306,143,291 bytes. Base Python digest pinned; Git installed from signed Debian
+  repositories. VM free 48.72 GiB before and 48.53 GiB after build. No model,
+  Codex CLI, controller, memory service or extra VM installed. Docker reported a
+  legacy-builder deprecation notice; buildx was not installed merely to hide it.
+- New worker tests passed on the target. Initial Windows test fixture used platform-dependent
+  path separators; corrected to PurePosixPath, then the worker tests passed.
+- Ledger immediately after worker negative tests was unchanged at September
+  debit3.612410USD,22attempts,0active. Later concurrent gateway traffic advanced it
+  to4.213670USD/26attempts/0active; no cause/user is inferred. Workers have no
+  network/credentials and made zero provider calls. Final core check passed all
+  four healthy live containers, internal network boundaries, loopback and HTTPS;
+  gateway allowance remains100USD UTC-month. An old exact-debit health assertion
+  failed on this later traffic; replaced in the operator probe by monotonic-ledger
+  and unchanged-allowance checks without altering the live ledger.
+- The independent lifetime SSH wrapper did not return after its remote result
+  had been saved. Read back PASS/151.35s/exit137 and verified no worker containers
+  remained, then cancelled that waiting client. No running job was abandoned.
+- Final validation: 59 WSL tests passed; Windows52passed/7POSIX/dependency skips;
+  all10worker tests passed on the VM. The final hardened broker re-fetched main
+  and repeated the positive runtime in9.03s with the same patch hash. Repository
+  safety and diff checks passed. Complete local VM/Proxmox Notes were compacted
+  to fit the server limit, saved and read back; hardware settings unchanged.
+- Remaining Phase 6: a gateway-backed coding-agent adapter with per-run cost
+  reservations, scoped branch publication outside the sandbox and live
+  coding/publishing acceptance. No autonomous agent or publication path is active.
+  See [worker operations](WORKER.md) and [ADR 0014](adr/0014-zero-spend-worker-boundary.md).
 
 ## Phase 5 live migration and encrypted retention - 2026-09-30
 
