@@ -110,3 +110,8 @@ volume or dependency installation; post-acceptance VM free48.52GiB. Retain
 `coding-budget.sqlite3`, run inputs/results and publication journals with protected
 worker storage. Automatic retention and separate-host worker recovery are not
 validated; do not restore an old ledger to reopen already consumed run capacity.
+
+Phase7's read-only planner adds small Python/configuration files and private JSON
+review artifacts. Temporary public Git snapshots are removed after each refresh;
+the 15GiB floor plus1GiB reserve is checked first. VMfree48.52GiB after acceptance.
+No image/model/database allocation or package installation for this milestone.

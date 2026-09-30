@@ -130,3 +130,11 @@ is provided. Live publication remains pending.
 Container isolation shares the VM kernel; this is bounded execution evidence,
 not approval for arbitrary hostile code or production repositories.
 See [worker operations and remaining gates](WORKER.md).
+
+## Read-only controller planning
+
+The first Phase7 CLI has no credentials, model calls, Docker access or mutation
+operations. It validates public Git/GitHub snapshots, explicit tasks, ownership
+and dependencies and emits review artifacts. An issue body, model response or
+plan status cannot authorize execution. The VM acceptance ran as UID65534;
+PostgreSQL execution state, dispatch and remote approvals remain unimplemented.

@@ -3,7 +3,7 @@
 Status: offline execution and gateway-backed one-turn coding DEPLOYED AND TESTED.
 Scoped publication passed live acceptance with a supplied fine-grained token in
 draft PR #16. Phase 6 is COMPLETE for this bounded operator-run scope.
-The Phase 7 controller is not installed.
+Phase 7 has a deployed read-only planner; execution orchestration remains pending.
 
 The user authorized the next phase on 30 September 2026. Phase 5 recovery and
 client trust gates remain open independently; this does not mark them complete.

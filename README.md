@@ -162,3 +162,10 @@ reset. User confirmed external OpenVPN and phone RDP login. WireGuard server rou
 corrected; client setup/handshake pending. Phone CA/DNS and tunnel reboot/logon
 acceptance remain open. See [dashboard operation](docs/DASHBOARD.md) and
 [remote-access evidence](docs/REMOTE_ACCESS_CHECK.md).
+
+Phase 7 has started with a [read-only repository planner](docs/AGENT_CONTROLLER.md).
+It checks committed tasks, current issues/PRs, ownership and dependencies, then
+emits a zero-budget plan for operator review. It cannot execute, publish or merge.
+Live refresh/deny and synthetic selection tests pass; orchestration and PostgreSQL
+run persistence remain pending. The [reviewed PR stack](docs/PR_STACK_REVIEW.md)
+records what is merged and what still awaits acceptance.
