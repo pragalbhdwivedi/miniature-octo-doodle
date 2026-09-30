@@ -56,14 +56,28 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   Security/YAML validation and diff checks passed. The first repeated DB run found
   a test-only duplicate Telegram update ID; the fixture now generates a unique ID,
   and the target suite passed on rerun. No live Telegram API request occurred.
-- Production controller schema and config remain at schema 2 / no Telegram key
-  while implementation review is pending. The owner has no bot token/user ID yet.
+- PR #25 passed push/PR CI and merged at `b06f4fe12d2f122770757f7fabd8f4b83b7e05ff`.
+  Twenty-six deployed controller source/config/test files match that commit.
+  Before production migration, a root-only 26,623-byte PostgreSQL custom dump was
+  saved at `/var/lib/gatewayai-controller/pre-schema3.dump` (SHA-256
+  `583f0251d19da3b75d632bbd6496882639bb626ac70e1c98ef0150a7bbf5830e`);
+  `pg_restore -l` readback passed. Production schema 3 applied transactionally.
+  The prior published run/pipeline remained published, no run was active, zero
+  approval rows exist, and direct approval-table DML was denied. The runtime role
+  remains non-superuser/non-createdb/non-createrole and cannot read gateway tokens.
+  Forty deployed-source controller tests passed against the separate schema-3 DB.
+  Four services stayed healthy; gateway debit stayed **$5.739970 / 31 attempts**,
+  zero active requests, monthly ceiling $100. VM free disk **48.44 GiB** (0.01 GiB
+  below the prior rounded sample); no new image, service, package or VM. Local VM
+  inventory and Proxmox Notes were synchronized and read back with hardware/auth
+  settings preserved. The backup is same-host protection, not clean-host recovery.
+- Production dispatch config has no Telegram key; no bot token/user ID is present.
+  The owner has no bot token/user ID yet.
   A protected bot configuration, live identity/delivery/callback test, and wider
   Phase 8 choose/pause/resume/notification types remain pending. Phase 9 memory and
   graph components remain deferred until the Git-only AADI controller path works.
-- No images, packages, VMs, optional models or services were added. The test copy
-  uses the existing PostgreSQL instance and retained worker image. Production
-  gateway ledger and Phase 5 recovery/client gates were not changed.
+- The test copy uses the existing PostgreSQL instance and retained worker image.
+  Phase 5 recovery/client gates were not changed.
 
 ## Phase 7 live review/repair/publication acceptance - 30 September 2026
 
