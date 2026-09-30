@@ -102,3 +102,46 @@ allowance and already-recorded debits; never activate another fresh ledger with 
 duplicate allowance. A migrated deployment needs provider/browser acceptance and
 a tested rollback. Phase 5 remains partial until its remaining recovery/migration
 gates are satisfied; creating a fresh zero-spend core does not satisfy those gates.
+
+## Windows migration tooling
+
+`scripts/linux-import.py --backup /var/lib/gatewayai-import/<backup> --name
+ gatewayai-recovery-<unique>` accepts the trusted Windows recovery bundle in a
+root-owned 0700 directory, with regular 0600 files. Transfer over authenticated
+SSH. The importer verifies hashes/archive safety, uses existing pinned images,
+restores into new volumes, checks exact files/ownership, databases, existing login,
+scoped key, eight aliases and unchanged budget ledger. It runs synthetic routing
+checks and stops the restored containers. Provider keys are blank, budget zero,
+all networks internal and no host ports are published. This is also an independent
+existing-backup restore command; it does not create a new snapshot first.
+
+For a final handoff, commit the reviewed tooling, then run Windows
+`./scripts/recovery.ps1 -Action backup -KeepStopped`. A successful snapshot leaves
+only the source core stopped, disables its restart policies and records a local
+`.migration-handoff.json` guard. `manage.ps1 start` refuses while the guard exists.
+A failed snapshot resumes the source; a failed handoff remains stopped for operator
+inspection. Verify all three source containers remain stopped with restart=no
+before activation. Raw Docker commands bypass the guard and must not be used to
+restart an obsolete ledger.
+
+Transfer and independently restore that final bundle. After the isolated tests
+pass, `linux-cutover.py activate --work <restored-directory> --backup <bundle>
+--handoff-sha256 <manifest-sha256>` checks the matching handoff and data, journals
+activation, retains the existing USD100 allowance/credentials and exposes cloud
+egress only to LiteLLM. It stops the separate fresh zero-spend core and switches
+the existing loopback socket proxies. No old volumes are deleted. An interrupted
+activation must be repaired using these same VM volumes; never restart Windows
+against its old admission ledger.
+
+Before activation, rollback means leaving the isolated VM copy stopped and
+resuming the unchanged Windows core after confirming no live VM was activated.
+After activation, ownership moves to the VM. Rollback requires a new cold backup
+of the current VM, an independently validated Windows restore and a frozen-source
+handoff in the reverse direction. Do not delete the guard or reuse stale Windows
+data. This post-activation reverse cutover remains a separate acceptance test.
+
+For the migrated runtime, use `linux-cutover.py backup --work <directory>` for a
+cold, hash-verified portable bundle, and `linux-import.py` to restore it without
+spending. Use `linux-cutover.py loopback --work <directory>` after container
+recreation. The earlier linux-core/linux-recovery commands operate only the
+separate zero-spend project. A local backup alone is not off-machine retention.

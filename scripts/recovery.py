@@ -163,7 +163,7 @@ def source_fingerprints():
     return {p.relative_to(REPO).as_posix(): sha(p) for p in files}
 
 
-def backup(root):
+def backup(root, keep_stopped=False):
     check(not run(['git', 'status', '--porcelain'], cwd=REPO), 'Commit or stash changes before backing up a reproducible source revision')
     fingerprints = source_fingerprints()
     values = env_values(REPO / '.env')
@@ -205,6 +205,7 @@ def backup(root):
     assert_running_config(config, json.loads(docker('inspect', *ids)), images)
     check(source_fingerprints() == fingerprints, 'Source configuration changed before snapshot')
     started = time.monotonic()
+    completed = False
     try:
         print('Stopping only core UI/gateway, then PostgreSQL for a consistent snapshot...', flush=True)
         compose(REPO / 'compose.yaml', 'stop', '-t', '120', 'open-webui', 'litellm', env=environment)
@@ -223,10 +224,20 @@ def backup(root):
         (folder / 'manifest.json').write_text(json.dumps(manifest, indent=2))
         validate_bundle(folder)
         print('PASS: consistent backup, hashes and archive safety verified', flush=True)
+        completed = True
     finally:
-        print('Resuming original core services...', flush=True)
-        compose(REPO / 'compose.yaml', 'start', '--wait', '--wait-timeout', '240', env=environment)
-        print('PASS: source services healthy; interruption seconds:', round(time.monotonic()-started, 2), flush=True)
+        if keep_stopped and completed:
+            for container in containers:
+                docker('update', '--restart=no', container['Id'])
+            handoff = {'backup_manifest_sha256': sha(folder/'manifest.json'), 'source_project': PROJECT,
+                       'containers_stopped': True, 'restart_disabled': True, 'created_utc': datetime.now(timezone.utc).isoformat()}
+            (folder/'handoff.json').write_text(json.dumps(handoff))
+            (REPO/'.migration-handoff.json').write_text(json.dumps(handoff))
+            print('PASS: final snapshot retained; Windows core stopped with restart disabled for migration', flush=True)
+        else:
+            print('Resuming original core services...', flush=True)
+            compose(REPO / 'compose.yaml', 'start', '--wait', '--wait-timeout', '240', env=environment)
+            print('PASS: source services healthy; interruption seconds:', round(time.monotonic()-started, 2), flush=True)
     print('Backup bytes:', sum(p.stat().st_size for p in folder.iterdir()), flush=True)
     return folder
 
@@ -345,11 +356,12 @@ def main():
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--backup',type=Path)
     parser.add_argument('--name')
+    parser.add_argument('--keep-stopped', action='store_true', help='Migration handoff: freeze source only after a successful backup')
     args=parser.parse_args()
     expected=(Path(os.environ['LOCALAPPDATA'])/'GatewayAI/recovery/.location').resolve().parent
     check(args.root.resolve()==expected.resolve() and args.root.is_dir(), 'Use the ACL-protected root through recovery.ps1')
     if args.action=='backup':
-        backup(args.root)
+        backup(args.root, keep_stopped=args.keep_stopped)
     else:
         check(args.backup is not None and args.backup.resolve().parent==args.root.resolve(), 'Select a backup directly inside the protected recovery root')
         if args.action=='verify':

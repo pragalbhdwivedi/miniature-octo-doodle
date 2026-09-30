@@ -35,6 +35,23 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
 A documented architecture is not implementation evidence.
 
+## Phase 5 cross-host data rehearsal - 2026-09-30
+
+- Windows cold backup passed environment/mount/configuration freshness, database
+  credentials, clean stop, hashes/archive safety and healthy resumption. Size
+  74,831,038 bytes; source interruption 50.62 seconds. Laptop free disk 39.28 GiB.
+- Restored that backup on the approved Linux VM in a separate, internal-only
+  Compose project: all three volume trees matched bytes, modes and owners before
+  startup; PostgreSQL full dump read, both SQLite integrity checks, existing admin,
+  scoped key, eight aliases, zero-budget rejection and synthetic routing/fallback/
+  concurrency passed. The retained policy ledger was unchanged. Total restore
+  through validation 194.85 seconds; containers stopped afterward, data retained.
+- Existing Windows live and VM zero-spend deployments were preserved. No provider
+  request was made by the restored project. This is cross-host data portability
+  evidence using already-installed images, not a clean-machine recovery claim.
+- Frozen-source/activation/live-backup tooling implemented; live cutover and reverse
+  rollback acceptance remain pending until measured below. No optional installation.
+
 ## Phase 5 Linux core and recovery - 2026-09-30
 
 - User resumed VM deployment. Direct Windows and WSL key SSH passed with

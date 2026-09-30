@@ -185,7 +185,7 @@ def host_guard(fresh=False):
         raise RuntimeError('Preflight blocked: ' + '; '.join(failed))
 
 
-def install_loopback():
+def install_loopback(project=PROJECT):
     """Docker internal-only bridges omit published bindings; proxy on loopback.
 
     Socket activation uses the systemd-provided proxy, with an unprivileged
@@ -196,8 +196,8 @@ def install_loopback():
         raise RuntimeError('The systemd socket proxy is unavailable')
     units = Path('/etc/systemd/system')
     for service, host_port, target_port in [('open-webui', 3000, 8080), ('litellm', 4000, 4000)]:
-        data = json.loads(run(['docker', 'inspect', PROJECT + '-' + service + '-1']))[0]
-        address = data['NetworkSettings']['Networks'][PROJECT + '_core']['IPAddress']
+        data = json.loads(run(['docker', 'inspect', project + '-' + service + '-1']))[0]
+        address = data['NetworkSettings']['Networks'][project + '_core']['IPAddress']
         import ipaddress
         ipaddress.IPv4Address(address)
         name = 'gatewayai-' + service

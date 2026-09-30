@@ -12,6 +12,9 @@ switch ($Command) {
   'disk' { & "$PSScriptRoot/disk-report.ps1" }
   'configure' { & "$PSScriptRoot/render-config.ps1" }
   'start' {
+    if (Test-Path -LiteralPath "$RepoRoot/.migration-handoff.json") {
+      throw 'This source was frozen for VM migration. Reconcile the current VM ledger/data before an explicit rollback; do not start a duplicate live gateway.'
+    }
     $values = Read-LocalEnv
     Assert-CoreSecrets -Values $values
     & "$PSScriptRoot/preflight.ps1" -ForInstall
