@@ -256,6 +256,10 @@ storage, security and current need justify them:
 - additional observability
 - security-reviewed reusable engineering skills
 
+The owner activated the Windows laptop Ollama/local-model evaluation lane on
+1 October 2026. It remains separate from Phase 9 and has no VM LiteLLM route;
+see [local model operations](LOCAL_MODEL.md) for measured scope and limits.
+
 Provider/model additions must remain behind LiteLLM capability aliases and the
 deterministic policy layer.
 

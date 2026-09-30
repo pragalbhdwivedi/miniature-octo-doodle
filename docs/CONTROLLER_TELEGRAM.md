@@ -4,10 +4,13 @@ Status: implemented for a single exact draft-publication decision. On 2026-10-01
 the owner-provided bot token and a private `/start` update established the approved
 user/chat identity. VM9125 has a protected root-only bot configuration, and a
 VM-originated test message received Telegram API acknowledgment and the owner
-confirmed phone receipt. Live approval callback remains untested. Production
-dispatch has no `telegram_approval_config`, so the new transport is inactive.
-The existing operator-only digest approval remains in use until live callback
-acceptance.
+confirmed phone receipt. A real private callback was accepted into PostgreSQL on
+1 October, and production dispatch now requires Telegram approval for draft
+publication. The first decision expired before publication. A fresh reviewed run
+then received the owner's private callback; its exact decision was consumed by
+the operator publication step and created draft PR #32. This validates only the
+bounded draft-publication action. General notifications and choose/pause/resume
+controls remain pending. See BUILD_STATUS for the evidence.
 
 ## Authority and action
 
@@ -32,6 +35,18 @@ operation stops the CLI; inspect the database and bot chat before a manual repea
 A delivery failure may leave a pending but unseen request. It cannot be replaced
 with a new request for the same run. This bounded implementation has no daemon,
 automatic retry, general choose/pause/resume controls or notification fanout.
+
+The operator must leave enough of the 15-minute window for the separate publish
+step. A stored `approved` decision does not override expiry: PostgreSQL checks the
+clock again when consuming it. On 1 October, a real private callback passed the
+user/chat/MAC checks and was stored, but Telegram callback acknowledgment failed
+after the database commit. The protected polling offset had not advanced. After
+checking the stored update ID and exact approval, one manual poll skipped the
+already-decided callback and advanced the offset. Publication later hit expiry;
+the run stayed `approved`, the decision stayed unconsumed, and no GitHub branch or
+publication journal existed. The reason Telegram refused callback acknowledgment
+was not established. Never replay that expired decision or infer publication from
+the phone button alone.
 
 ## Provisioning and activation
 

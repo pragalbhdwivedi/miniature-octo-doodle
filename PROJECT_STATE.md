@@ -37,9 +37,22 @@ and core health passed readback. On 2026-10-01, the owner-provided bot token and
 private `/start` update identified one approved numeric user/chat. A root-only
 configuration was copied to VM9125 and a one-time Telegram `sendMessage` from the
 VM received API acknowledgment for that chat, and the owner confirmed phone
-receipt. Live approval callback and exact-run resumption remain unvalidated.
-Production dispatch still omits `telegram_approval_config`, so the approval path
-stays disabled.**
+receipt. On 2026-10-01, production dispatch activated the protected Telegram gate.
+A real private callback passed identity/MAC checks and was recorded, but the first
+approval expired before publication. No PR was created from it. A fresh synthetic
+run then passed offline execution and independent review. After the GitHub quota
+reset, the owner approved its private-chat button and the exact decision was
+consumed to create [draft PR #32](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/32).
+The bounded Telegram-gated draft-publication path is live validated. Broader
+Phase 8 notifications and choose/pause/resume actions remain unimplemented.**
+
+**Optional laptop local-model lane: PARTIAL.** On 2026-10-01 native Windows
+Ollama 0.35.0 and one Apache-2.0 `qwen3:4b-instruct` model were installed at the
+owner's request. Loopback API and a synthetic Python coding response passed;
+Ollama reported 73% GPU / 27% CPU execution on the GTX 1650 Ti at 2,048 tokens.
+Cloud use is disabled. The trial models were removed and C: had 36.70 GiB free.
+WSL loopback access, LiteLLM alias/routing, mobile-laptop VM reachability and
+production coding quality are unvalidated. See [local model](docs/LOCAL_MODEL.md).
 
 AADI Phase 7 gate: refreshed private `pragalbhdwivedi/aadi` `Dev` at
 `cf5de5a465a71e83998488b9c59c1951241fdac8`; controller integration PR #23
@@ -243,8 +256,7 @@ no local model weights or optional context modules. See [Kubernetes operations](
 ## Later phases / optional
 - Anthropic / Claude
 - OmniRoute
-- Ollama
-- local LLM
+- Ollama/local LLM (Windows laptop evaluation installed; gateway integration pending)
 - OpenViking
 - Graphify
 - isolated coding worker (Phase 6)

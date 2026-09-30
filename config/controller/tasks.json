@@ -123,7 +123,7 @@
     {
       "id": "telegram-approval-retry",
       "issue": 30,
-      "state": "ready",
+      "state": "done",
       "priority": 100,
       "depends_on": [],
       "job": {
