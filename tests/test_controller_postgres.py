@@ -22,7 +22,7 @@ class PostgresTests(unittest.TestCase):
         if version!=2:self.skipTest('Review pipeline schema not applied')
         run=uuid.uuid4().hex
         req={'run_id':run,'plan':{'project':'synthetic','task_id':run,'source_sha':'a'*40}}
-        store.claim(req,'b'*64);store.finish(run,'review_required',{'artifact_sha256':'c'*64})
+        store.claim(req,uuid.uuid4().hex*2);store.finish(run,'review_required',{'artifact_sha256':'c'*64})
         spec={'source_sha':'a'*40,'artifact_sha256':'c'*64,'budget_micro_usd':1000}
         store.begin_pipeline(run,spec,'d'*64,100)
         with self.assertRaises(RuntimeError):store.begin_pipeline(run,spec,'d'*64,100)
