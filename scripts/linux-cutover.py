@@ -101,10 +101,19 @@ def backup(work):
         raise ValueError('Expected three healthy live containers')
     images = {s['image']:json.loads(core.run(['docker','image','inspect',s['image']]))[0] for s in document['services'].values()}
     recovery.assert_running_config(document, containers, images)
-    folder = importer.BASE/('backup-live-'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
-    recovery.disk_guard(importer.BASE, 2*1024**3)
-    folder.mkdir(mode=0o700)
     source = Path(json.loads(core.read_private(work/'origin.json'))['backup'])
+    archived = recovery.archive_index(source/'source.tar')
+    files = {name: entry[4] for name, entry in archived.items() if entry[4] is not None}
+    actual = {p.relative_to(work/'source').as_posix():recovery.sha(p)
+              for p in (work/'source').rglob('*') if p.is_file() and not p.is_symlink()}
+    if actual != files or any(p.is_symlink() for p in (work/'source').rglob('*')):
+        raise ValueError('Runtime source differs from the archived revision')
+    folder = importer.BASE/('backup-live-'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
+    image = document['services']['postgres']['image']
+    used = sum(int(recovery.helper(image,[recovery.volume_mount(v['name'])],
+               '-c','du -sk /volume').split()[0])*1024 for v in document['volumes'].values())
+    recovery.disk_guard(importer.BASE, used*3+1024**3)
+    folder.mkdir(mode=0o700)
     shutil.copy2(source/'.env',folder/'.env')
     shutil.copy2(source/'source.tar',folder/'source.tar')
     for name in ('gateway-config.json','policy.json'):

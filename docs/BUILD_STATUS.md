@@ -22,7 +22,7 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
 | Kubernetes developer validation (Phase 4) | COMPLETE | Revised PR #11 scope: dedicated k3d core, pod/PVC persistence, API/browser, isolation and synthetic policy pass; no live migration claim |
 | Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
-| Linux control-plane VM (Phase 5) | PARTIAL | Direct Windows/WSL SSH, Docker admission, fresh zero-spend core, browser and same-VM recovery pass; live migration/off-machine recovery pending |
+| Linux control-plane VM (Phase 5) | PARTIAL | Live data/ledger migration, provider/browser and encrypted off-VM readback restore pass; clean-host recovery/reverse cutover pending |
 | Internal SSH bastion | COMPLETE | Internal scope: both laptop clients, GatewayAI ProxyJump, denied operations and guest reboot passed 2026-09-30; outside-VPN validation pending |
 | Ollama | NOT STARTED | Optional |
 | Local model | NOT STARTED | Optional |
@@ -34,6 +34,51 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## Phase 5 live migration and encrypted retention - 2026-09-30
+
+- Tested frozen-source handoff: consistent snapshot, three Windows containers
+  stopped, restart=no and local startup guard. Before any VM activation, verified
+  no activation journal existed and restored Windows to healthy operation. This
+  proves pre-activation rollback only; stale Windows data is unsafe after live use.
+- Final frozen snapshot: 71,827,888 bytes. Independent Linux restore matched all
+  three volume trees exactly and passed database integrity, existing admin/scoped
+  key, eight aliases, zero-budget deny, synthetic routing/fallback/concurrency and
+  unchanged policy ledger in 156.74 seconds through validation; stopped afterward.
+- Activated only that verified snapshot. Windows remains stopped/restart disabled;
+  the former fresh zero-spend VM core is retained stopped. Existing private
+  credentials and data were preserved. Jev remains disabled. No optional install.
+- Live core healthy; localhost/127.0.0.1 HTTP, existing administrator, scoped-key
+  administration denial and all eight aliases passed. UI/database networks remain
+  internal, only LiteLLM is attached to provider egress, and no container publishes
+  host ports. Existing loopback socket proxies now target the migrated project.
+- Original allowance US$100 per UTC month and US$2.875240 debit retained exactly,
+  with 15 attempts/zero active requests before any VM inference. OpenAI probe:
+  HTTP200/exact OK, 4.82s, 18 total tokens; Gemini: HTTP200/exact OK, 1.93s, 10 tokens.
+  After both probes debit was US$2.971400, 17 attempts/zero active requests.
+- Edge PASS through SSH tunnel: preserved account signed in, model selection worked,
+  OpenAI rendered `VM migration verified` and Gemini rendered `Gemini VM verified`
+  in a temporary chat. Evidence: `docs/evidence/phase5-live-migration.png`.
+  Including WebUI follow-up generation, final admission debit US$3.569700,
+  21 attempts/zero active requests. These debits are conservative reservations,
+  not provider invoices or a claim of actual billed cost.
+- Migrated cold backup/resume passed in 88.53s. Authenticated Fernet encryption used
+  the already-installed cryptography 41.0.7 library. No dependency install.
+  A 95,887,460-byte encrypted file and independent recovery-key file were retained
+  in current-user/SYSTEM-only laptop storage outside Git/OneDrive. Ciphertext SHA256
+  matched after download; a returned copy authenticated and passed its inner manifest.
+- Restored exclusively from that returned/decrypted copy into another isolated
+  project: exact three-volume bytes/modes/owners, PostgreSQL full read, both SQLite
+  integrity checks, restored login/scoped key/eight aliases, budget rejection,
+  synthetic routing/fallback/concurrency and unchanged ledger all passed.
+  Restore through validation 143.84s; recovery containers stopped, data retained.
+  This validates off-VM copy/readback plus same-VM restore, not a separate clean host.
+- All 48 unit tests pass on Linux VM, including encryption round-trip/tamper rejection.
+  Windows 43 pass/5 skips; WSL 47 pass/1 dependency skip. YAML/security checks pass.
+- Remaining: separate approved clean-host/image retrieval recovery, reverse live
+  cutover with current ledger, automated retention/key escrow and host/NAS-loss
+  resilience. No recovery target has been supplied; earlier clean-machine pause
+  remains respected. Outside-VPN testing remains pending by user choice.
 
 ## Phase 5 cross-host data rehearsal - 2026-09-30
 
@@ -49,8 +94,8 @@ A documented architecture is not implementation evidence.
 - Existing Windows live and VM zero-spend deployments were preserved. No provider
   request was made by the restored project. This is cross-host data portability
   evidence using already-installed images, not a clean-machine recovery claim.
-- Frozen-source/activation/live-backup tooling implemented; live cutover and reverse
-  rollback acceptance remain pending until measured below. No optional installation.
+- This rehearsal preceded the live cutover measured above. Reverse live rollback
+  remains unvalidated. No optional installation.
 
 ## Phase 5 Linux core and recovery - 2026-09-30
 
@@ -104,8 +149,8 @@ A documented architecture is not implementation evidence.
 - Local checks: all 42 unit tests pass under WSL; Windows passes 40 with two
   POSIX-only tests skipped. Repository
   YAML/security contract and diff checks passed.
-- Outstanding: off-machine encrypted retention, separate clean-host recovery,
-  existing Windows data/ledger migration and live provider/browser cutover.
+- This earlier fresh-core checkpoint preceded the migration and encrypted
+  retention results above. Separate clean-host/reverse cutover gates remain open.
   Outside-network OpenVPN remains pending by user choice. No Phase 6/7 component
   installed. See [operations and remaining gates](LINUX_CORE.md).
 

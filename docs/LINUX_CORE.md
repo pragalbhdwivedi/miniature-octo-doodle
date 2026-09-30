@@ -1,11 +1,13 @@
 # Linux core operations
 
-This is the Phase 5 fresh, zero-spend deployment on the approved Ubuntu VM.
-It is independent of the live Windows deployment. Provider keys are blank, the
-monthly allowance is zero and Jev is disabled. No existing chats, accounts or
-budget history have been migrated. See BUILD_STATUS for actual acceptance results.
+Phase 5 now runs the migrated live Compose core on the approved Ubuntu VM.
+Windows data, credentials and budget ledger were retained; Windows remains
+stopped with restart disabled. The fresh zero-spend project described first below
+is retained stopped as an independent test deployment. Use the migration/live
+operations sections for the current runtime; do not start the old Windows ledger.
+See BUILD_STATUS for acceptance evidence and remaining recovery limits.
 
-## Deployment
+## Fresh zero-spend deployment
 
 Install Docker Engine and the Compose plugin from the
 [official Ubuntu repository](https://docs.docker.com/engine/install/ubuntu/).
@@ -72,7 +74,7 @@ Backup briefly stops only this core, requires healthy matching source containers
 checks clean shutdown/no remaining volume writers, and resumes in a finally block.
 It archives all three volumes, private runtime configuration and deployed source,
 with SHA-256 checksums, in `/var/lib/gatewayai-recovery` (0700, archives 0600).
-These backups contain credentials and are not encrypted. They remain on the VM;
+These fresh-project backups contain credentials and are not encrypted. They remain on the VM;
 they do not protect against loss of its host/NAS.
 
 `drill` creates a fresh backup, verifies it, extracts archived source/configuration,
@@ -83,9 +85,9 @@ admin/scoped-key access, eight aliases, budget rejection, PostgreSQL full dump r
 and SQLite integrity are checked. Recovery containers stop in a finally block;
 volumes and evidence remain for review. No cleanup or production cutover occurs.
 
-This is a same-VM recovery rehearsal. Standalone existing-backup restore CLI,
-off-machine encrypted retention, separate clean-host recovery and live cutover
-remain additional work. Checksums detect corruption, not malicious replacement;
+This is a same-VM fresh-project recovery rehearsal. The portable existing-backup
+restore, live migration and encrypted-retention workflow are described below.
+Separate clean-host recovery remains unvalidated. Checksums detect corruption, not malicious replacement;
 only trusted, protected backup artifacts are suitable for recovery.
 
 ## Controller foundation and remaining acceptance
@@ -145,3 +147,22 @@ cold, hash-verified portable bundle, and `linux-import.py` to restore it without
 spending. Use `linux-cutover.py loopback --work <directory>` after container
 recreation. The earlier linux-core/linux-recovery commands operate only the
 separate zero-spend project. A local backup alone is not off-machine retention.
+
+
+## Encrypted off-VM retention
+
+`encrypted-backup.py seal --source <portable-backup> --output <new-file>
+--key-file <private-key-file>` uses authenticated Fernet encryption from the
+already-installed `cryptography` dependency. It verifies the bundle before
+sealing and verifies decryption in memory before writing. No package is installed
+by this command. The key is a random URL-safe base64 32-byte key, in a regular
+0600 file owned by the operator; keep an independent protected copy outside the
+VM and outside Git/synced folders. Ciphertext alone cannot recover data.
+
+Copy the encrypted file over authenticated SSH to protected off-VM storage,
+compare its SHA-256, then test `unseal` from a returned copy. Unsealing authenticates
+before writing any plaintext, refuses occupied output, validates exact inventory
+and rechecks the internal backup manifest/archive safety. Use the independent
+Linux import command on the recovered bundle for a zero-spend restore drill.
+The encrypted copy and recovery key currently require manual custody; a separate
+key escrow, automated retention and clean-host recovery are distinct gates.

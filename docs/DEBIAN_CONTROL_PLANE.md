@@ -5,12 +5,12 @@ This supersedes the Debian-only target ([ADR 0012](adr/0012-template-9001-ubuntu
 This filename is retained for existing links. Native Ubuntu 24.04 and Debian 12/13
 are accepted by preflight; WSL/containers remain rejected.
 
-Status: PARTIAL. On 2026-09-30 the user resumed deployment. Direct Windows/WSL
-SSH, Docker/Compose admission, the fresh zero-spend core, browser acceptance and
-same-VM isolated restore passed. See [Linux operations](LINUX_CORE.md) and
-[measured evidence](BUILD_STATUS.md). The [bastion](SSH_BASTION.md) remains available;
-outside-VPN acceptance is pending. Live migration and off-machine/clean-host
-recovery remain outstanding.
+Status: PARTIAL. Direct Windows/WSL SSH, Docker admission, fresh zero-spend core,
+Windows-to-Linux data/ledger migration and live provider/browser acceptance passed.
+Encrypted off-VM retention and authenticated readback passed. Separate clean-host
+recovery and reverse cutover remain pending. See [Linux operations](LINUX_CORE.md)
+and [measured evidence](BUILD_STATUS.md). The [bastion](SSH_BASTION.md) remains
+available; outside-VPN acceptance is pending by user choice.
 
 ## Target and admission
 
@@ -96,9 +96,10 @@ to make preflight pass; resolve the target identity first.
    controller run-state/service boundaries without giving workers host authority;
    full worker/controller implementations belong to Phases 6/7.
 
-Phase 5 remains partial for outstanding recovery/migration gates. The existing
-Windows live browser is `http://localhost:3000`; local Phase 4 validation is
-`http://localhost:3080`. The VM's fresh zero-spend WebUI is available through the
-SSH tunnel at `http://localhost:3180`. Its separate login is stored privately;
-see Linux operations and local VM notes. Existing Windows credentials/data remain
-unchanged. The milestones above define acceptance, not a claim that every gate passed.
+Phase 5 remains partial for outstanding recovery gates. The Windows source is
+frozen with restart disabled; do not restart its stale ledger. The migrated live
+VM WebUI is available through the SSH tunnel at `http://localhost:3180`, with the
+preserved administrator account. The zero-spend VM project is retained stopped;
+local Phase 4 validation remains `http://localhost:3080`. Current private login,
+backup and runtime paths are in local VM notes. See BUILD_STATUS for measured
+results; planned milestones above are not blanket acceptance claims.

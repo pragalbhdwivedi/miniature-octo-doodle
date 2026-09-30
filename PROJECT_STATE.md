@@ -10,9 +10,9 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
 restore and clean container rebuild COMPLETE for the tested same-host scope.
 Phase 4: COMPLETE for local developer Kubernetes validation.
-Phase 5: PARTIAL, Docker and fresh zero-spend VM core deployed; direct laptop SSH,
-API/browser acceptance and same-VM backup/restore passed. Live migration and
-off-machine/clean-host recovery remain outstanding.**
+Phase 5: PARTIAL. Live Windows data/credentials/ledger migrated to the Linux VM;
+API/provider/browser acceptance passed. Encrypted off-VM copy and authenticated
+readback passed. Separate clean-host recovery and reverse cutover remain pending.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -78,42 +78,50 @@ bastion path now pass. The direct Omada rule is restricted to the laptop's curre
 address and the target's SSH port; the bastion handles changing laptop networks.
 Outside-VPN acceptance remains pending by user choice. See [SSH access](docs/SSH_BASTION.md).
 
-The selected Ubuntu VM now runs Docker Engine 29.8.1, Compose 5.5.1 and the three
-pinned core services. Linux startup/private secrets and same-VM backup/restore
-are implemented and tested. The VM WebUI is accessible through the SSH tunnel at
-`http://localhost:3180`; it has fresh credentials/data, blank provider keys and a
-zero allowance. The original Windows instance remains the live provider deployment.
-Next: plan approved existing-data/ledger cutover and off-machine/clean-host recovery,
-preserving the user's separate recovery pause until a target is identified.
+The selected Ubuntu VM now owns the live Compose gateway. Existing account/chat
+volumes, scoped/provider credentials and the US$100 UTC-month allowance were
+retained. Windows is frozen, restart disabled, with a local start guard; do not
+restart its stale ledger. The earlier fresh zero-spend VM project is retained
+stopped. WebUI is `http://localhost:3180` through the SSH tunnel, using the existing
+Windows administrator credentials. Protected login location is in local VM notes.
+
+Next: validate recovery on a separate approved clean machine, and reverse cutover
+using current data/ledger rather than the old Windows snapshot. An encrypted copy
+has been placed in protected laptop storage and read back with authentication;
+this does not prove recovery after loss of the VM/host. No separate recovery target
+has been named, so the earlier clean-machine pause remains respected.
 See [Linux operations](docs/LINUX_CORE.md) and [Phase 5 gates](docs/DEBIAN_CONTROL_PLANE.md).
 
-Preserve existing chats, credentials and monthly budget history during any later
-explicitly approved migration. Zero-spend Kubernetes browser acceptance has passed.
-The local k3d deployment is an isolated validation instance: no provider keys,
-zero spending, fresh data, Jev disabled. It does not replace the Compose gateway.
-Off-machine backup and new-machine recovery remain unvalidated; the user's pause
-until their Kubernetes setup is running is preserved. A same-host k3d cluster
-does not establish recovery on a separate machine or authorize a remote target.
+The local k3d deployment remains isolated developer validation: no provider keys,
+zero spending, fresh data and Jev disabled. It does not replace the Compose gateway.
 
 Live Jev integration/evaluation/calibration remains deferred under ADR 0008.
 No optional modules or model weights were installed. See [Kubernetes operations](docs/KUBERNETES.md).
 
-## Phase 5 runtime checkpoint
-- Direct Windows/WSL SSH, fresh-target admission, three-service health, admin login,
-  scoped-key restrictions, eight aliases, zero-budget denial, synthetic routing,
-  fallback/concurrency and database/external TCP isolation pass on the selected VM.
-- Browser login/model selection/rendered budget denial passed through the SSH
-  tunnel. Docker internal-only networks suppressed host bindings; unprivileged
-  systemd socket proxies now provide loopback-only HTTP without container egress.
-- Independent restore from a protected cold backup passed exact file-content,
-  PostgreSQL dump, SQLite integrity and restored login/key checks. Recovery
-  containers are stopped; artifacts and volumes are retained. No live data migrated.
-- Runtime credentials remain outside Git in a 0700 directory with 0600 files.
-  Jev/provider activation is rejected by the fresh-runtime tool. No optional
-  module, agent/controller, model or provider credentials installed on the VM.
-- Gateway recreation and planned VM reboot passed: credentials persisted, services
-  and loopback access returned automatically, and full runtime tests passed after
-  health readiness. Ledger debit/provider attempts remain zero; VM free 51.78 GiB.
+## Phase 5 runtime checkpoint (2026-09-30)
+- Direct Windows/WSL and bastion SSH, target admission, Docker/core health,
+  authentication, scoped-key restrictions and eight aliases passed.
+- Fresh zero-spend startup, recreation/reboot and same-VM restore passed first.
+  Unprivileged systemd proxies supply loopback HTTP without a Docker socket.
+- Windows cold snapshots restored into independent Linux volumes, matching every
+  file's bytes/mode/owner. PostgreSQL/SQLite integrity, restored account/key,
+  synthetic routing/fallback/concurrency and unchanged budget ledger passed.
+- Frozen-source handoff and pre-activation rollback were tested. Final cutover
+  retained the existing US$2.875240 debit; live probes and browser checks advanced
+  conservative admission debits to US$3.569700, with 21 attempts and zero active
+  requests. The US$100 UTC-month limit is unchanged; these are not vendor charges.
+- Both cloud providers passed HTTP 200/exact-response tests and Edge rendered
+  their responses in a temporary chat. UI/database networks remain internal;
+  only LiteLLM has provider egress, with no published container ports.
+- Private credentials/data remain root-owned outside Git/sync. Jev, optional
+  components, workers/controller and model downloads remain disabled/uninstalled.
+- Live VM cold backup/resume passed in 88.53 seconds. An authenticated encrypted
+  95,887,460-byte copy is retained on the laptop; ciphertext hash and decrypted
+  internal manifest passed after readback. An isolated restore from the returned
+  copy passed all volume, database, login/key and synthetic checks in 143.84s.
+  Clean-host recovery remains unvalidated.
+- All 48 unit tests passed on the VM. Windows passes 43 with five dependency/POSIX
+  skips; WSL passes 47 with the encryption dependency skipped. Repository checks pass.
 
 ## Phase 5 initial preparation checkpoint (2026-09-29)
 - Complete private VM handover record is in local `VM_NOTES/9125-gatewayai-control.md`
@@ -128,8 +136,7 @@ No optional modules or model weights were installed. See [Kubernetes operations]
   and QEMU guest agent. Target preflight passes OS/VM/resources/runtime disk/ports;
   overall BLOCKED as expected because Docker/Compose are not installed.
 - At this initial checkpoint, Linux startup/recovery/browser work had not begun.
-  The 2026-09-30 runtime checkpoint above supersedes that status. Off-machine
-  restore and live migration remain unvalidated. See BUILD_STATUS for limits.
+  The 2026-09-30 runtime checkpoint above supersedes that status. Later migration/retention results are recorded above. See BUILD_STATUS for limits.
 
 ## Phase 4 local checkpoint
 - Dedicated k3d 5.9.0 / k3s 1.35.5 cluster; existing Docker Desktop context preserved.

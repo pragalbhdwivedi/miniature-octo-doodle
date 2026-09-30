@@ -123,8 +123,7 @@ No optional component is installed by this project. See [Models and Skills](docs
 Phase 3 backup, isolated restore and clean container rebuild are implemented and
 tested and merged through [PR #9](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/9). See the
 [recovery runbook](docs/BACKUP_RESTORE.md). The drill preserves the live deployment,
-blocks recovery-copy cloud access and retains all data. Off-machine disaster
-recovery and production cutover are separate, unvalidated steps.
+blocks recovery-copy cloud access and retains all data. Phase 5 migration/retention evidence and clean-host limits are recorded below.
 
 Phase 4 developer validation is complete: an isolated k3d core with persistent volumes, network policies
 and loopback Ingress passes API, synthetic policy and zero-spend browser acceptance
@@ -135,9 +134,10 @@ Phase 5 has started with a read-only [Linux target preflight and acceptance plan
 The user selected Proxmox template 9001 (Ubuntu 24.04), superseding the original
 Debian-only target. See [ADR 0012](docs/adr/0012-template-9001-ubuntu-target.md) and
 [current VM evidence](docs/BUILD_STATUS.md). The VM now has direct Windows/WSL SSH,
-Docker and a fresh zero-spend core with browser and same-VM restore acceptance.
-See [Linux operations](docs/LINUX_CORE.md). Live migration and off-machine recovery
-remain unvalidated, so Phase 5 is still partial.
+Docker and the migrated live Compose core. Existing data, credentials and budget
+ledger were retained; provider/browser acceptance and encrypted off-VM readback
+passed. See [Linux operations](docs/LINUX_CORE.md). Separate clean-host recovery
+and reverse cutover remain pending, so Phase 5 is still partial.
 The updated [roadmap](docs/ROADMAP.md) prioritizes an isolated worker, repository-driven
 controller and Telegram approvals before optional memory/code graph or local models.
 AADI is the first managed development project and retains its own production authority.
