@@ -39,6 +39,47 @@
           ]
         ]
       }
+    },
+    {
+      "id": "review-repair-acceptance",
+      "issue": 21,
+      "state": "ready",
+      "priority": 100,
+      "depends_on": [
+        "dispatch-acceptance"
+      ],
+      "job": {
+        "project": "gatewayai",
+        "ref": "refs/heads/main",
+        "write_paths": [
+          "docs/examples/controller_acceptance.py"
+        ],
+        "timeout_seconds": 60,
+        "model_budget_usd": 0,
+        "commands": [
+          [
+            "python3",
+            "-c",
+            "from pathlib import Path; p=Path('docs/examples/controller_acceptance.py'); p.parent.mkdir(parents=True,exist_ok=True); p.write_text('def clamp(value, lower, upper):\\n    return max(lower, min(value, upper))\\n')"
+          ],
+          [
+            "python3",
+            "-c",
+            "import runpy; c=runpy.run_path('docs/examples/controller_acceptance.py')['clamp']; assert c(5,0,10)==5"
+          ],
+          [
+            "git",
+            "add",
+            "docs/examples/controller_acceptance.py"
+          ],
+          [
+            "git",
+            "commit",
+            "-m",
+            "Synthetic candidate for independent review acceptance"
+          ]
+        ]
+      }
     }
   ]
 }

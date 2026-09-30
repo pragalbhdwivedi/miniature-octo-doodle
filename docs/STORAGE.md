@@ -121,3 +121,8 @@ small database, schema and private request/artifact files are added. No automati
 retention is enabled. Preserve claims, requests and worker/budget evidence together
 when recovering; restoring old claims must not reopen execution capacity. See
 [dispatch recovery](CONTROLLER_DISPATCH.md) and BUILD_STATUS for measured footprint.
+
+The review pipeline reuses the existing gateway, PostgreSQL and worker image.
+Schema2 adds small pipeline/debit tables and retains private stage artifacts.
+A protected controller-only pre-migration dump is retained on VM; this is not
+validated separate-machine recovery. No automatic retention or deletion.

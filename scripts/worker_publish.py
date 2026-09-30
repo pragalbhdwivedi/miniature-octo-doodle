@@ -96,10 +96,35 @@ def publish(value, config, transport=worker.coding.request_json):
                 'Artifact SHA-256: `'+value['artifact_sha256']+'`\n\n'
                 'Source: `'+value['source_sha']+'`\n\n'
                 'Sandbox commands passed. This is execution evidence, not independent code acceptance. '
-                'Human review and merge approval remain required.'})
+                'Human review and merge approval remain required.'+
+                ('\n\nTracked task: #'+str(value['issue']) if type(value.get('issue')) is int and value['issue']>0 else '')})
     if not pr.get('draft') or pr['head']['ref'] != value['head'] or pr['base']['ref'] != value['base']:
         raise ValueError('Unexpected publication response; inspect GitHub manually')
     return {'url': pr['html_url'], 'number': pr['number'], 'commit': commit['sha'], 'draft': True}
+
+
+def publish_reviewed(folder, digest, config_path, issue=None):
+    worker.private_root(folder.parent)
+    worker.private_root(folder)
+    value = plan(folder, digest)
+    if issue is not None:
+        if type(issue) is not int or issue < 1: raise ValueError('Invalid task issue')
+        value['issue'] = issue
+    if config_path.resolve().is_relative_to(worker.REPO):
+        raise ValueError('Credentials must remain outside repository')
+    config = worker.coding.private_config(config_path)
+    if not config.get('github_token'):
+        raise ValueError('Repository-scoped publisher credential is not configured')
+    import fcntl
+    with (folder/'publication.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        journal = folder/'publication.json'
+        if journal.exists():
+            raise ValueError('Publication already attempted; inspect journal/GitHub before any retry')
+        journal.write_text(json.dumps({'state': 'attempting', 'head': value['head']}))
+        result = publish(value, config)
+        journal.write_text(json.dumps({'state': 'published', **result}, indent=2))
+        return result
 
 
 def main():
@@ -114,21 +139,7 @@ def main():
     if args.config is None:
         print(json.dumps({k: v for k, v in value.items() if k != 'changes'}))
         return
-    if args.config.resolve().is_relative_to(worker.REPO):
-        raise ValueError('Credentials must remain outside repository')
-    config = worker.coding.private_config(args.config)
-    if not config.get('github_token'):
-        raise ValueError('Repository-scoped publisher credential is not configured')
-    import fcntl
-    with (args.run/'publication.lock').open('a') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        journal = args.run/'publication.json'
-        if journal.exists():
-            raise ValueError('Publication already attempted; inspect journal/GitHub before any retry')
-        journal.write_text(json.dumps({'state': 'attempting', 'head': value['head']}))
-        result = publish(value, config)
-        journal.write_text(json.dumps({'state': 'published', **result}, indent=2))
-        print(json.dumps(result))
+    print(json.dumps(publish_reviewed(args.run,args.approve_sha256,args.config)))
 
 
 if __name__ == '__main__':

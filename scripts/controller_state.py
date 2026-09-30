@@ -46,3 +46,19 @@ class Store:
     def get(self, run_id):
         return self.query('SELECT coalesce((SELECT to_jsonb(r) FROM controller.runs r WHERE run_id='+
                           literal(run_id)+" #>> '{}'),'null'::jsonb);")
+
+    def pipeline(self, run_id):
+        return self.query('SELECT coalesce((SELECT to_jsonb(r) FROM controller.pipelines r WHERE run_id='+
+                          literal(run_id)+" #>> '{}'),'null'::jsonb);")
+
+    def begin_pipeline(self, run_id, spec, digest, spent):
+        return self.query('SELECT controller.pipeline_begin('+literal(run_id)+" #>> '{}',"+
+                          literal(spec)+','+literal(digest)+" #>> '{}',("+literal(spent)+" #>> '{}')::bigint);")
+
+    def reserve_pipeline(self, run_id, stage, debit, body_hash):
+        return self.query('SELECT controller.pipeline_reserve('+literal(run_id)+" #>> '{}',"+
+                          literal(stage)+" #>> '{}',("+literal(debit)+" #>> '{}')::bigint,"+literal(body_hash)+" #>> '{}');")
+
+    def step_pipeline(self, run_id, expected, state, evidence):
+        return self.query('SELECT controller.pipeline_step('+literal(run_id)+" #>> '{}',"+
+                          literal(expected)+" #>> '{}',"+literal(state)+" #>> '{}',"+literal(evidence)+');')

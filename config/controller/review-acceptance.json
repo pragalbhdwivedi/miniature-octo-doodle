@@ -1,0 +1,16 @@
+{
+  "run_id": "00000000000000000000000000000000",
+  "source_sha": "0000000000000000000000000000000000000000",
+  "artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "requirements": "Implement clamp(value, lower, upper): return lower below the inclusive interval, upper above it, otherwise value. Equal bounds are valid. Raise ValueError when lower > upper. Only the single synthetic Python file may change.",
+  "read_paths": [],
+  "test_commands": [
+    [
+      "python3",
+      "-c",
+      "import runpy; c=runpy.run_path('docs/examples/controller_acceptance.py')['clamp']; assert c(-1,0,10)==0; assert c(11,0,10)==10; assert c(5,0,10)==5; assert c(5,5,5)==5\ntry: c(0,10,0)\nexcept ValueError: pass\nelse: raise AssertionError('inverted bounds must raise ValueError')"
+    ]
+  ],
+  "budget_micro_usd": 1000000,
+  "max_repairs": 1
+}

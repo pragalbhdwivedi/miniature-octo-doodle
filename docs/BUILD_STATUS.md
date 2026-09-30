@@ -33,6 +33,23 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Agent Controller | PARTIAL | Planner plus PostgreSQL claims/audit and controlled dispatch implemented; live acceptance below, independent review/repair pending |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
+## Phase 7 review/repair/publication implementation - 30 September 2026
+
+- Implemented fresh-context JSON reviewer and separate sandbox tests; one bounded
+  repair with immutable operator test commands; new tests/review required afterward.
+  Final operator publication receipt binds the repaired artifact and review.
+- Added transactional schema2 with one-shot pipeline/stage reservations, aggregate
+  original+review+repair ceiling <=1USD, strict transitions and permanent replay
+  denial. Model verdicts cannot authorize publication. Existing monthly limit retained.
+- Migrated a test copy first. All32target controller tests passed including real
+  PostgreSQL stage replay, aggregate exhaustion, transition and publication-state
+  checks. Full WSL103passed/two opt-in DB skips before added HTTP-order regression.
+- Private controller-only dump taken (13,344 bytes); production schema2 migration
+  preserved existing run/audit records. Four live services healthy, 48.46GiB free;
+  admission ledger unchanged4.870530USD/28attempts. No new images/packages/services.
+- Live fresh-context review, one repair and orchestrated publication acceptance
+  pending the committed synthetic task reaching main. No Phase7 completion claim.
+
 ## Phase 7 durable dispatch acceptance - 30 September 2026
 
 - Implementation PR #18 merged; smoke correction PR #19 merged at
