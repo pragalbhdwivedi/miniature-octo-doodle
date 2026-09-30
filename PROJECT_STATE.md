@@ -10,8 +10,9 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
 restore and clean container rebuild COMPLETE for the tested same-host scope.
 Phase 4: COMPLETE for local developer Kubernetes validation.
-Phase 5: PARTIAL, selected Ubuntu VM created and guest checks passed;
-Docker/application deployment NOT STARTED.**
+Phase 5: PARTIAL, Docker and fresh zero-spend VM core deployed; direct laptop SSH,
+API/browser acceptance and same-VM backup/restore passed. Live migration and
+off-machine/clean-host recovery remain outstanding.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -72,16 +73,19 @@ WebUI chat. No alternate headless browser method was needed.
 - Latest storage sample: 59.19 GiB free on C:; core image sizes sum to 2.68 GiB.
 
 ## Next bounded action
-The durable administrator SSH path now passes from Windows and WSL through the
-dedicated internal bastion on TCP 7000, including after its reboot. Outside-VPN
-acceptance is pending by user choice. See [SSH access](docs/SSH_BASTION.md).
-Docker/application deployment remains stopped following the user's instruction;
-when resumed, install core Docker Engine/Compose and implement Linux startup/private configuration
-for a fresh zero-spend core. The user explicitly selected Proxmox template 9001,
-verified as Ubuntu 24.04.5; this supersedes the earlier Debian-only target.
-The VM is created. Narrow Omada LAN ACLs now permit the bastion path; direct
-laptop-to-target SSH is not claimed. Existing Windows startup/recovery scripts are not a validated
-Linux application deployment path. See [the runbook](docs/DEBIAN_CONTROL_PLANE.md).
+On 2026-09-30 the user resumed deployment. Both direct Windows/WSL SSH and the
+bastion path now pass. The direct Omada rule is restricted to the laptop's current
+address and the target's SSH port; the bastion handles changing laptop networks.
+Outside-VPN acceptance remains pending by user choice. See [SSH access](docs/SSH_BASTION.md).
+
+The selected Ubuntu VM now runs Docker Engine 29.8.1, Compose 5.5.1 and the three
+pinned core services. Linux startup/private secrets and same-VM backup/restore
+are implemented and tested. The VM WebUI is accessible through the SSH tunnel at
+`http://localhost:3180`; it has fresh credentials/data, blank provider keys and a
+zero allowance. The original Windows instance remains the live provider deployment.
+Next: plan approved existing-data/ledger cutover and off-machine/clean-host recovery,
+preserving the user's separate recovery pause until a target is identified.
+See [Linux operations](docs/LINUX_CORE.md) and [Phase 5 gates](docs/DEBIAN_CONTROL_PLANE.md).
 
 Preserve existing chats, credentials and monthly budget history during any later
 explicitly approved migration. Zero-spend Kubernetes browser acceptance has passed.
@@ -94,7 +98,24 @@ does not establish recovery on a separate machine or authorize a remote target.
 Live Jev integration/evaluation/calibration remains deferred under ADR 0008.
 No optional modules or model weights were installed. See [Kubernetes operations](docs/KUBERNETES.md).
 
-## Phase 5 preparation checkpoint
+## Phase 5 runtime checkpoint
+- Direct Windows/WSL SSH, fresh-target admission, three-service health, admin login,
+  scoped-key restrictions, eight aliases, zero-budget denial, synthetic routing,
+  fallback/concurrency and database/external TCP isolation pass on the selected VM.
+- Browser login/model selection/rendered budget denial passed through the SSH
+  tunnel. Docker internal-only networks suppressed host bindings; unprivileged
+  systemd socket proxies now provide loopback-only HTTP without container egress.
+- Independent restore from a protected cold backup passed exact file-content,
+  PostgreSQL dump, SQLite integrity and restored login/key checks. Recovery
+  containers are stopped; artifacts and volumes are retained. No live data migrated.
+- Runtime credentials remain outside Git in a 0700 directory with 0600 files.
+  Jev/provider activation is rejected by the fresh-runtime tool. No optional
+  module, agent/controller, model or provider credentials installed on the VM.
+- Gateway recreation and planned VM reboot passed: credentials persisted, services
+  and loopback access returned automatically, and full runtime tests passed after
+  health readiness. Ledger debit/provider attempts remain zero; VM free 51.78 GiB.
+
+## Phase 5 initial preparation checkpoint (2026-09-29)
 - Complete private VM handover record is in local `VM_NOTES/9125-gatewayai-control.md`
   and the VM's Proxmox Notes. Both were verified on 2026-09-29; operational details
   remain Git-excluded. AGENTS.md requires this for every future VM.
@@ -106,9 +127,9 @@ No optional modules or model weights were installed. See [Kubernetes operations]
   Verified guest identity, disk expansion, DNS/HTTPS, administrator SSH keys/sudo
   and QEMU guest agent. Target preflight passes OS/VM/resources/runtime disk/ports;
   overall BLOCKED as expected because Docker/Compose are not installed.
-- Linux application startup, private application secrets, backup, off-machine
-  restore and browser acceptance remain NOT TESTED. No controller, optional
-  image, model or provider credentials were installed. See BUILD_STATUS for limits.
+- At this initial checkpoint, Linux startup/recovery/browser work had not begun.
+  The 2026-09-30 runtime checkpoint above supersedes that status. Off-machine
+  restore and live migration remain unvalidated. See BUILD_STATUS for limits.
 
 ## Phase 4 local checkpoint
 - Dedicated k3d 5.9.0 / k3s 1.35.5 cluster; existing Docker Desktop context preserved.

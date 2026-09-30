@@ -3,6 +3,9 @@
 Phase 3 provides a consistent cold backup and a separate recovery rehearsal.
 See BUILD_STATUS for actual tests; implementation alone is not recovery evidence.
 
+For the separate Phase 5 Linux VM, use [Linux core recovery](LINUX_CORE.md#local-backup-and-restore-drill).
+The Windows commands below do not operate that VM.
+
 ```powershell
 ./scripts/recovery.ps1 -Action backup
 ./scripts/recovery.ps1 -Action verify -Backup 'FULL-PHYSICAL-BACKUP-PATH-PRINTED-ABOVE'

@@ -55,5 +55,7 @@ checking for later edits. Disable only the two documented bastion ACLs and stop
 the bastion VM if retiring the path. Do not remove disks, existing AADI rules,
 VPN configuration or target credentials. Retest the replacement path first.
 
-GatewayAI Docker/application deployment remains stopped; SSH acceptance alone
-does not complete Phase 5 or create a remote web login.
+On 30 September the user resumed GatewayAI deployment. Direct laptop SSH to that
+VM also passed through a separate narrow current-address rule. The bastion remains
+the alternative when the laptop address changes. See [Linux core operations](LINUX_CORE.md)
+for the deployed zero-spend application and remaining Phase 5 gates.

@@ -66,10 +66,11 @@ Target update: the user selected Proxmox template 9001 (Ubuntu 24.04) on
 [ADR 0012](adr/0012-template-9001-ubuntu-target.md). Debian remains a supported
 candidate; the selected VM uses Ubuntu. Provider/policy contracts are unchanged.
 
-Status: PARTIAL; selected Ubuntu VM created and guest access/resources verified.
-Read-only admission passes host checks but remains BLOCKED for missing Docker.
-Durable routed SSH, Linux application startup, secret provisioning and recovery
-remain outstanding. See the [acceptance plan](DEBIAN_CONTROL_PLANE.md).
+Status: PARTIAL; direct Windows/WSL SSH and target admission pass. Docker and the
+fresh zero-spend Linux core are deployed, with private secrets, browser acceptance
+and same-VM backup/restore evidence. Live migration and off-machine/clean-host
+recovery remain outstanding. See the [acceptance plan](DEBIAN_CONTROL_PLANE.md)
+and [Linux operations](LINUX_CORE.md).
 
 Move the proven core from the Windows/WSL2 development host to the selected Linux
 VM without changing the repository's provider/policy contracts.

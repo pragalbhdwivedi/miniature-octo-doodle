@@ -134,8 +134,10 @@ remains the live provider deployment. See [Kubernetes operations](docs/KUBERNETE
 Phase 5 has started with a read-only [Linux target preflight and acceptance plan](docs/DEBIAN_CONTROL_PLANE.md).
 The user selected Proxmox template 9001 (Ubuntu 24.04), superseding the original
 Debian-only target. See [ADR 0012](docs/adr/0012-template-9001-ubuntu-target.md) and
-[current VM evidence](docs/BUILD_STATUS.md). Linux application startup and recovery
-remain unvalidated.
+[current VM evidence](docs/BUILD_STATUS.md). The VM now has direct Windows/WSL SSH,
+Docker and a fresh zero-spend core with browser and same-VM restore acceptance.
+See [Linux operations](docs/LINUX_CORE.md). Live migration and off-machine recovery
+remain unvalidated, so Phase 5 is still partial.
 The updated [roadmap](docs/ROADMAP.md) prioritizes an isolated worker, repository-driven
 controller and Telegram approvals before optional memory/code graph or local models.
 AADI is the first managed development project and retains its own production authority.

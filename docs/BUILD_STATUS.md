@@ -22,7 +22,7 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Clean container rebuild | COMPLETE | Fresh archived-source directory, three new volumes and three new containers validated; existing pinned images reused |
 | Kubernetes developer validation (Phase 4) | COMPLETE | Revised PR #11 scope: dedicated k3d core, pod/PVC persistence, API/browser, isolation and synthetic policy pass; no live migration claim |
 | Kubernetes Ingress | COMPLETE | Local zero-spend scope: HTTP/auth, Edge sign-in, eight aliases, model selection and rendered budget denial passed; no live provider/cutover claim |
-| Linux control-plane VM (Phase 5) | PARTIAL | Ubuntu guest checks and durable Windows/WSL bastion SSH pass; Docker/application deployment remains stopped |
+| Linux control-plane VM (Phase 5) | PARTIAL | Direct Windows/WSL SSH, Docker admission, fresh zero-spend core, browser and same-VM recovery pass; live migration/off-machine recovery pending |
 | Internal SSH bastion | COMPLETE | Internal scope: both laptop clients, GatewayAI ProxyJump, denied operations and guest reboot passed 2026-09-30; outside-VPN validation pending |
 | Ollama | NOT STARTED | Optional |
 | Local model | NOT STARTED | Optional |
@@ -34,6 +34,63 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## Phase 5 Linux core and recovery - 2026-09-30
+
+- User resumed VM deployment. Direct Windows and WSL key SSH passed with
+  ProxyJump explicitly disabled after adding a narrow Omada laptop-address to
+  target-SSH rule. Existing AADI/bastion rules and VPN configuration remain.
+  The direct alias is address-dependent; the existing bastion remains available.
+- Installed Docker Engine 29.8.1, containerd 2.3.6 and Compose 5.5.1 from Docker's
+  official Ubuntu repository: four packages, 73.0 MB downloaded / 284 MB package
+  footprint. No optional Buildx/rootless/model package or extra image installed.
+- Fresh VM preflight PASS: native Ubuntu 24.04/KVM, 4 CPUs, 7.755 GiB visible RAM,
+  enabled/active Docker, no existing containers, free ports and 54.837 GiB free
+  before the three pinned image pulls. No Windows Docker service/data changes.
+- Implemented guarded Linux private configuration/start/test/status operations,
+  sharing the existing Kubernetes validation renderer. Runtime secrets have
+  root ownership, directory 0700/files 0600 and survive repeated startup.
+  Provider keys blank, budget zero, Jev disabled; activation is rejected.
+- All three services healthy. Host HTTP, admin sign-in, scoped-key administration
+  denial, eight-model discovery, zero-budget denial and synthetic HTTP
+  primary/fallback/streaming/concurrency tests passed. UI-to-database and external
+  TCP egress denial passed; gateway-to-database succeeded.
+- **Found/fixed:** Docker internal-only networks accepted Compose's port declarations
+  but installed no host bindings. Added unprivileged systemd socket proxies on
+  127.0.0.1:3000/4000 using the installed systemd binary, with no socket/secret
+  access. Container networks remain internal; PostgreSQL remains unpublished.
+- Edge browser PASS through SSH at `http://localhost:3180`: separate administrator
+  login, all eight aliases, coding-standard selection and rendered
+  `policy: monthly_budget_exhausted` in a temporary chat. Screenshot:
+  `docs/evidence/phase5-browser-budget-denial.png`. This is zero-spend acceptance,
+  not live provider inference on the VM.
+- Cold backup `backup-20260930T050013Z`: 8,261,945 bytes; stop/backup/resume 74.64 s.
+  Protected same-VM storage includes source, runtime secrets and three volume
+  archives with SHA-256 manifest. Source containers resumed healthy.
+- Independent restore `restore-20260930T050129Z`: 76.91 s; exact restored file
+  contents, original admin/scoped-key access, eight aliases, budget denial,
+  PostgreSQL full dump read and WebUI SQLite integrity passed. Fresh volumes and
+  containers use archived source/config, no ports and internal networks. Recovery
+  containers stopped; artifacts/volumes retained. No production cutover.
+- Repeated startup recreated the gateway container; private credential hash
+  remained identical and the full host/API/synthetic/isolation tests passed again.
+- Planned VM reboot PASS: boot ID changed, credential hash stayed identical,
+  Docker and both socket units activated automatically, and all three containers
+  became healthy. After readiness, host/API/synthetic/isolation tests passed again;
+  Windows/WSL direct SSH and tunneled HTTP passed. A probe during early startup
+  reset its connection and was not counted as acceptance. This is guest reboot
+  evidence, not host power-loss or NAS recovery evidence.
+- Post-reboot ledger: zero debit and zero provider attempts. VM free disk
+  55,597,940,736 bytes (51.78 GiB). Three images total 2.887 GB; six volumes
+  including retained recovery total 141.1 MB; six containers, three active,
+  230.4 MB writable layers. No build cache or model footprint.
+- Local checks: all 42 unit tests pass under WSL; Windows passes 40 with two
+  POSIX-only tests skipped. Repository
+  YAML/security contract and diff checks passed.
+- Outstanding: off-machine encrypted retention, separate clean-host recovery,
+  existing Windows data/ledger migration and live provider/browser cutover.
+  Outside-network OpenVPN remains pending by user choice. No Phase 6/7 component
+  installed. See [operations and remaining gates](LINUX_CORE.md).
 
 ## Internal SSH bastion acceptance - 2026-09-30
 

@@ -5,12 +5,12 @@ This supersedes the Debian-only target ([ADR 0012](adr/0012-template-9001-ubuntu
 This filename is retained for existing links. Native Ubuntu 24.04 and Debian 12/13
 are accepted by preflight; WSL/containers remain rejected.
 
-Status: PARTIAL. The selected Ubuntu VM is created and guest validation has passed.
-Docker/application deployment is NOT STARTED; target preflight correctly reports
-BLOCKED for missing Docker/Compose. Durable Windows and WSL administrator SSH
-through the [internal bastion](SSH_BASTION.md) passed on 2026-09-30, also after
-bastion reboot. Outside-VPN acceptance is pending by user choice. Application
-deployment remains stopped until the user resumes that work.
+Status: PARTIAL. On 2026-09-30 the user resumed deployment. Direct Windows/WSL
+SSH, Docker/Compose admission, the fresh zero-spend core, browser acceptance and
+same-VM isolated restore passed. See [Linux operations](LINUX_CORE.md) and
+[measured evidence](BUILD_STATUS.md). The [bastion](SSH_BASTION.md) remains available;
+outside-VPN acceptance is pending. Live migration and off-machine/clean-host
+recovery remain outstanding.
 
 ## Target and admission
 
@@ -22,7 +22,9 @@ or commit them. Other AADI/Docker Desktop workloads are not deployment targets.
 Initial recommendation: Debian 13, 4 vCPU, 8 GiB RAM, 60 GiB disk, no GPU. Debian 12
 is also accepted by preflight. These are planning values, not measured capacity.
 The approved operator must first establish SSH access and install Git, Python 3.11+
-and the supported Docker Engine/Compose plugin. Installation is not automated yet.
+and the supported Docker Engine/Compose plugin. Docker installation was performed
+from the official repository on the selected VM; application automation is in
+`scripts/linux-core.py`. Recovery uses Python 3.12+ archive filtering.
 For the selected template, use [Docker's Ubuntu instructions](https://docs.docker.com/engine/install/ubuntu/)
 (Ubuntu 24.04 support checked 2026-09-29). For Debian candidates use
 [Docker's Debian instructions](https://docs.docker.com/engine/install/debian/)
@@ -94,8 +96,9 @@ to make preflight pass; resolve the target identity first.
    controller run-state/service boundaries without giving workers host authority;
    full worker/controller implementations belong to Phases 6/7.
 
-Phase 5 remains partial until its application runtime, recovery and operational evidence
-are recorded. The current live browser is `http://localhost:3000`; local Phase 4
-validation is `http://localhost:3080`. No remote GatewayAI web service or web login
-exists yet. The new VM administrator uses existing SSH keys; application credentials
-have not been provisioned. Existing local credentials remain in protected files.
+Phase 5 remains partial for outstanding recovery/migration gates. The existing
+Windows live browser is `http://localhost:3000`; local Phase 4 validation is
+`http://localhost:3080`. The VM's fresh zero-spend WebUI is available through the
+SSH tunnel at `http://localhost:3180`. Its separate login is stored privately;
+see Linux operations and local VM notes. Existing Windows credentials/data remain
+unchanged. The milestones above define acceptance, not a claim that every gate passed.
