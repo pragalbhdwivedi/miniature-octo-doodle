@@ -31,6 +31,9 @@ publication denied. Phase7 remains PARTIAL for end-to-end AADI acceptance.**
 **Phase 8: STARTED / PARTIAL. Schema-3 exact-action Telegram approval state,
 signed callback validation and one-shot manual poll/request CLIs are implemented.
 Windows/WSL fixture tests and real PostgreSQL test-copy transitions passed.
+PR #25 merged; VM9125 controller source now matches main and production schema 3
+was applied after a verified protected backup. Prior run history, gateway ledger
+and core health passed readback. No Telegram configuration was installed.
 No bot token or approved Telegram user/chat identity is configured; live delivery,
 phone decision and exact-run resumption remain unvalidated. The production bot
 path stays disabled.**

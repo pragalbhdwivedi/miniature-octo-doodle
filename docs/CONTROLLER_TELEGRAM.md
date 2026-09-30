@@ -2,7 +2,8 @@
 
 Status: implemented for a single exact draft-publication decision; live Telegram
 delivery and user callback are **not tested**. The owner has no bot token/user ID
-yet. VM production configuration has no `telegram_approval_config`, so the new
+yet. Schema 3 is deployed on VM9125, but production configuration has no
+`telegram_approval_config`, so the new
 transport is inactive. The existing operator-only digest approval remains in use
 until Telegram is provisioned and independently accepted.
 
