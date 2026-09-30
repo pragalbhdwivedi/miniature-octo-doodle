@@ -33,6 +33,22 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Agent Controller | PARTIAL | Planner plus PostgreSQL claims/audit and controlled dispatch implemented; live acceptance below, independent review/repair pending |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
+## Phase 7 first live dispatch and fixture correction - 30 September 2026
+
+- PR #18 merged at `d331110fabb5acbf9c323ad457dbb04b62fec3a6` after
+  CI36744777902/36744738437 passed. Sixteen deployed files match `e647ff6`.
+- Main task/issue eligibility and exact request review passed. Run
+  `3b9d24f3dc274d72839cc1a2059abb65` was durably claimed before execution.
+  Request digest `912f4407d3c2760afe3c23d9c1946fe4aec76b7abacd42b0679d254b58515828`.
+- Live worker FAILED in 8.02s: the pre-existing smoke-job JSON decoded a literal
+  newline inside a Python string, causing SyntaxError. Container removal passed;
+  zero provider calls. PostgreSQL retained dispatching -> failed audit evidence.
+  Duplicate dispatch of the same request was rejected before worker execution.
+- Corrected escaping in the smoke fixture and committed controller task, with a
+  regression that compiles embedded Python commands. WSL94passed/one opt-in DB skip.
+  A new reviewed source/request is required; no failed run is reset or retried.
+  Successful committed-task dispatch remains pending this correction reaching main.
+
 ## Phase 7 persistent state and controlled dispatch - 30 September 2026
 
 - Implemented separate operator-only prepare/dispatch/status/reconcile CLI, exact

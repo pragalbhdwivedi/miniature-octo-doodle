@@ -19,12 +19,12 @@
           [
             "python3",
             "-c",
-            "from pathlib import Path; Path('docs/worker-smoke.txt').write_text('Synthetic isolated worker validation.\n')"
+            "from pathlib import Path; Path('docs/worker-smoke.txt').write_text('Synthetic isolated worker validation.\\n')"
           ],
           [
             "python3",
             "-c",
-            "from pathlib import Path; assert Path('docs/worker-smoke.txt').read_text() == 'Synthetic isolated worker validation.\n'"
+            "from pathlib import Path; assert Path('docs/worker-smoke.txt').read_text() == 'Synthetic isolated worker validation.\\n'"
           ],
           [
             "git",

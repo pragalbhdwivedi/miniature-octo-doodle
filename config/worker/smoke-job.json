@@ -1,13 +1,32 @@
 {
   "project": "gatewayai",
   "ref": "refs/heads/main",
-  "write_paths": ["docs/worker-smoke.txt"],
+  "write_paths": [
+    "docs/worker-smoke.txt"
+  ],
   "timeout_seconds": 60,
   "model_budget_usd": 0,
   "commands": [
-    ["python3", "-c", "from pathlib import Path; Path('docs/worker-smoke.txt').write_text('Synthetic isolated worker validation.\n')"],
-    ["python3", "-c", "from pathlib import Path; assert Path('docs/worker-smoke.txt').read_text() == 'Synthetic isolated worker validation.\n'"],
-    ["git", "add", "docs/worker-smoke.txt"],
-    ["git", "commit", "-m", "Synthetic isolated worker validation"]
+    [
+      "python3",
+      "-c",
+      "from pathlib import Path; Path('docs/worker-smoke.txt').write_text('Synthetic isolated worker validation.\\n')"
+    ],
+    [
+      "python3",
+      "-c",
+      "from pathlib import Path; assert Path('docs/worker-smoke.txt').read_text() == 'Synthetic isolated worker validation.\\n'"
+    ],
+    [
+      "git",
+      "add",
+      "docs/worker-smoke.txt"
+    ],
+    [
+      "git",
+      "commit",
+      "-m",
+      "Synthetic isolated worker validation"
+    ]
   ]
 }
