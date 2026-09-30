@@ -1,11 +1,13 @@
 # Telegram approval gate (Phase 8 increment)
 
-Status: implemented for a single exact draft-publication decision; live Telegram
-delivery and user callback are **not tested**. The owner has no bot token/user ID
-yet. Schema 3 is deployed on VM9125, but production configuration has no
-`telegram_approval_config`, so the new
-transport is inactive. The existing operator-only digest approval remains in use
-until Telegram is provisioned and independently accepted.
+Status: implemented for a single exact draft-publication decision. On 2026-10-01,
+the owner-provided bot token and a private `/start` update established the approved
+user/chat identity. VM9125 has a protected root-only bot configuration, and a
+VM-originated test message received Telegram API acknowledgment and the owner
+confirmed phone receipt. Live approval callback remains untested. Production
+dispatch has no `telegram_approval_config`, so the new transport is inactive.
+The existing operator-only digest approval remains in use until live callback
+acceptance.
 
 ## Authority and action
 

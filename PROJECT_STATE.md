@@ -33,10 +33,13 @@ signed callback validation and one-shot manual poll/request CLIs are implemented
 Windows/WSL fixture tests and real PostgreSQL test-copy transitions passed.
 PR #25 merged; VM9125 controller source now matches main and production schema 3
 was applied after a verified protected backup. Prior run history, gateway ledger
-and core health passed readback. No Telegram configuration was installed.
-No bot token or approved Telegram user/chat identity is configured; live delivery,
-phone decision and exact-run resumption remain unvalidated. The production bot
-path stays disabled.**
+and core health passed readback. On 2026-10-01, the owner-provided bot token and
+private `/start` update identified one approved numeric user/chat. A root-only
+configuration was copied to VM9125 and a one-time Telegram `sendMessage` from the
+VM received API acknowledgment for that chat, and the owner confirmed phone
+receipt. Live approval callback and exact-run resumption remain unvalidated.
+Production dispatch still omits `telegram_approval_config`, so the approval path
+stays disabled.**
 
 AADI Phase 7 gate: refreshed private `pragalbhdwivedi/aadi` `Dev` at
 `cf5de5a465a71e83998488b9c59c1951241fdac8`; controller integration PR #23

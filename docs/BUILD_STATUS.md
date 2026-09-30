@@ -31,7 +31,22 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Graphify | NOT STARTED | Optional |
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
-| Telegram approvals | PARTIAL | Exact draft-publication decision and callback/DB tests pass; live bot identity and delivery untested, transport disabled |
+| Telegram approvals | PARTIAL | Exact draft-publication callback/DB tests pass; live private identity, VM-to-Telegram delivery and owner-confirmed phone receipt pass; live callback pending, transport disabled |
+
+## Phase 8 bot provisioning checkpoint - 1 October 2026
+
+- The owner entered the BotFather token in a protected file outside Git and synced
+  storage. Telegram `getMe` accepted it. After the owner sent `/start`, `getUpdates`
+  returned one private-chat message; its numeric sender and chat IDs matched.
+- The protected JSON has a locally generated 32-byte signing key and was copied
+  byte-for-byte to `/etc/gatewayai-controller/telegram.json` on VM9125. The VM
+  file is root-owned mode `0600`; its SHA-256 matched the local file. Neither the
+  token nor signing key was printed or added to Git.
+- One VM-originated `sendMessage` connectivity test received Telegram API success
+  and a message ID for the configured private chat. The owner confirmed receipt on
+  the phone. No approval request, callback, publisher action or budget spend was
+  part of this test. Production dispatch still lacks `telegram_approval_config`;
+  exact-action Telegram approvals remain inactive until live callback acceptance.
 
 ## Phase 8 Telegram approval foundation and AADI gate - 30 September 2026
 
@@ -71,9 +86,9 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   below the prior rounded sample); no new image, service, package or VM. Local VM
   inventory and Proxmox Notes were synchronized and read back with hardware/auth
   settings preserved. The backup is same-host protection, not clean-host recovery.
-- Production dispatch config has no Telegram key; no bot token/user ID is present.
-  The owner has no bot token/user ID yet.
-  A protected bot configuration, live identity/delivery/callback test, and wider
+- At this 30 September checkpoint, production dispatch had no Telegram key and
+  no bot token/user ID was present. The 1 October provisioning checkpoint above
+  supersedes those credential and delivery gaps; live callback acceptance and wider
   Phase 8 choose/pause/resume/notification types remain pending. Phase 9 memory and
   graph components remain deferred until the Git-only AADI controller path works.
 - The test copy uses the existing PostgreSQL instance and retained worker image.
