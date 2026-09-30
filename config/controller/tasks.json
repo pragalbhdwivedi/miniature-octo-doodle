@@ -4,7 +4,7 @@
     {
       "id": "dispatch-acceptance",
       "issue": 17,
-      "state": "ready",
+      "state": "done",
       "priority": 100,
       "depends_on": [],
       "job": {

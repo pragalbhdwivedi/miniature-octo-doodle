@@ -60,8 +60,8 @@ reserve. AADI's registry entry is disabled and cannot be selected.
 Required governance: PROJECT.md, AGENTS.md, WORK_INSTRUCTIONS.md, PROJECT_STATE.md,
 README.md, ARCHITECTURE, BUILD_STATUS and ROADMAP. Missing files block selection.
 Tasks must be committed in `config/controller/tasks.json`. The manifest contains
-one zero-spend synthetic dispatch acceptance task; it grants no scheduling or
-production authority.
+one completed zero-spend synthetic dispatch acceptance task; it grants no
+scheduling or production authority.
 Each task has `id`, `issue`, `state` (ready/paused/done), `priority` (1..100),
 `depends_on` (task IDs), and a worker `job` matching `config/worker/coding-job.json`.
 The job must use this project's approved ref, explicit context/write paths,
@@ -86,7 +86,8 @@ backend or an approval. The separate dispatcher stores durable claims and audit
 events in PostgreSQL; see [dispatch operations](CONTROLLER_DISPATCH.md).
 `awaiting_operator_review` means eligible planning only. Revalidate repository
 ownership/source and explicitly set a budget before any separate worker operation.
-There is no automatic handoff, claim acquisition, scheduling or resume path yet.
+There is no automatic handoff or scheduler. The separate operator dispatcher
+acquires durable claims only after exact-request approval.
 
 VM acceptance used Linux UID65534 with no sudo/Docker/provider/GitHub credentials.
 It fetched current main and correctly blocked because main had no committed task
@@ -96,8 +97,8 @@ mutation occurred. Larger/private repositories require separate activation.
 
 ## Remaining Phase 7 acceptance
 
-PostgreSQL run/event persistence; atomic task claims; bounded dispatch to the
-worker without exposing host authority; independent review; bounded repair;
+PostgreSQL run/event persistence, atomic claims and controlled operator dispatch
+passed the subsequent live milestone. Remaining work: independent review; bounded repair;
 source/ownership revalidation before publication; and end-to-end AADI acceptance.
 Telegram action-bound pause/resume remains Phase 8. No service/daemon or new
 container image was installed for this first planning milestone.

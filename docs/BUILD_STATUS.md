@@ -33,6 +33,40 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Agent Controller | PARTIAL | Planner plus PostgreSQL claims/audit and controlled dispatch implemented; live acceptance below, independent review/repair pending |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
+## Phase 7 durable dispatch acceptance - 30 September 2026
+
+- Implementation PR #18 merged; smoke correction PR #19 merged at
+  `989d22edb6d0e526ba20511cb2899e622797de3e` after CI36745273935/36745270726 passed.
+  Sixteen deployed source/config/test files verified against that commit.
+- Real public GitHub refresh selected the committed ready issue/task. Reviewed
+  zero-budget request `e1fa8981d99c4d85a50f38309178e990`, digest
+  `ef2ca2d71308c9d22734a539ed0acc2e69ece7be474d2fe5a72fda40e7cc420f`.
+  PostgreSQL claim committed before the worker fetched the exact approved source.
+- Worker passed synthetic write/content assertion/local commit/export in 9.93s.
+  Only `docs/worker-smoke.txt` changed; artifact SHA-256
+  `5841516be22bad902af3e586ed8faab835b6fa8f969de50a755c52433dbd602c`.
+  Container removed; zero provider calls; one-line patch reviewed separately.
+- Injected a completion-write exception after actual worker completion. A new
+  operator process read the retained `dispatching` claim. Duplicate dispatch was
+  denied before execution. Reconcile verified exact result/source/job/artifact
+  and persisted `review_required` without rerunning the worker. Fresh status
+  readback and ordered audit events passed. First failed run remains in history.
+- Final target suite: 22 tests passed including real PostgreSQL concurrency,
+  audit/privilege/replay/ownership checks. Full WSL94passed/one opt-in DB skip;
+  Windows86passed/nine platform/opt-in DB skips.
+  Repository safety and diff checks pass; no worker containers remain.
+- Four core/proxy services healthy; ledger unchanged4.870530USD/28attempts and
+  zero active requests; monthly ceiling remains100USD. Controller database
+  8,068,119 bytes; VMfree48.47GiB vs48.49GiB preflight. Test DB retained; no new
+  images, packages, services, models or VMs. Whole-host delta is not exclusive
+  database allocation. Local inventory and Proxmox Notes synchronized/read back.
+- The synthetic task is marked done after acceptance; its artifact remains
+  private and un-published, with the durable review-required record retained.
+  No autonomous review/repair or publication action was introduced. Paid coding
+  through this new dispatcher, independent reviewer/repair/publication orchestration,
+  AADI activation and separate-machine controller recovery remain unvalidated.
+  Existing Phase6 paid coding evidence is distinct. Phase7 remains PARTIAL.
+
 ## Phase 7 first live dispatch and fixture correction - 30 September 2026
 
 - PR #18 merged at `d331110fabb5acbf9c323ad457dbb04b62fec3a6` after

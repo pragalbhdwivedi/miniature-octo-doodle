@@ -40,3 +40,11 @@ acceptance is now recorded in BUILD_STATUS; broader token scope is not API-prove
 
 Phase7 PR15 is reconciled onto main after PR13 merged. It introduces only a read-only
 planner; durable PostgreSQL run state and execution orchestration remain pending.
+
+## Durable dispatch increment
+
+PR #18 added PostgreSQL claims and controlled dispatch after CI passed. PR #19
+fixed the pre-existing smoke JSON escaping exposed by live execution, retaining
+the failed run. Positive zero-spend dispatch and completion-failure reconciliation
+then passed. The implementation and correction are merged; exact tested results
+and remaining Phase7 scope are in BUILD_STATUS.

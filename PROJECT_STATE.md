@@ -19,8 +19,9 @@ Fine-grained token repository restriction remains an operator provisioning
 responsibility; API success does not independently prove absence of broader scope.
 Phase 7: STARTED / PARTIAL. Read-only repository planner implemented and tested;
 unprivileged planning remains read-only. Dedicated PostgreSQL claims/audit and
-operator-only exact-request dispatch are implemented; database concurrency and
-denial tests passed. Live committed-task dispatch acceptance is pending below.
+operator-only exact-request dispatch are deployed and live-tested. The committed
+zero-spend task passed; simulated completion-write outage retained the claim and
+reconciliation recovered the result without re-execution.
 Independent review, repair and publication orchestration remain pending.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
@@ -103,7 +104,7 @@ See [Linux operations](docs/LINUX_CORE.md) and [Phase 5 gates](docs/DEBIAN_CONTR
 On 2026-09-30 the user authorized the next phase. The first Phase 6 milestone
 adds an operator-only broker, allowlisted public repository refresh, offline
 non-root disposable worker, bounded shell/tests and reviewable artifacts.
-It is on `feat/phase6-isolated-worker`, stacked on the unmerged Phase 5 branch.
+The worker and controller foundation are merged on main.
 Gateway-backed one-turn coding and per-run cost reservations now pass live
 acceptance. The external publisher created draft PR #16 from a fresh main snapshot;
 exact file/parent and unchanged main were verified with no provider calls. See [worker operations](docs/WORKER.md).
@@ -113,7 +114,7 @@ zero spending, fresh data and Jev disabled. It does not replace the Compose gate
 
 Live Jev integration/evaluation/calibration remains deferred under ADR 0008.
 Only the explicitly requested NPM and Phase 6 worker image have been added;
-no local model weights or context/controller modules. See [Kubernetes operations](docs/KUBERNETES.md).
+no local model weights or optional context modules. See [Kubernetes operations](docs/KUBERNETES.md).
 
 ## Phase 5 runtime checkpoint (2026-09-30)
 - Direct Windows/WSL and bastion SSH, target admission, Docker/core health,
