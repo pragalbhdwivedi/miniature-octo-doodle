@@ -163,6 +163,8 @@ receives a read-only source/job mount and bounded tmpfs workspace; it has no
 gateway/provider/SSH credentials, host write mount or Docker socket. Commands
 and local Git commits occur only inside it. Export compares allowlisted file
 changes to the immutable input, preserving an audit record outside the worker.
-No agent/runtime API can invoke the privileged broker. Model execution and
-GitHub publication are disabled pending separate adapter implementation within
-Phase 6; Phase 7 task selection/controller is not installed. See [WORKER](WORKER.md).
+No agent/runtime API can invoke the privileged broker. An operator adapter makes
+one budget-reserved LiteLLM call and validates proposed edits before sandbox tests.
+A separate publisher binds operator review to artifact hashes and creates only
+new run branches/draft PRs; live publishing awaits a scoped credential.
+Phase 7 task selection/controller is not installed. See [WORKER](WORKER.md).

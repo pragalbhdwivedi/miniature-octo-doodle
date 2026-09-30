@@ -14,7 +14,9 @@ Phase 5: PARTIAL. Live Windows data/credentials/ledger migrated to the Linux VM;
 API/provider/browser acceptance passed. Encrypted off-VM copy and authenticated
 readback passed. Separate clean-host recovery and reverse cutover remain pending.
 Phase 6: STARTED / PARTIAL. Zero-spend isolated worker execution is deployed and
-tested; coding-agent and scoped publication adapters remain unimplemented.**
+tested. Gateway-backed one-turn coding and per-run budgets passed live acceptance;
+scoped draft-PR publication is implemented/tested locally but awaits a scoped
+credential for live GitHub acceptance.**
 
 PR [#6](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/6) was reviewed
 and merged at `301e3a13a021fedfaa8418759661736fe784fb33`.
@@ -98,8 +100,9 @@ On 2026-09-30 the user authorized the next phase. The first Phase 6 milestone
 adds an operator-only broker, allowlisted public repository refresh, offline
 non-root disposable worker, bounded shell/tests and reviewable artifacts.
 It is on `feat/phase6-isolated-worker`, stacked on the unmerged Phase 5 branch.
-Remaining Phase 6 work is a gateway-backed coding-agent adapter with per-run cost
-controls and scoped publication outside the worker. See [worker operations](docs/WORKER.md).
+Gateway-backed one-turn coding and per-run cost reservations now pass live
+acceptance. The external publisher passes unit/plan checks; live GitHub publication
+awaits a repository-scoped credential. See [worker operations](docs/WORKER.md).
 
 The local k3d deployment remains isolated developer validation: no provider keys,
 zero spending, fresh data and Jev disabled. It does not replace the Compose gateway.

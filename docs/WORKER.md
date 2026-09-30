@@ -1,9 +1,9 @@
 # Phase 6 isolated worker
 
-Status: zero-spend execution boundary DEPLOYED AND TESTED; overall Phase 6 PARTIAL.
-This first milestone is the zero-spend
-execution boundary. It does not yet install a model-driven coding agent, publish
-worker changes to GitHub, or implement the Phase 7 controller.
+Status: offline execution and gateway-backed one-turn coding DEPLOYED AND TESTED.
+Scoped publication is implemented and mock/plan-tested; live publication awaits
+a repository-scoped credential. Overall Phase 6 remains PARTIAL.
+The Phase 7 controller is not installed.
 
 The user authorized the next phase on 30 September 2026. Phase 5 recovery and
 client trust gates remain open independently; this does not mark them complete.
@@ -68,8 +68,9 @@ before fetching. Git fetch has a 60-second limit, 512 MiB address-space limit an
 64 MiB per-file ceiling; archive creation has the same memory/file bounds;
 the source archive has a 32 MiB/10,000-file ceiling. Symlinks, hard links,
 submodules and special source files are unsupported and fail closed.
-Model budget must be zero. Supplying credentials or enabling spend is not a
-supported job option, and no cloud fallback exists in this executor.
+Without a `coding` specification the model budget must be zero. With one, an
+operator-controlled gateway adapter handles inference before container startup;
+the sandbox remains offline and never receives credentials.
 
 Target acceptance on 30 September 2026 passed fresh main fetch, synthetic
 edit/test/local commit/artifact export, resource/privilege/filesystem/network
@@ -99,18 +100,101 @@ a stopped container after the independent timeout; the operator should inspect
 only `gatewayai.role=isolated-worker` identities before removing a named residue.
 Audit/snapshot artifacts are retained. No automatic retention/deletion is enabled.
 
-## Recovery and remaining Phase 6 work
+## Recovery and Phase 6 limits
 
 Rebuild the worker image from the tracked Dockerfile, record its new image ID,
 then run a fresh job against a new fetched snapshot. No prior worker workspace
 or secret is required. This is disposable-worker recovery, not live gateway
 restore or separate-machine recovery evidence.
 
-Remaining: a coding-agent executor through the central gateway with explicit
-per-run cost reservations, operator-mediated publication to scoped review
-branches, default/protected-branch denial at that boundary, and live end-to-end
-coding/publishing acceptance. No default-branch push path currently exists.
-Project-scoped GitHub credentials must stay outside the worker. Controller task
-selection and Telegram approvals remain Phases 7 and 8.
+Remaining acceptance: install an operator-provided repository-scoped GitHub
+credential and validate actual branch/draft PR creation. The adapter below has
+no default-branch update or merge operation. Controller task selection and
+Telegram approvals remain Phases 7 and 8.
 
 The isolation flags follow [Docker's runtime controls](https://docs.docker.com/engine/containers/run/).
+
+## Gateway-backed coding
+
+`scripts/worker_coding.py` implements one bounded model turn, not an autonomous
+shell agent. The operator supplies the task, exact public context/output paths,
+capability alias and independent sandbox test commands. Mandatory governance
+files present in the fetched source are included. Oversized context fails closed
+rather than silently dropping instructions. Only public allowlisted repositories
+are supported; AADI is not activated.
+
+The model returns full-file JSON edits. Paths, base hashes, modes, text and size
+are validated before applying them inside the existing offline sandbox. A model
+cannot add tools/commands, credentials, network access or publication authority.
+There is one gateway call, no client retries/repair iterations, at most 1024 output
+tokens and a 100-second total HTTP deadline. Sandbox execution retains its separate
+120-second job maximum and independent 150-second container deadline.
+
+Create a root-owned 0600 JSON configuration **outside Git/sync** with these fields:
+`gateway_url` (local `http://127.0.0.1:4000`), `gateway_key` (dedicated chat-only key),
+and `policy_file` (the actual root-owned 0600 resolved policy mounted in LiteLLM).
+The VM configuration is `/etc/gatewayai-worker/coding.json`. The deployed key allows
+only the five reviewed coding/documentation/review aliases and `/v1/chat/completions`;
+management access was denied. Provider/master keys remain in the gateway.
+
+Copy `config/worker/coding-job.json` to protected runtime storage and explicitly
+set `model_budget_usd` (default 0 disables spending, maximum 1 USD per run):
+
+```sh
+sudo python3 scripts/worker.py --job /protected/coding-job.json \
+  --image sha256:VERIFIED_IMAGE_ID --coding-config /etc/gatewayai-worker/coding.json
+```
+
+Before HTTP, `coding-budget.sqlite3` atomically and permanently reserves the same
+conservative input/template/output pricing ceilings for both allowed gateway
+attempts. The actual mounted policy is checked against those ceilings. A unique
+run ID can be debited only once; replay, concurrent duplicate calls, insufficient
+budget and policy price/attempt drift fail closed. Failed/ambiguous calls are not
+refunded. The gateway separately enforces the existing $100/month allowance.
+Neither ledger is a provider invoice; the run ledger is an additional limit, not
+extra monthly spending capacity. Retain the ledger with the private run artifacts;
+never roll it back to regain capacity. Live administrator policy changes/restarts
+must be reconciled with the adapter's ceilings before further coding runs.
+
+## Reviewed scoped publication
+
+`scripts/worker_publish.py` is a separate operator CLI. It checks successful sandbox
+cleanup, exact run/project/ref, immutable source/job hashes, approved write paths
+and the SHA-256 of `changes.json`. Hidden paths/workflows and credential inventory
+paths are excluded. Review both `review.patch` and authoritative `changes.json`
+(including modes) before supplying the digest. The hash binds the chosen bytes;
+it is not a substitute for human review or a cryptographic approver identity.
+
+```sh
+# Read-only plan; no GitHub credential or mutation:
+sudo python3 scripts/worker_publish.py --run /var/lib/gatewayai-worker/RUN_ID \
+  --approve-sha256 REVIEWED_CHANGES_SHA256
+# Publish the exact reviewed plan:
+sudo python3 scripts/worker_publish.py --run /var/lib/gatewayai-worker/RUN_ID \
+  --approve-sha256 REVIEWED_CHANGES_SHA256 --config /etc/gatewayai-worker/publisher.json
+```
+
+The publisher configuration is root-owned 0600 outside Git/sync, containing
+`repository` and `github_token`. The prepared VM field is empty and disabled.
+Use a short-lived GitHub App installation token or fine-grained token limited to
+this repository with Contents and Pull requests write permissions. The CLI checks
+the configured repository; GitHub's credential permissions provide the independent
+repository boundary. It cannot prove a supplied token has no broader permissions;
+that must be verified during provisioning. No token is copied into the worker.
+
+Only a new `worker/<run-id>` branch and a draft PR may be created. The fetched base
+must still match GitHub's default branch SHA; stale work requires a fresh run and
+review. Existing branches are never updated, forced or deleted. No merge,
+production deployment or workflow-file publication operation exists. GitHub branch
+rules still apply. Repository CI may run on the new branch/PR; this does not grant
+permission to merge or deploy. Requests use fixed GitHub endpoints, no environment
+proxy or redirects, and generic credential-free errors.
+
+A private publication journal is written before network mutation. Partial failures
+retain the journal and any created Git objects/branch; automatic retries are
+blocked. Inspect the exact run on GitHub before manual recovery. A late base race
+still leaves the new commit parent bound to the reviewed source. Live publishing
+has not been validated without the scoped credential.
+
+API references: [LiteLLM virtual keys](https://docs.litellm.ai/docs/proxy/virtual_keys)
+and [GitHub create-reference API](https://docs.github.com/en/rest/git/refs).

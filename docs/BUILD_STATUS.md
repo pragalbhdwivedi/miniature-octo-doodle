@@ -29,11 +29,60 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | OmniRoute | NOT STARTED | Optional |
 | OpenViking | NOT STARTED | Optional |
 | Graphify | NOT STARTED | Optional |
-| Isolated coding worker | PARTIAL | Phase 6 offline execution/artifact boundary deployed and tested; coding-agent/scoped publication adapters remain |
+| Isolated coding worker | PARTIAL | Gateway coding/per-run budgets live-tested; scoped publisher implemented, live GitHub acceptance awaits credential |
 | Agent Controller | NOT STARTED | Phase 7; independent of AADI production |
 | Telegram approvals | NOT STARTED | Phase 8; WhatsApp excluded |
 
 A documented architecture is not implementation evidence.
+
+## Phase 6 coding, run budgets and scoped publisher - 30 September 2026
+
+- Continued PR #13 from `058807a`; refreshed GitHub PRs/issues and repository
+  governance. Separate dashboard PR #14/untracked files were preserved.
+- Implemented operator-only one-turn LiteLLM coding adapter: allowlisted public
+  source/governance context, fixed aliases, JSON file proposals, exact write paths,
+  independent sandbox tests and immutable input/artifact hashes. No new image,
+  service, CLI package, provider, controller or VM was installed.
+- Per-run budget defaults to zero, maximum1USD. Durable SQLite reservation uses
+  the gateway's reviewed conservative ceilings for both possible attempts; actual
+  mounted policy prices/attempt count are checked. Duplicate/concurrent IDs,
+  insufficient budgets, changed ceilings and replay fail closed. Ambiguous failures
+  are never refunded; the existing100USD UTC-month ledger remains authoritative.
+- Dedicated chat-only key created in protected root0600 configuration outside
+  Git/sync. Gateway management endpoint denied. No credential enters the sandbox.
+- Live run `3f1942325ad648fb9156281ef28f9daf`: fresh main `3cf3b6d`, model-generated
+  clamp function, lower/upper/interior/equal/inverted-limit tests, local commit and
+  artifact export passed in18.25s; exact container removed. Reserved0.656860USD
+  within the1USD ceiling. Gateway ledger confirms Gemini primary HTTP503 then
+  approved OpenAI fallback accepted; two provider attempts, one client call.
+- Zero-budget run was denied before HTTP. First acceptance harness expected a zero
+  debit field before the ledger existed; added explicit zero counters and reran.
+  No provider call occurred for either denied run.
+- Reviewed synthetic artifact SHA256
+  `5c6f2172036378342409f114cef9e83e11f2f624d52f2da252d61bb3d1f8e75d`;
+  publisher's read-only plan passed against its recorded source/job/artifact hashes.
+- Implemented separate exact-hash publisher: approved repository/default-base SHA,
+  new `worker/<run-id>` branch only, draft PR only, no update/force/delete/merge.
+  Stale base, cross-project credentials, default-branch output, changed artifact,
+  sensitive paths and incomplete runs fail closed. Private attempt journal blocks
+  automatic retries after partial failure. Scoped token provisioning remains open;
+  VM publisher configuration has an empty token and is disabled. Live GitHub
+  branch/PR publication is NOT validated; no acceptance PR was created.
+- Tests:73 WSL passed; Windows venv66passed/7platform/dependency skips;
+  24worker tests passed on VM. Initial global Windows Python lacked PyYAML;
+  reran with the existing project venv, without installing packages. New Windows
+  SQLite cleanup failures were fixed by explicitly closing connections.
+  Repository YAML/security checks passed. Final offline source/edit/test/export
+  regression passed in8.11s after adapter hardening; container removed, zero calls.
+  Updated local VM notes and Proxmox Notes were read back; existing dashboard
+  notes and all hardware/authentication settings were preserved.
+- Core health after acceptance: four healthy containers, preserved network
+  boundaries/loopback, no worker residue,100USD monthly allowance unchanged.
+  Admission ledger moved4.213670->4.870530USD,26->28provider attempts,0active;
+  delta equals the worker reservation. These are conservative debits, not invoices.
+  VM free disk48.52GiB; no new image/storage-volume allocation.
+- Phase6 remains PARTIAL until scoped credential and live publishing acceptance.
+  Phase5 clean-host recovery/reverse-cutover/client gates are unchanged.
 
 ## Phase 6 worker execution boundary - 30 September 2026
 

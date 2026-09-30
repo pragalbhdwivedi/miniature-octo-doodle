@@ -103,3 +103,10 @@ Worker writes use 256 MiB workspace/64 MiB temporary tmpfs within a 768 MiB RAM
 ceiling. Private fetched source, logs and review artifacts remain on disk after
 container removal; future retention is not automatic. The broker serializes runs
 and reserves 1 GiB above the 15 GiB floor on both runtime and Docker storage.
+
+The coding/publishing adapter increment reuses that image and adds only stdlib
+Python source plus private SQLite reservations/artifacts. No new image, model,
+volume or dependency installation; post-acceptance VM free48.52GiB. Retain
+`coding-budget.sqlite3`, run inputs/results and publication journals with protected
+worker storage. Automatic retention and separate-host worker recovery are not
+validated; do not restore an old ledger to reopen already consumed run capacity.

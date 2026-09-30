@@ -101,7 +101,9 @@ full Kubernetes deployment when scale/recovery evidence justifies it
 Status: PARTIAL, authorized to start on 30 September 2026. The zero-spend execution
 boundary is deployed/tested: approved public repository refresh, bounded offline
 commands/tests, isolated local branch/commit and immutable-source artifact review.
-Live coding-agent and scoped GitHub publication adapters are not implemented.
+Gateway-backed one-turn coding and per-run budgets are deployed/live-tested.
+Scoped draft-PR publication is implemented and unit/plan-tested; credential
+provisioning and live GitHub acceptance remain pending.
 See [worker operations](WORKER.md). Phase 5's open gates remain open.
 
 Build the first execution worker before adding persistent agent memory or a large

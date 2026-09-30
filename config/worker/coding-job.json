@@ -1,0 +1,18 @@
+{
+  "project": "gatewayai",
+  "ref": "refs/heads/main",
+  "write_paths": ["docs/examples/worker_acceptance.py"],
+  "timeout_seconds": 60,
+  "model_budget_usd": 0,
+  "coding": {
+    "task": "Create docs/examples/worker_acceptance.py as a small synthetic coding acceptance example. Implement clamp(value, lower, upper): raise ValueError when lower > upper; otherwise return lower if value is smaller, upper if larger, or value unchanged. No imports, I/O, comments about deployment or other changes. Return the complete file in the required JSON format.",
+    "read_paths": ["README.md"],
+    "alias": "coding-fast",
+    "max_output_tokens": 512
+  },
+  "commands": [
+    ["python3", "-I", "-c", "from pathlib import Path; scope={}; exec(compile(Path('docs/examples/worker_acceptance.py').read_text(), 'acceptance.py', 'exec'),scope); f=scope['clamp']; assert f(-2,0,10)==0; assert f(20,0,10)==10; assert f(5,0,10)==5; assert f(2,2,2)==2\ntry: f(1,2,0); raise AssertionError('inverted limits accepted')\nexcept ValueError: pass\nprint('CODING_ACCEPTANCE_PASS')"],
+    ["git", "add", "docs/examples/worker_acceptance.py"],
+    ["git", "commit", "-m", "Add synthetic worker coding acceptance example"]
+  ]
+}

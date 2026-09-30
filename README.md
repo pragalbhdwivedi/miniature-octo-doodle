@@ -149,5 +149,6 @@ AADI is the first managed development project and retains its own production aut
 Phase 6 has started with a tested [isolated worker execution boundary](docs/WORKER.md):
 fresh approved-repository snapshots, bounded offline commands/tests, local worker
 branches/commits and reviewed artifact export. The live gateway is unchanged.
-Model-driven coding and scoped GitHub publication are not yet implemented;
-Phase 6 remains partial. No worker receives production or gateway credentials.
+Gateway-backed one-turn coding and per-run budgets passed live acceptance. Scoped
+draft-PR publishing is implemented and locally tested; live publication awaits a
+repository-scoped credential, so Phase 6 remains partial. No sandbox receives credentials.

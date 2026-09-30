@@ -1,4 +1,4 @@
-"""Operator-only Phase 6 worker broker; no daemon, production access or live model spend."""
+"""Operator-only Phase 6 worker broker; no daemon or production access."""
 import argparse
 import base64
 import difflib
@@ -23,12 +23,15 @@ REPO = Path(__file__).resolve().parent.parent
 spec = importlib.util.spec_from_file_location('worker_sandbox', REPO / 'deploy/worker/sandbox.py')
 sandbox = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sandbox)
+spec = importlib.util.spec_from_file_location('worker_coding', REPO / 'scripts/worker_coding.py')
+coding = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(coding)
 DOCKER = ['docker', '--host', 'unix:///var/run/docker.sock']
 MAX_OUTPUT = 2 * 1024 * 1024
 
 
 def validate_job(job, registry):
-    if set(job) != {'project', 'ref', 'commands', 'write_paths', 'timeout_seconds', 'model_budget_usd'}:
+    if set(job) - {'coding'} != {'project', 'ref', 'commands', 'write_paths', 'timeout_seconds', 'model_budget_usd'}:
         raise ValueError('Unexpected job fields')
     project = registry.get(job['project'])
     if not project or job['ref'] not in project['refs']:
@@ -39,7 +42,9 @@ def validate_job(job, registry):
         raise ValueError('Invalid branch ref')
     if type(job['timeout_seconds']) is not int or not 1 <= job['timeout_seconds'] <= 120:
         raise ValueError('Run duration must be 1..120 seconds')
-    if type(job['model_budget_usd']) not in (int, float) or job['model_budget_usd'] != 0:
+    if 'coding' in job:
+        coding.validate(job['coding'], job['model_budget_usd'], sandbox.relative)
+    elif type(job['model_budget_usd']) not in (int, float) or job['model_budget_usd'] != 0:
         raise ValueError('Model execution is disabled in this worker milestone')
     if not isinstance(job['write_paths'], list) or not 1 <= len(job['write_paths']) <= 20:
         raise ValueError('Require explicit output paths')
@@ -180,12 +185,16 @@ def validate_image(info):
         raise ValueError('Image differs from the reviewed worker runtime contract')
 
 
-def run(job, image, root):
+def run(job, image, root, coding_config=None):
     if sys.platform != 'linux' or os.geteuid() != 0:
         raise ValueError('Approved Linux operator required; never expose this CLI to agents')
     import fcntl
     registry = json.loads((REPO/'config/worker/projects.json').read_text())
     project = validate_job(job, registry)
+    if 'coding' in job and coding_config is None:
+        raise ValueError('Operator coding configuration required')
+    if coding_config and Path(coding_config).resolve().is_relative_to(REPO):
+        raise ValueError('Credentials must remain outside the checkout')
     if not re.fullmatch(r'sha256:[a-f0-9]{64}', image):
         raise ValueError('Immutable image ID required')
     os.umask(0o077)
@@ -215,7 +224,7 @@ def run(job, image, root):
                'GIT_TERMINAL_PROMPT': '0', 'GIT_ALLOW_PROTOCOL': 'https', 'LC_ALL': 'C'}
         name = 'gatewayai-worker-'+run_id
         record = {'run_id': run_id, 'project': job['project'], 'ref': job['ref'],
-                  'image_id': image, 'model_budget_usd': 0, 'provider_calls': 0,
+                  'image_id': image, 'model_budget_usd': job['model_budget_usd'], 'provider_calls': 0,
                   'branch': 'worker/'+run_id, 'status': 'failed', 'commands': []}
         created = False
         started = time.monotonic()
@@ -237,8 +246,19 @@ def run(job, image, root):
                 original = sandbox.source_files(tar)
             (source/'source.tar').write_bytes(archive)
             (source/'job.json').write_text(json.dumps({**job, 'branch': record['branch']}))
+            record['source_archive_sha256'] = hashlib.sha256(archive).hexdigest()
+            record['job_sha256'] = hashlib.sha256((source/'job.json').read_bytes()).hexdigest()
             for p in source.iterdir():
                 p.chmod(0o444)
+            proposal = None
+            if 'coding' in job:
+                proposal, debit = coding.generate(job, original, run_id, root, coding_config, sandbox.relative)
+                artifacts(proposal, original, job['write_paths'])
+                record['coding_admission_micro_usd'] = debit
+                record['gateway_calls'] = 1
+                # Provider attempt counts belong to the gateway ledger, not the client.
+                record.pop('provider_calls', None)
+                (folder/'proposal.json').write_text(json.dumps(proposal))
             created = True
             checked(docker_args(image, run_id, source))
             deadline = time.monotonic()+job['timeout_seconds']
@@ -249,6 +269,15 @@ def run(job, image, root):
                 if time.monotonic() >= deadline:
                     raise TimeoutError('Worker startup ceiling')
                 time.sleep(0.1)
+            if proposal is not None:
+                apply_code = ('import json,base64;from pathlib import Path;'
+                    'changes=json.loads(base64.b64decode(__import__("sys").argv[1]))["changes"];'
+                    '\nfor c in changes:\n p=Path("/workspace")/c["path"]\n'
+                    ' if c["content_base64"] is None: p.unlink()\n'
+                    ' else:\n  p.parent.mkdir(parents=True,exist_ok=True)\n'
+                    '  p.write_bytes(base64.b64decode(c["content_base64"]))\n  p.chmod(c["mode"])\n')
+                checked(DOCKER+['exec', name, 'python3', '-I', '-c', apply_code,
+                        base64.b64encode(json.dumps(proposal).encode()).decode()], timeout=10)
             for number, argv in enumerate(job['commands']):
                 remaining = deadline-time.monotonic()
                 if remaining <= 0:
@@ -263,6 +292,7 @@ def run(job, image, root):
                                '/opt/gatewayai-worker/sandbox.py', 'export'], timeout=10))
             diff = artifacts(payload, original, job['write_paths'])
             (folder/'changes.json').write_text(json.dumps(payload, indent=2))
+            record['artifact_sha256'] = hashlib.sha256((folder/'changes.json').read_bytes()).hexdigest()
             (folder/'review.patch').write_text(diff)
             record['patch_sha256'] = hashlib.sha256(diff.encode()).hexdigest()
             record['changed_paths'] = [c['path'] for c in payload['changes']]
@@ -271,11 +301,28 @@ def run(job, image, root):
             record['failure_type'] = type(error).__name__
         finally:
             if created:
-                # This exact disposable container only; never prune shared resources.
+                # Cleanup precedes budget audit; a damaged ledger must not skip removal.
                 code, _ = bounded(DOCKER+['rm', '-f', name], timeout=20)
                 record['container_removed'] = code == 0
                 if code:
                     record['status'] = 'cleanup_failed'
+            if 'coding' in job:
+                record.pop('provider_calls', None)
+                record['coding_admission_micro_usd'] = 0
+                record['gateway_calls_upper_bound'] = 0
+                ledger = root/'coding-budget.sqlite3'
+                if ledger.exists():
+                    import sqlite3
+                    from contextlib import closing
+                    try:
+                        with closing(sqlite3.connect(ledger)) as db:
+                            row = db.execute('SELECT debit FROM runs WHERE id=?', (run_id,)).fetchone()
+                        record['coding_admission_micro_usd'] = row[0] if row else 0
+                        record['gateway_calls_upper_bound'] = 1 if row else 0
+                    except sqlite3.Error:
+                        record['status'] = 'budget_audit_failed'
+                        record['coding_admission_micro_usd'] = None
+                        record['gateway_calls_upper_bound'] = 1
             record['elapsed_seconds'] = round(time.monotonic()-started, 2)
             (folder/'result.json').write_text(json.dumps(record, indent=2))
         print(json.dumps({k: v for k, v in record.items() if k != 'commands'}))
@@ -287,9 +334,10 @@ if __name__ == '__main__':
     parser.add_argument('--job', type=Path, required=True)
     parser.add_argument('--image', required=True)
     parser.add_argument('--root', type=Path, default=Path('/var/lib/gatewayai-worker'))
+    parser.add_argument('--coding-config', type=Path)
     args = parser.parse_args()
     try:
-        result = run(json.loads(args.job.read_text()), args.image, args.root)
+        result = run(json.loads(args.job.read_text()), args.image, args.root, args.coding_config)
         raise SystemExit(0 if result['status'] == 'review_required' else 1)
     except Exception as error:
         raise SystemExit('Worker rejected: '+type(error).__name__+'; no credentials printed')

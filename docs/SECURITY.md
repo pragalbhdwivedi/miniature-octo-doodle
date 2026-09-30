@@ -121,8 +121,12 @@ Never expose its Docker authority through WebUI, a model tool or a public API.
 Workers are non-root, offline, read-only except for bounded tmpfs, with resource
 limits and no secrets. Input is an allowlisted public source snapshot; output
 must match exact allowed paths against the immutable source. Git history inside
-the worker cannot hide unauthorized edits. There is no worker publication path
-or live model access, and job budgets other than zero are rejected.
+the worker cannot hide unauthorized edits. Operator-only adapters handle gateway
+inference and reviewed GitHub publication outside the sandbox. One model call
+reserves a durable conservative per-run debit; the central monthly limit also
+applies. Publication requires exact artifact approval and a repository-scoped
+credential, and creates only new run branches and draft PRs. No merge operation
+is provided. Live publication remains pending.
 Container isolation shares the VM kernel; this is bounded execution evidence,
 not approval for arbitrary hostile code or production repositories.
 See [worker operations and remaining gates](WORKER.md).
