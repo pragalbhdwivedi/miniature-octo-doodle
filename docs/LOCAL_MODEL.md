@@ -148,7 +148,11 @@ The local agent now requires its clean public checkout HEAD to equal the live
 remote `main` SHA before calling either model. The live LiteLLM callback now
 uses the configured 300-second stream ceiling only for all-Ollama routes;
 cloud/mixed/unrecognized routes retain 120 seconds. Unit checks cover both
-boundaries; a >120-second live stream has not yet been demonstrated.
+boundaries. An authenticated HTTPS WebUI request to `local-coding` streamed
+1,026 SSE chunks and the completion marker in 553.1 seconds end to end; the
+ledger recorded Ollama `stream_completed` and no active request afterward.
+That total includes WebUI/network delivery and does not measure the callback's
+own iterator duration.
 
 The live two-model result and laptop disk/performance measurements are recorded
 in `docs/BUILD_STATUS.md`; do not infer production coding quality from one

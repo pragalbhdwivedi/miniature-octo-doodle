@@ -100,7 +100,10 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   extracts and stamps one SHA; and only configured all-Ollama streams receive
   300 seconds. Targeted stale/mid-build/route tests passed. The callback was
   deployed to VM9125 with root-only rollback copies, followed by a LiteLLM-only
-  recreation; a >120-second live stream remains unvalidated.
+  recreation. A live authenticated HTTPS `local-coding` stream returned HTTP 200,
+  1,026 SSE chunks and `[DONE]` after 553.1 seconds end to end. The policy
+  ledger recorded `stream_completed` for Ollama and zero active requests;
+  this elapsed time includes WebUI delivery, not just the callback iterator.
 
 ## Phase 9 first context milestone - 1 October 2026
 
@@ -142,6 +145,13 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   results with the same 401/403/200 access boundary. Restarting just the two
   OpenViking containers and searching the same item again passed, proving the
   tested same-VM workspace survived container restart.
+- Phase 9 review-fix tests: 124 tests ran on the laptop with 11 expected skips;
+  the local Kubernetes module and repository validator could not import PyYAML.
+  A fresh public clone of PR #34 at `f35eb471784b383cd2f768c9e89b0e8d2eb7c50b`
+  on VM9125 (where PyYAML 6.0.1 was already installed) passed the repository
+  YAML/core-security validator and all three Kubernetes unit tests. No laptop
+  package install was made below the disk stop floor. Python compile, Compose
+  config and Git whitespace checks passed.
 
 ## Initial laptop local model checkpoint - 1 October 2026 (superseded above)
 

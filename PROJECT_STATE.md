@@ -68,6 +68,8 @@ and gateway-only VM bridge let the existing LiteLLM/Open WebUI app advertise
 `local-coding` and `local-supervisor`. Both passed synthetic WebUI chat requests,
 and the owner confirmed both models worked from the phone;
 an outage produced only an Ollama failure, no cloud fallback or USD debit.
+An authenticated long local-coding stream later completed with a final SSE
+marker and an Ollama `stream_completed` ledger outcome.
 C: had 17.76 GiB free after download, but later measurements were 7.37 and
 12.93 GiB,
 **below the critical 15-GiB floor**; optional laptop installs/downloads are
