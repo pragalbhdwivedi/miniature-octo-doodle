@@ -814,3 +814,53 @@ The target machine runs this implementation; main contains merged Phase 1 only.
   requires review/merge. Next: Phase 2 routing, fallbacks, budgets, logging policy
   and local-private isolation. Restore, clean rebuild, reboot recovery, load
   testing and optional modules remain unvalidated/later work.
+
+## Internal ingress deployment - 30 September 2026
+
+- User requested Nginx Proxy Manager on the existing VM. Prepared opt-in single-
+  container Compose with required digest/address/private-state parameters,
+  loopback-only administration and a dedicated WebUI ingress network boundary.
+- Live read-only preflight: three healthy core containers, 50.51 GiB free,
+  80/81/443 unused. Upstream setup/network documentation reviewed.
+- User selected all internal VLANs + existing OpenVPN, private certificates, and
+  the `*.aadi.dgoi.local` namespace. GatewayAI is `ai.aadi.dgoi.local`.
+- NPM 2.16.0 digest-pinned image pulled (1,909,394,336 installed image bytes);
+  VM free space changed from 50.51 to 48.73 GiB. No other optional image/model.
+- Omada rejected wildcard LAN DNS syntax. Explicit GatewayAI DNS record saved
+  for all 13 configured LANs; laptop resolution verified. Stable LAN-to-LAN TCP
+  destination rule saved for ingress 80/443 only. No WAN forwarding configured.
+- Separate NPM project and internal WebUI network deployed; only WebUI recreated.
+  Administration stays loopback-only, with generated credentials in protected
+  storage outside Git/sync. Bootstrap API avoids the image's password-logging
+  environment bootstrap. Core accounts, keys, data and allowance retained.
+- Strict Windows Python certificate verification initially failed due to missing
+  leaf Authority Key Identifier. Leaf reissued with AKI/SKI, then strict
+  certificate/hostname verification passed. WSL system trust HTTPS HTTP/2 200.
+  Windows curl/Schannel revocation-status check failed; no validation bypass used.
+- HTTPS existing sign-in, eight aliases, unauthenticated rejection and a synthetic
+  OpenAI streamed response passed. Laptop LAN ports 81/3000/4000/5432 unavailable.
+  September admission debit 3.569700 -> 3.612410 USD, 21 -> 22 attempts, zero active;
+  $100 UTC-month ceiling unchanged. This is reserved admission cost, not an invoice.
+- NPM cold backup encrypted with the protected recovery key; 34,788 bytes,
+  off-VM copy SHA-256 matched. Authenticated decrypt, SQLite integrity, existing
+  admin/route, healthy isolated NPM and nginx configuration checks passed. The
+  no-port/no-provider restored copy is stopped with restart=no and retained.
+  This checks ingress recovery on the existing host, not clean-host recovery.
+- Reboot passed: four healthy live containers, WSL system-trusted HTTPS 200,
+  successful loopback refresh and unchanged ledger. Free disk 48.72 GiB.
+  The first check incorrectly expected the completed oneshot to remain active;
+  service Result=success/ExecMainStatus=0 and both loopback endpoints verified it.
+- User requested unattended Windows CA installation. CurrentUser CLI commands
+  waited on local confirmation; the user-policy store denied access. Waiting
+  commands stopped. This shell is non-admin; Edge authority-invalid remains.
+  Prepared fingerprint-checked administrator import helper; elevated execution
+  and subsequent browser acceptance are unvalidated. No trust checks bypassed.
+- Repository safety/YAML and 49-test Windows suite passed (44 run, five platform
+  skips); initial global Python lacked PyYAML, so the existing project venv was
+  used with no installation. Local/proxmox inventory updated and read back;
+  oversized note attempts were rejected before a compact complete note saved.
+- Browser, all-VLAN clients and outside-VPN validation pending. Details:
+  [ingress](INGRESS.md). No merge or next-phase readiness claim.
+- Public CA handover created locally in Git-excluded LOCAL_CERTIFICATES as DER
+  and PEM with installation notes; certificate fingerprint matches the issued CA.
+  No private key copied. Phone/other-PC import remains a user/device acceptance step.

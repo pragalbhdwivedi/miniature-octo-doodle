@@ -30,4 +30,5 @@ litellm-data/
 config/litellm/config.local.yaml
 config/policy/policy.local.json
 VM_NOTES/
+LOCAL_CERTIFICATES/
 .migration-handoff.json

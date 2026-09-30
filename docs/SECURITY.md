@@ -100,3 +100,16 @@ Git/OneDrive. Never publish raw k3d node labels (which include its cluster token
 Secret manifests, credentials.json or cluster logs without redaction.
 Do not activate live spending against a fresh ledger without preserving and
 reconciling existing monthly admission debits. See [Kubernetes operations](KUBERNETES.md).
+
+## Internal HTTPS ingress
+
+The explicitly requested NPM proxy exposes only WebUI at `ai.aadi.dgoi.local` to
+internal networks and the existing VPN. The router rule targets web ports only;
+no WAN forwarding was configured. NPM port 81 remains loopback-only. NPM has no
+Docker socket, provider credentials or database network; its shared WebUI network
+is internal. Existing WebUI authentication and signup-disabled settings remain.
+The wildcard certificate covers `*.aadi.dgoi.local`. The constrained private CA
+signing key stays on the laptop, outside Git/sync; only its public certificate is
+distributed. NPM leaf keys, admin credentials and database are protected runtime
+files and encrypted backup contents. They must never enter this public repository.
+See [ingress](INGRESS.md) for trust distribution, manual renewal and acceptance limits.

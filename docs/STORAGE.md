@@ -81,3 +81,14 @@ creation reserves 8 GiB and app deployment 4 GiB above the existing critical flo
 Stop the cluster to save runtime resources; deleting it can destroy PVC data.
 Kubernetes backups/retention remain unvalidated and are not covered by Compose's
 recovery script. No automatic cleanup is provided.
+
+## Requested internal proxy increment
+
+NPM 2.16.0 added one explicitly authorized image, 1,909,394,336 installed bytes.
+VM free disk was 50.51 GiB before and 48.73 GiB after pulling it. Its SQLite,
+proxy configuration and leaf certificates use a private host directory. The
+encrypted ingress backup was 34,788 bytes and copied off VM with matching hash;
+the isolated restore shares the existing image and retains its small private
+state directory. No pruning, optional model download or additional database
+image was performed. Ingress and core backups are distinct; preserve both and
+the separate CA signing-key custody. See ING‌RESS.md and BUILD_STATUS.md.

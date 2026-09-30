@@ -220,3 +220,17 @@ No optional modules or model weights were installed. See [Kubernetes operations]
 
 ## Completion rule
 Do not mark a subsystem COMPLETE until it has been run and tested on the target machine. Architecture documents are not implementation evidence.
+
+## Requested internal ingress (30 September 2026)
+Nginx Proxy Manager 2.16.0 is deployed on the existing VM by explicit request.
+All services use `*.aadi.dgoi.local`; GatewayAI uses `https://ai.aadi.dgoi.local`.
+Omada requires an explicit DNS record per service. DNS and a stable LAN TCP
+80/443 destination rule are saved; NPM admin port 81 stays loopback-only.
+Private wildcard TLS, strict HTTPS sign-in, eight aliases, a streamed response
+and blocked LAN administration/backend ports passed. WSL trusts the private CA;
+Windows browser trust remains blocked on local confirmation/elevated import. The existing ledger is
+retained: $3.612410 conservative September debit, 22 attempts, zero active after
+the synthetic ingress probe; $100 UTC-month ceiling unchanged. An encrypted NPM
+backup and isolated restore passed; the restored copy is stopped. Reboot passed
+with four healthy live containers, working HTTPS and unchanged ledger. Browser
+and all-VLAN/external-VPN acceptance remain open. See docs/INGRESS.md.
