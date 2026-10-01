@@ -179,7 +179,19 @@ class CoordinationTests(unittest.TestCase):
         for name, args in [('admit', {}), ('claim_next_task', {'paths': ['example.py']}), ('shell', {})]:
             with self.assertRaises(c.agent.AgentError):
                 bridge.call(name, args)
-        self.assertIn('claim_token', bridge.call('claim_next_task', {}))
+        with self.assertRaises(c.agent.AgentError):
+            bridge.call('claim_next_task', {})
+        self.assertIn('claim_token', bridge.call('claim_next_task', {'expected_task_id': 'test-1'}))
+
+    def test_delayed_scheduled_claim_cannot_take_replacement_task(self):
+        self.admit()
+        self.coordinator.close('test-1', 'Operator cancels prior task before scheduled claim')
+        self.coordinator.admit('test-2', 'Replacement task', ['example.py'])
+        bridge = c.Bridge(self.coordinator)
+        with self.assertRaises(c.agent.AgentError):
+            bridge.call('claim_next_task', {'expected_task_id': 'test-1'})
+        self.assertEqual(self.coordinator.status()['tasks'][1]['state'], 'queued')
+        self.assertEqual(bridge.call('claim_next_task', {'expected_task_id': 'test-2'})['task_id'], 'test-2')
 
 
 if __name__ == '__main__':

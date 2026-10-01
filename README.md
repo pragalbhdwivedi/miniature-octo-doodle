@@ -6,7 +6,9 @@ a dedicated Linux control-plane VM now hosting the live gateway.
 The optional [local two-coder handoff](docs/CODER_COORDINATION.md) connects an
 operator-admitted AADI task in Antigravity to independent Codex generation and
 local Qwen comparison. It produces review artifacts; source application, isolated
-tests and publication remain separate steps.
+tests and publication remain separate steps. The optional
+[unattended queue schedule](docs/CODER_SCHEDULING.md) delivers each admitted task
+once while Antigravity is running.
 
 This repository is the permanent source of truth for the platform. It is designed to start lean on a laptop with limited free disk space, while preserving a documented path to a larger multi-agent coding system.
 

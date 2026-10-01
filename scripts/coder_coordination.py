@@ -216,12 +216,17 @@ class Coordinator:
         if source(self.repo, packet['paths']) != packet['source']:
             raise agent.AgentError('Source changed; operator reconciliation required')
 
-    def claim(self):
+    def claim(self, expected_task_id=None):
+        if expected_task_id is not None and (not isinstance(expected_task_id, str)
+                or not re.fullmatch('[a-z0-9-]{1,64}', expected_task_id)):
+            raise agent.AgentError('Invalid expected task ID')
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT * FROM tasks WHERE state="queued" ORDER BY rowid LIMIT 1').fetchone()
             if not row:
                 return {'state': 'no_queued_task'}
+            if expected_task_id is not None and row['id'] != expected_task_id:
+                raise agent.AgentError('Queued task differs from expected task; no claim taken')
             packet = json.loads(row['packet'])
             self.fresh(packet)
             token = secrets.token_hex(16)
@@ -312,7 +317,8 @@ EMPTY = mcp.object_schema({}, [])
 OWNED = {'task_id': {'type': 'string'}, 'claim_token': {'type': 'string'}}
 TOOLS = [
     {'name': 'coordination_status', 'description': 'List private AADI admitted task states; no source or inference.', 'inputSchema': EMPTY},
-    {'name': 'claim_next_task', 'description': 'Claim the operator-admitted AADI task and read only its reviewed code packet. No arbitrary paths.', 'inputSchema': EMPTY},
+    {'name': 'claim_next_task', 'description': 'Claim the exact task ID from coordination_status and read only its reviewed code packet. Mismatched IDs cannot claim replacement work.',
+     'inputSchema': mcp.object_schema({'expected_task_id': {'type': 'string'}}, ['expected_task_id'])},
     {'name': 'submit_candidate', 'description': 'Store your Gemini candidate for the claimed task; no source edits.',
      'inputSchema': mcp.object_schema({**OWNED, 'candidate': agent.CODER_SCHEMA}, [*OWNED, 'candidate'])},
     {'name': 'advance_task', 'description': 'Run one independent signed-in Codex proposal then local Qwen comparison. Saves separate candidate files and patches only. Never executes candidate code, edits source, publishes or deploys. May take several minutes; do not retry a running task.',
@@ -329,8 +335,10 @@ class Bridge(mcp.Bridge):
             raise agent.AgentError('Arguments must be an object')
         if name == 'coordination_status' and not args:
             return self.coordinator.status()
-        if name == 'claim_next_task' and not args:
-            return self.coordinator.claim()
+        if name == 'claim_next_task' and set(args) == {'expected_task_id'}:
+            if not isinstance(args['expected_task_id'], str):
+                raise agent.AgentError('Expected task ID must be text')
+            return self.coordinator.claim(args['expected_task_id'])
         if name == 'submit_candidate' and set(args) == {*OWNED, 'candidate'}:
             return self.coordinator.submit(args['task_id'], args['claim_token'], args['candidate'])
         if name == 'advance_task' and set(args) == set(OWNED):

@@ -31,9 +31,10 @@ Operator-reviewed task at exact AADI Dev
   -> operator review, isolated tests and normal Dev workflow
 ```
 
-The active Antigravity session drives this loop. App permissions still apply.
-This is not an unattended background backlog runner, automatic merge/deployment,
-or a full AADI controller acceptance test. Gemini CLI 0.62.0 rejected the tested
+The active Antigravity session drives this loop. The optional
+[queue-aware sidecar](CODER_SCHEDULING.md) can now deliver admitted tasks on a
+schedule. App permissions still apply. This is not automatic backlog admission,
+merge/deployment or a full AADI controller acceptance test. Gemini CLI 0.62.0 rejected the tested
 individual account with `IneligibleTierError`, directing it to Antigravity.
 No credential substitution or API billing fallback was attempted. Optional CLI
 installation remains stopped below the laptop's 15-GiB storage floor.
@@ -58,7 +59,7 @@ accept no repository, output path, executable, model or command:
 | Tool | Effect |
 | --- | --- |
 | `coordination_status` | Read states and persisted results, including after a disconnect |
-| `claim_next_task` | Atomically claim the pre-admitted task and obtain only its source packet |
+| `claim_next_task(expected_task_id)` | Atomically claim that exact admitted task and obtain only its source packet; stale IDs cannot take replacement work |
 | `submit_candidate` | Validate paths/size/schema and persist Gemini's proposal |
 | `advance_task` | Commit running ownership, invoke Codex once and Qwen once, save artifacts |
 

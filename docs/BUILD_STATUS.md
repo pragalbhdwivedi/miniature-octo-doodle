@@ -2,6 +2,48 @@
 
 Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
+## Unattended admitted-task delivery, 2 October 2026
+
+COMPLETE for the running-app scheduling boundary; not an always-on OS service.
+Installed a small queue-aware helper using Antigravity's documented sidecar
+`schedule` builtin and `agentapi send-message`, with no new dependency/download.
+The owner selected Gemini 3.1 Pro High and restarted Antigravity to load the
+updated MCP schema. Existing app permissions were preserved byte-for-byte as
+JSON values. No desktop clicks, credential substitution or editor backend was
+used to deliver scheduled work.
+
+An automatic empty-queue tick recorded `idle` and zero model calls. After the
+app restart, a timer tick delivered a reviewed synthetic no-change task without
+an operator sending its prompt. Gemini claimed the exact ID and submitted its
+candidate; signed-in Codex generated independently and local Qwen reviewed.
+The persisted result reached `human_review_required`; both candidate hashes
+matched recomputation, both changes arrays and patches were empty. No source
+write, candidate execution, publication or deployment occurred. Subsequent ticks
+held the completed work, retaining exactly one delivery reservation.
+
+Qwen returned advisory `revise` while listing no actual defect; it remains a
+quality limitation, not authority to approve or reject a release. Model quota,
+network and app permission failures still require operator reconciliation.
+
+Nine new scheduler tests and twelve coordinator tests passed, including real
+Git/SQLite ownership, concurrent ticks, process restart/crash reservations,
+ambiguous send, dirty/stale source, wrong-task claim denial, held/completed work
+and new admission after close. The existing sixteen local-agent/desktop/MCP
+tests, YAML/security validator and diff checks passed. Independent review found
+and verified fixes for a replacement-task race and lost diagnostic state.
+
+Acceptance used a temporary one-minute interval, then configured `*/5 * * * *`.
+The sidecar restarted and its next five-minute tick recorded `held`, zero new
+model calls and exactly one retained agentapi delivery event. The operator then
+closed the no-change acceptance task, retaining all evidence. Antigravity can add
+jitter; the cadence is not an exact wall-clock completion guarantee. App restart
+and durable no-repeat behavior were observed; laptop reboot, logout, sleep/wake
+and laptop-off availability were NOT TESTED. No OS-startup setting was changed.
+The helper's latest heartbeat is bounded; Antigravity owns its existing logs.
+Free laptop storage was 10.33 GiB before setup, below the 15-GiB install floor.
+Private config, conversation IDs, evidence and backups stay outside Git/sync.
+See [operation, recovery and rollback](CODER_SCHEDULING.md).
+
 ## Local AADI two-coder coordination, 1 October 2026
 
 PARTIAL overall; live subscription handoff PASSED. Antigravity 2.19.1 displayed

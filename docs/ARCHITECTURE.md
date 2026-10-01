@@ -1,5 +1,11 @@
 # Architecture
 
+The optional desktop subscription lane now supports
+[unattended delivery of operator-admitted tasks](CODER_SCHEDULING.md) through
+Antigravity's built-in sidecar scheduler. Its durable delivery reservation and
+exact-task claim use the existing local ledger. This is separate from the VM
+controller and grants no automatic admission, source execution or publication.
+
 ## Canonical target
 
 ```text

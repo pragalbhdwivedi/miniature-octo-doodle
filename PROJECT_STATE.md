@@ -8,6 +8,17 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 
 ## Current phase
 
+2 October 2026 unattended local queue delivery: IMPLEMENTED / LIVE TESTED.
+Antigravity's documented sidecar scheduler checks the admitted queue without an
+idle model call and delivers each waiting task once. Timer-originated Gemini
+Pro, independent Codex and local Qwen completed a no-change acceptance task;
+matching hashes and a later no-repeat tick were verified. Twenty-one coordinator/
+scheduler tests plus the existing 16 bridge tests passed. Exact-task claims and
+durable delivery reservations stop replacement-task races and automatic retries.
+The configured cadence is five minutes. Antigravity must be running; power-off,
+logout/reboot recovery, automatic admission/tests/application and VM integration
+remain outside this acceptance. See [scheduler operations](docs/CODER_SCHEDULING.md).
+
 1 October 2026 local AADI coordination: IMPLEMENTED and LIVE TESTED for one
 operator-admitted code-only task. Antigravity Gemini generated a candidate, the
 new MCP coordinator automatically invoked signed-in Codex and local Qwen, and
