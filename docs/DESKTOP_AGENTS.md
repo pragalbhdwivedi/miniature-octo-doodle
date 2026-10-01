@@ -153,6 +153,12 @@ to call `supervisor_status`, prepare a task explaining validation in
 Do not run the provisioning script. Match the returned ID to local evidence
 before claiming success. A scripted MCP call is not proof of Antigravity use.
 
+The first app acceptance passed on 1 October 2026: Gemini 3.1 Pro invoked all
+three tools and displayed a review linked to a verified local audit record.
+The owner handled tool permissions in the app. No private project was attached.
+Qwen's returned critique contained an incorrect wording objection; treat findings
+as untrusted advice to check against source. See BUILD_STATUS for exact limits.
+
 Each process retains at most 16 task packets. Restarting discards task IDs; prepare
 a fresh task afterward. Calls are serial and local inference has a 600-second
 upper timeout; stopping the client/server interrupts the connection. The source

@@ -58,10 +58,23 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   explanation returned `review` in 20.79 seconds. The latter still contains
   imprecise Linux-versus-POSIX commentary. These probes establish transport and
   bounded behavior, not general model accuracy or acceptance authority.
-- PENDING: a real Antigravity/Gemini tool call and rendered review result. UI
-  inspection confirmed models and account usage, but input later failed with
-  Windows access denied. A user-created AADI project was observed; it was not
-  used for public-only acceptance. No AADI source integration.
+- APP ACCEPTANCE PASSED: on 1 October 2026, Antigravity 2.19.1 loaded the server
+  after Customizations > Refresh MCP servers and displayed three enabled tools.
+  In an Outside of Project conversation, Gemini 3.1 Pro Low called status and
+  preparation, then submitted its own no-change candidate for controller-init.py.
+  The owner handled app tool-permission prompts; automation did not grant them.
+  Gemini corrected an initial candidate string to the required object and invoked
+  review successfully. Qwen findings and audit ID were displayed in the completed
+  conversation. Audit `332ad392b45141349e56d93870db4537` matches session task
+  `8ed27b1c4d71424f9b40bc8636fd52d9`, candidate digest and source SHA. The JSON
+  record and rendered app text are retained in local supervisor evidence.
+  Public source remained clean, patch/actions/tests were empty. This validates
+  transport and no-change proposal review, not execution of Gemini-generated code.
+- APP REVIEW QUALITY LIMIT: Qwen returned `review` but falsely said the candidate
+  used OR instead of AND; the candidate actually said both POSIX and root were
+  required. Gemini reproduced the finding without correcting it. Do not treat
+  either model's result as an authoritative acceptance gate. No AADI source
+  integration, automated dual-coder dispatch or blanket app permission was added.
 - STORAGE: about 10.16 GiB free, below the 15-GiB optional installation floor.
   Only small source/config/evidence files were created; existing Python/Ollama
   reused. No model/package/image download or new VM.

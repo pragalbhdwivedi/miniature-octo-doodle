@@ -12,7 +12,10 @@ Desktop supervisor increment (1 October 2026): a stdio MCP bridge is locally
 configured for Antigravity, using installed Qwen3 thinking and existing public-main
 proposal guards. Local protocol and live review checks passed. A deliberately
 incorrect explanation was flagged `revise` and an accurate one `review`; both
-remain advisory. Antigravity-originated tool use is pending desktop access.
+remain advisory. Antigravity-originated tool use passed: Gemini 3.1 Pro called
+all three tools, submitted its own no-change candidate, and displayed Qwen's
+findings with an audit ID matched to local evidence. The local model still
+produced an erroneous wording criticism, so review quality remains limited.
 No private AADI source, worker dispatch, source edits, merge or deployment are
 enabled by this bridge. See DESKTOP_AGENTS and BUILD_STATUS for acceptance limits.
 
