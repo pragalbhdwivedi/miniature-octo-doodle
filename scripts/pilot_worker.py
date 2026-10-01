@@ -373,6 +373,21 @@ class Worker:
             return self.remote({'action': 'observed', 'batch_id': work['batch']['id'],
                 'task_id': work['task']['id'], 'coordination_task_id': child['id'],
                 'result': {'state': 'blocked', 'error': 'Coordination stopped; operator reconciliation required'}})
+        if child['state'] == 'queued':
+            # Read the exact child's delivery reservation without changing it.
+            # A missing event does not prove delivery failed; never retry the
+            # scheduler or release its reservation on the observer's authority.
+            with self.coordinator.connect() as db:
+                table = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='scheduled_dispatches'").fetchone()
+                delivery = db.execute('SELECT state FROM scheduled_dispatches WHERE id=?',
+                                      (child['id'],)).fetchone() if table else None
+            dispatch_state = delivery['state'] if delivery else None
+            if dispatch_state in ('delivery_started', 'delivery_uncertain', 'blocked_source'):
+                state = 'blocked' if dispatch_state == 'blocked_source' else 'delivery_uncertain'
+                return self.remote({'action': 'observed', 'batch_id': work['batch']['id'],
+                    'task_id': work['task']['id'], 'coordination_task_id': child['id'],
+                    'result': {'state': state, 'dispatch_state': dispatch_state,
+                               'source_sha': work['task']['source_sha'], 'automatic_retry': False}})
         return {'state': 'waiting_for_coders', 'coordination_state': child['state']}
 
     def run_tests(self, directory, files, content, mutation=None):

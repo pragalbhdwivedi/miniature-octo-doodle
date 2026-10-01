@@ -49,6 +49,16 @@ class PilotServerTests(unittest.TestCase):
         self.assertEqual(result['action'],'ask')
         self.assertEqual(value['batch']['gpt_calls'],0)
 
+    def test_uncertain_delivery_notifies_once_and_retains_exact_task(self):
+        value=state.make_state('a'*40)
+        value['tasks'][0].update(state='coding',coordination_task_id='child')
+        request={'action':'observed','batch_id':value['batch']['id'],'task_id':'t1',
+                 'coordination_task_id':'child','result':{'state':'delivery_uncertain'}}
+        state.rpc(value,request);state.rpc(value,request)
+        self.assertEqual(len(value['questions']),1)
+        self.assertEqual(len(value['outbox']),1)
+        self.assertEqual(value['tasks'][0]['state'],'coding')
+
     def setUp(self):
         self.config={'user_id':11,'chat_id':22,'signing_key_hex':'01'*32}
         self.key=self.config['signing_key_hex']

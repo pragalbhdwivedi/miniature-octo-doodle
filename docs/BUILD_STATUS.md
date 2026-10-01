@@ -1612,3 +1612,12 @@ Resolved the open P1 review: cluster/deployment reserves now apply to every
 discovered Docker/repository storage drive before downloads. Synthetic C:50GiB
 and Docker D:18GiB reject both 8GiB and 4GiB reservations; zero-reserve inspection
 passes. No image download or running cluster change during this review.
+
+
+Live pilot handoff boundary: planning and parent-to-local task admission passed,
+but the first Antigravity message delivery was recorded as uncertain before a
+coder claimed it. Its reservation is retained; the native timer correctly refused
+to resend. Windows UI input returned `GetCursorPos: Access is denied`. An actionable
+recovery instruction was delivered through Telegram. The worker now surfaces this
+condition once per task automatically and resumes observation of the same child;
+full unattended coder delivery/completion is not claimed for this pilot run.

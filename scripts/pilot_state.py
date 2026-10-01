@@ -251,9 +251,20 @@ def rpc(s, request):
         if request.get('coordination_task_id')!=task.get('coordination_task_id'):
             raise ValueError('Wrong observed delegated task')
         result=request.get('result',{})
+        if result.get('state')=='delivery_uncertain':
+            if not task.get('delivery_notice'):
+                task['delivery_notice']=True
+                q={'id':'delivery-'+task['id'],'kind':'decision','state':'pending','task_id':task['id'],
+                   'question':'Antigravity delivery was not confirmed. Open AADI Two-Coder Acceptance Task and send: Run next queued task. The exact-task claim prevents duplicate coding.'}
+                s['questions'].append(q)
+                event(s,'Antigravity delivery uncertain for '+task['title']+'; no automatic resend.')
+                message(s,'Input needed: '+q['question']+' Then reply /answer '+q['id']+' Sent. Coding will continue when the saved task is claimed.')
+            return {'ok':True}
         if result.get('state')=='human_review_required':
             if result.get('source_sha')!=task['source_sha']: raise ValueError('Observed source changed')
             task['coordination_result']=result;task['state']='ready_test'
+            for q in s['questions']:
+                if q.get('task_id')==task['id'] and q['id'].startswith('delivery'): q['state']='resolved'
             event(s,'Both candidates received for '+task['title'])
         elif result.get('state')=='blocked':
             task['state']='blocked';s['batch']['state']='blocked';message(s,'A coder or local review stopped. I retained its claim and will not retry automatically.')

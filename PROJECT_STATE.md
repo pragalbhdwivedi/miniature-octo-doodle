@@ -393,3 +393,12 @@ publish, merge or call a model. AADI remains disabled. Live unprivileged VM run
 fetched main and correctly recorded `no_committed_task_manifest`; synthetic tests
 cover selection/denial paths. PostgreSQL persistence, dispatch, independent review,
 repair and exact-run approval integration are not implemented. See controller docs.
+
+
+Live pilot handoff boundary: planning and parent-to-local task admission passed,
+but the first Antigravity message delivery was recorded as uncertain before a
+coder claimed it. Its reservation is retained; the native timer correctly refused
+to resend. Windows UI input returned `GetCursorPos: Access is denied`. An actionable
+recovery instruction was delivered through Telegram. The worker now surfaces this
+condition once per task automatically and resumes observation of the same child;
+full unattended coder delivery/completion is not claimed for this pilot run.

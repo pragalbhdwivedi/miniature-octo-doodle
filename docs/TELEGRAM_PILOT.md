@@ -78,3 +78,12 @@ its next timer reserved planning after the owner approval. The original
 five-minute exact-child delivery sidecar remains active. Forty-eight pilot tests
 and twenty-seven existing coordination/scheduler/Telegram tests passed. Three-task
 completion and final publication remain pending; this record does not assert them.
+
+
+Live pilot handoff boundary: planning and parent-to-local task admission passed,
+but the first Antigravity message delivery was recorded as uncertain before a
+coder claimed it. Its reservation is retained; the native timer correctly refused
+to resend. Windows UI input returned `GetCursorPos: Access is denied`. An actionable
+recovery instruction was delivered through Telegram. The worker now surfaces this
+condition once per task automatically and resumes observation of the same child;
+full unattended coder delivery/completion is not claimed for this pilot run.

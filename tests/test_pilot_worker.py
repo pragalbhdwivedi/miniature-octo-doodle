@@ -1,9 +1,11 @@
 """Worker ownership, code scope and real synthetic mutation acceptance tests."""
 import hashlib
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
 import subprocess
+import sqlite3
 import sys
 import tempfile
 import unittest
@@ -79,6 +81,17 @@ class FakeCoordinator:
     def __init__(self, repo, root):
         self.repo, self.root, self.executable = repo, root, Path(sys.executable)
         self.rows, self.closed, self.admitted = [], [], []
+
+    @contextmanager
+    def connect(self):
+        self.root.mkdir(parents=True, exist_ok=True)
+        db = sqlite3.connect(self.root/'coordination.sqlite3')
+        db.row_factory = sqlite3.Row
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     def status(self):
         return {'tasks': self.rows}
@@ -350,6 +363,38 @@ class WorkerTests(unittest.TestCase):
         self.worker.observe(self.work)
         self.assertEqual(self.messages[-1]['result']['state'], 'blocked')
         self.assertNotIn('token', self.messages[-1])
+
+    def test_observer_reports_delivery_problem_without_resetting_or_retrying(self):
+        child = self.make_child()
+        self.coordinator.rows[0]['state'] = 'queued'
+        self.assertEqual(self.worker.observe(self.work)['state'], 'waiting_for_coders')
+        with self.coordinator.connect() as db:
+            db.execute('CREATE TABLE scheduled_dispatches(id TEXT PRIMARY KEY,state TEXT)')
+            db.execute('INSERT INTO scheduled_dispatches VALUES(?,?)', ('unrelated-task', 'delivery_uncertain'))
+        self.assertEqual(self.worker.observe(self.work)['state'], 'waiting_for_coders')
+        for delivery, expected in [('delivery_started', 'delivery_uncertain'),
+                                   ('delivery_uncertain', 'delivery_uncertain'),
+                                   ('blocked_source', 'blocked')]:
+            with self.subTest(delivery=delivery):
+                with self.coordinator.connect() as db:
+                    db.execute('INSERT OR REPLACE INTO scheduled_dispatches VALUES(?,?)', (child, delivery))
+                self.worker.observe(self.work)
+                request = self.messages[-1]
+                self.assertEqual(request['action'], 'observed')
+                self.assertEqual(request['coordination_task_id'], child)
+                self.assertEqual(request['result']['state'], expected)
+                self.assertEqual(request['result']['dispatch_state'], delivery)
+                self.assertFalse(request['result']['automatic_retry'])
+                self.assertNotIn('token', request)
+                with self.coordinator.connect() as db:
+                    self.assertEqual(db.execute('SELECT state FROM scheduled_dispatches WHERE id=?',
+                                               (child,)).fetchone()['state'], delivery)
+        self.coordinator.rows[0]['state'] = 'gemini_claimed'
+        previous = len(self.messages)
+        self.assertEqual(self.worker.observe(self.work)['coordination_state'], 'gemini_claimed')
+        self.assertEqual(len(self.messages), previous)
+        self.assertEqual(self.coordinator.admitted, [])
+        self.assertEqual(self.coordinator.closed, [])
 
     def test_idle_does_not_create_model_or_stage_work(self):
         self.work = {'action': 'idle'}
