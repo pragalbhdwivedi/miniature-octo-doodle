@@ -36,8 +36,15 @@ offers coding assistance; local repository execution must be verified separately
 [Gemini CLI](https://geminicli.com/docs/get-started/authentication/) supports Google
 AI Pro account sign-in. The subscription path and the paid API/LiteLLM path have
 separate authentication and usage controls. Never reuse subscription OAuth tokens
-as gateway API keys. CLI installation is blocked while disk is below the 15-GiB
-project floor. Do not change Spark privacy/access settings on the owner's behalf.
+as gateway API keys. On 1 October 2026, after the storage warning, the owner
+explicitly requested CLI installation. Gemini CLI 0.62.0 was installed as a
+CLI-only exception under the user's `.local/share/gemini-cli` directory, added
+to the user PATH and verified with `gemini --version` and `gemini --help`.
+The installed native credential-storage module also loads. Google sign-in and
+authenticated coding remain pending. Start a new PowerShell window, run `gemini`
+from the intended project worktree, and select Sign in with Google using the
+subscription account. Further optional downloads remain stopped below the
+15-GiB project floor. Do not change Spark privacy/access settings on the owner's behalf.
 
 ## Prepare and review a desktop proposal
 

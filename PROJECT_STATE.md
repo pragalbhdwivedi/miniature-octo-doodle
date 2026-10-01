@@ -115,8 +115,11 @@ publication or automatic desktop scheduling is granted. The Gemini account's
 supported memory-import flow received a curated project summary and returned a
 saved-memory acknowledgment. This is a one-time transfer, not live memory sync.
 See [desktop agents](docs/DESKTOP_AGENTS.md) and BUILD_STATUS for acceptance.
-The existing checkout and VM runtime remain preserved. Optional CLI installation
-is stopped below the 15-GiB laptop disk floor.
+The existing checkout and VM runtime remain preserved. Following the storage
+warning, the owner explicitly requested Gemini CLI installation: version 0.62.0
+is installed and launches from the user PATH. Google sign-in and authenticated
+coding acceptance remain pending. This CLI-only exception does not lift the
+15-GiB floor for further optional installations.
 
 ## Hardware baseline
 - Windows 11

@@ -35,6 +35,20 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
 ## Desktop memory and proposal handoff - 1 October 2026
 
+Later CLI installation checkpoint: after being informed of the storage stop,
+the owner explicitly requested Gemini CLI installation. Used the official npm
+package `@google/gemini-cli@0.62.0` with existing Node 24.14.1/npm 11.19.0,
+installed per-user outside Git/sync under `.local/share/gemini-cli`. Added only
+that prefix to the existing user PATH. Version/help and native keytar module
+loading passed; no credential values were accessed. npm inventory reports 0.62.0.
+Installation footprint 106.3 MiB plus 26.3 MiB task-specific npm cache; free C:
+was 11.41 GiB before and 11.26 GiB afterward (whole-host measurements).
+npm reported a keytar lifecycle-script warning; its shipped native binary loaded
+without enabling a global script allowance. No Node/npm upgrade, model download,
+API key or authentication was performed. Sign-in and authenticated CLI coding
+remain pending. This explicit CLI-only exception leaves the general storage
+floor and controller/production boundaries intact.
+
 - Refreshed GitHub main `3e8672b8412d2084fbd145bf6f42cb842ad90ffd`, issues and
   open PRs. The original Phase 6 checkout and untracked dashboard work were
   preserved. Prepared a separate `feat/desktop-agent-handoff` worktree.
