@@ -158,11 +158,15 @@ def main():
     os.umask(0o077)
     config=private_json(args.config)
     required={'container','database','runtime','worker_runtime','image','coding_config'}
-    if not required<=set(config) or set(config)-required-{'telegram_approval_config'}:
+    if not required<=set(config) or set(config)-required-{'telegram_approval_config','openviking_root'}:
         raise ValueError('Unexpected operator configuration')
     if 'telegram_approval_config' in config and (not isinstance(config['telegram_approval_config'],str)
                                               or not config['telegram_approval_config']):
         raise ValueError('Protected Telegram configuration required')
+    if 'openviking_root' in config:
+        if not isinstance(config['openviking_root'],str) or not config['openviking_root']:
+            raise ValueError('Protected OpenViking root required')
+        worker.private_root(Path(config['openviking_root']))
     runtime=Path(config['runtime']);worker.private_root(runtime)
     worker_runtime=Path(config['worker_runtime']);worker.private_root(worker_runtime)
     # Same lock used by dispatch and reconciliation; no premature completion while

@@ -75,6 +75,29 @@ class PipelineTests(unittest.TestCase):
         self.assertIn('Never edit',prompt[0]['content'])
         self.assertIn('untrusted',prompt[0]['content'])
 
+    def test_current_public_memory_is_advisory_and_failure_falls_back_to_git(self):
+        self.config['openviking_root']='/private/openviking'
+        self.root['request']['plan']={'repository':'pragalbhdwivedi/miniature-octo-doodle',
+                                      'ref':'refs/heads/main','source_sha':self.spec['source_sha']}
+        context={'schema':'gatewayai.openviking-result.v1','source_sha':self.spec['source_sha'],
+                 'classification':'public','advisory_only':True,'hits':[{'uri':'viking://resources/public',
+                 'abstract':'Historical public note'}]}
+        with patch.object(p.memory,'find',return_value=context) as find:
+            result,calls=self.execute([response({'verdict':'approve','findings':[]})],[(True,'d'*32,'e'*64)])
+        self.assertEqual(result['state'],'approved')
+        self.assertEqual(find.call_args.kwargs['role'],'controller')
+        prompt=calls.call_args.args[3]
+        self.assertEqual(json.loads(prompt[1]['content'])['openviking_advisory'],context)
+        self.assertIn('untrusted',prompt[0]['content'])
+        self.store.reset_mock()
+        with patch.object(p.memory,'find',side_effect=p.memory.ContextError('offline')):
+            result,calls=self.execute([response({'verdict':'approve','findings':[]})],[(True,'d'*32,'e'*64)])
+        self.assertIsNone(json.loads(calls.call_args.args[3][1]['content'])['openviking_advisory'])
+        self.root['request']['plan']['source_sha']='c'*40
+        with patch.object(p.memory,'find') as find:
+            self.execute([response({'verdict':'approve','findings':[]})],[(True,'d'*32,'e'*64)])
+        find.assert_not_called()
+
     def test_budget_denial_precedes_http(self):
         config={'gateway_url':'http://127.0.0.1:4000','gateway_key':'synthetic','policy_file':'/private/policy'}
         transport=Mock();self.store.reserve_pipeline.side_effect=RuntimeError('budget or replay')

@@ -188,8 +188,10 @@ spending outside approved limits and other consequential actions.
 
 ## Phase 9 - Agent context and repository intelligence
 Status: STARTED / PARTIAL. The public code-only Graphify index and a read-only,
-fresh-Git query gate passed on VM9125. OpenViking and controller context use are
-not yet enabled; see BUILD_STATUS and GRAPHIFY for measured scope.
+fresh-Git query gate passed on VM9125. OpenViking public-main sync is timed and
+the operator controller's advisory read path is enabled and live smoke-tested;
+an actual reviewed model run and memory quality evaluation remain open. See
+BUILD_STATUS, GRAPHIFY and OPENVIKING for measured scope.
 
 Add context systems only after the controller can work correctly from Git alone.
 

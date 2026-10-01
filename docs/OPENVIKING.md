@@ -58,6 +58,48 @@ This is a bounded public-data
 acceptance, not private-data permission, compaction quality, backup/restore or
 controller integration evidence. The acceptance receipt is root-only on the VM.
 
+## Automatic public context workflow, 1 October 2026
+
+The VM operator runs `scripts/openviking_public.py` against the protected
+`gatewayai/operator` account. The enabled
+`gatewayai-openviking-sync.timer` starts its oneshot service about every 15
+minutes. It imports only `PROJECT.md`, `docs/ROADMAP.md` and this document from
+the exact current public GitHub main SHA, using `vectors_only`. A root-only
+manifest records task IDs so a slow task resumes without a duplicate import.
+Retrieval is disabled until all three tasks complete and remote main still
+matches the manifest. A changed main starts a new bounded import; the old
+revision is never returned by the adapter. This timer does not capture chats,
+secrets, private repositories, or worker artifacts. It does not prune older
+public revisions yet; monitor workspace growth before expanding the scope.
+
+The operator-only controller review path accepts `openviking_root` in its
+protected dispatch configuration. For an exact-main GatewayAI plan, it queries
+the completed public resource prefix, reads at most three matched excerpts of
+600 characters, and labels them untrusted advisory data in the independent
+review and repair prompt. The Git candidate, task plan, deterministic policy,
+budget and human publication gates remain authoritative. If OpenViking is
+unavailable, still importing, stale, out of scope or too large for the prompt,
+the review proceeds from Git alone. A digest of the optional advisory is
+recorded with review evidence. No model call is made by the sync timer.
+
+On VM9125 the timer was enabled and its first service run returned success.
+All three public-main tasks completed at SHA
+`843aa15c4011f0f00e29ff0c316306f84d7116bd`. A live `find` returned three
+in-scope excerpts, and a controller adapter smoke test returned three hits and
+denied a mismatched SHA. Unit tests cover incomplete/stale tasks, failed tasks,
+out-of-scope results, controller prompt inclusion and Git-only fallback. An
+actual paid reviewer run with retrieved context has **not** been executed;
+this is activation and read-path evidence, not a quality claim. Open WebUI chats
+are not sent to OpenViking: freeform-chat data classification, separate account
+permissions and retention/deletion behavior require their own acceptance.
+
+The live script is `/opt/gatewayai-openviking/public.py`; the systemd units
+are copied from `deploy/openviking/`. Protected state stays in
+`/var/lib/gatewayai-openviking`. Stop the timer with
+`sudo systemctl disable --now gatewayai-openviking-sync.timer` if rollback is
+needed. Controller source and config rollback copies are in the root-only
+`/var/lib/gatewayai-openviking/controller-rollback-20261001` directory.
+
 Never copy the workspace or credentials into Git or OneDrive. A recovery plan
 must capture the workspace, config, key/account receipts and the pinned model
 with an encrypted off-VM backup, then prove a separate clean-host restore before

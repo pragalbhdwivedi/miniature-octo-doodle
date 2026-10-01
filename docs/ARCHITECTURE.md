@@ -58,7 +58,10 @@ connected to controller dispatch or a private-source adapter.
 
 ### OpenViking
 Persistent contextual memory for agents, decisions, resources, and prior work. It augments Git; it does not replace it.
-It remains uninstalled pending model, persistence and recovery design.
+The VM9125 instance currently holds public-main resources only. A systemd timer
+refreshes three exact-SHA documents, and the operator-only reviewer can consume
+bounded excerpts as untrusted advisory context. It grants no task, spend or
+publication authority. Private memory and WebUI chat capture remain disabled.
 
 ### Agent Controller
 Future orchestration layer for architect, implementer, tester, reviewer, security, and documentation agents.

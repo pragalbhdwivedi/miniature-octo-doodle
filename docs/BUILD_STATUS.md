@@ -27,7 +27,7 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Ollama | PARTIAL | Native Windows 0.35.0 loopback/cloud-disabled; VM reverse tunnel and LiteLLM bridge pass; next-logon/reboot persistence unverified |
 | Local model | PARTIAL | Existing Qwen3 instruct plus 15 GB Devstral coding and 2.5 GB Qwen3 thinking; both new aliases pass through WebUI/LiteLLM; production quality and laptop-off availability unvalidated |
 | OmniRoute | NOT STARTED | Optional |
-| OpenViking | PARTIAL | VM9125 v0.4.22 loopback-only; local embedding and text VLM; authenticated public vector and semantic ingest/search passed; private data, backup/restore pending |
+| OpenViking | PARTIAL | VM9125 v0.4.22 loopback-only; public-main timed sync and three bounded exact-SHA hits live-tested; operator controller advisory read and stale fallback passed; paid reviewed run, private data and clean-host restore pending |
 | Graphify (Phase 9) | PARTIAL | VM9125 public code-only AST/SQL index: 580 nodes, 1,191 edges; live same-run build, fresh-Git query and exact-plan advisory preview passed; automatic controller use/quality evaluation pending |
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
@@ -152,6 +152,30 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   YAML/core-security validator and all three Kubernetes unit tests. No laptop
   package install was made below the disk stop floor. Python compile, Compose
   config and Git whitespace checks passed.
+
+## Phase 9 automatic OpenViking public workflow - 1 October 2026
+
+- VM9125's root-only 15-minute systemd timer and oneshot service are enabled.
+  `systemd-analyze verify` passed, and the first service invocation reported
+  `Result=success`, `ExecMainStatus=0`. The resumed three-document import from
+  exact public main `843aa15c4011f0f00e29ff0c316306f84d7116bd` reached
+  `ready`. The manifest and account credential remain under the root-only
+  OpenViking state directory; no chat or private source is imported.
+- Live bounded search returned three URIs under that SHA's resource prefix.
+  OpenViking's search abstracts were empty; the adapter now reads matched
+  public content and clips each excerpt to 600 characters. Repeated live query
+  returned three non-empty excerpts. A controller adapter smoke test using the
+  protected config also returned three hits and rejected a mismatched source SHA.
+- The VM operator controller source and protected dispatch config now enable the
+  optional OpenViking lookup. Its reviewer treats content as untrusted and falls
+  back to Git-only context on outage, stale or oversized results. No actual
+  model-backed review has consumed it yet, and no new spend was authorized for
+  this acceptance. Browser chats remain outside memory until classification and
+  isolation are tested. See [operation and rollback](OPENVIKING.md).
+- Targeted controller/OpenViking unit tests: 13 passed. The full Windows suite
+  ran 128 tests with 11 expected skips and one import error because system
+  Python lacks PyYAML; the Kubernetes/YAML validation will be rerun on VM9125,
+  where PyYAML is already installed. No laptop package was installed.
 
 ## Initial laptop local model checkpoint - 1 October 2026 (superseded above)
 
