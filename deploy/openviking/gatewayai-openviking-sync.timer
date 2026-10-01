@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh bounded public OpenViking context
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min
+RandomizedDelaySec=2min
+Unit=gatewayai-openviking-sync.service
+
+[Install]
+WantedBy=timers.target

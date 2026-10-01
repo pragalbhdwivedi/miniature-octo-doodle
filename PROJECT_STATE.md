@@ -56,7 +56,13 @@ is installed separately on VM9125 with a VM-local embedding model, laptop-hosted
 text VLM and loopback-only API. Its authenticated public-document vector ingest
 and search passed in both `vectors_only` and `semantic_and_vectors` modes.
 Private-source permissions, automatic controller consumption, compaction quality
-and clean-host memory recovery are pending. See
+and clean-host memory recovery were pending at installation. On 1 October a
+15-minute VM timer was enabled to refresh only three public documents at the
+exact current GitHub main SHA. Live sync and three bounded content hits passed.
+The operator controller's optional advisory lookup returned three live hits and
+denied a mismatched SHA; fixture tests cover prompt inclusion and Git-only
+fallback. A paid reviewer run with retrieved context, private memory permissions,
+WebUI chat capture and clean-host memory recovery remain pending. See
 [Graphify](docs/GRAPHIFY.md), [OpenViking](docs/OPENVIKING.md) and
 [build evidence](docs/BUILD_STATUS.md).
 
