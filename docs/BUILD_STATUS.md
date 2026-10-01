@@ -174,8 +174,9 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
   isolation are tested. See [operation and rollback](OPENVIKING.md).
 - Targeted controller/OpenViking unit tests: 13 passed. The full Windows suite
   ran 128 tests with 11 expected skips and one import error because system
-  Python lacks PyYAML; the Kubernetes/YAML validation will be rerun on VM9125,
-  where PyYAML is already installed. No laptop package was installed.
+  Python lacks PyYAML. A fresh branch clone on VM9125 with its existing PyYAML
+  ran all 130 tests successfully (three expected skips) and the repository
+  YAML/core-security validator passed. No laptop package was installed.
 
 ## Initial laptop local model checkpoint - 1 October 2026 (superseded above)
 
