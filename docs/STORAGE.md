@@ -126,3 +126,17 @@ The review pipeline reuses the existing gateway, PostgreSQL and worker image.
 Schema2 adds small pipeline/debit tables and retains private stage artifacts.
 A protected controller-only pre-migration dump is retained on VM; this is not
 validated separate-machine recovery. No automatic retention or deletion.
+
+## Phase 9 context and requested laptop models
+
+The VM9125 Graphify public-source index occupies about 2.1 MiB and its pinned
+Python venv about 200 MiB; VM root had about 49 GiB free after installation.
+This is a rebuildable code-only index, with no graph database, image or model
+weight. The three SQL files were omitted rather than adding an optional parser.
+OpenViking and its embedding/VLM storage remain unallocated. The Windows laptop
+model weights are stored only in `%USERPROFILE%\.ollama\models`, outside Git and
+OneDrive. The 15 GB Devstral and 2.5 GB Qwen3 thinking pulls reduced C: free
+from 33.9 GiB to 17.76 GiB, remaining 2.76 GiB above the 15-GiB stop floor
+and below the 25-GiB warning level. No Docker images/volumes or unrelated
+models were pruned. LiteLLM reused its existing image and ledger volume; the
+VM tunnel bridge added only two small systemd unit files and configuration.

@@ -1,0 +1,40 @@
+name: gatewayai-openviking
+
+services:
+  embedding:
+    image: ollama/ollama@sha256:9c1dc45ea758396139ec0adfa52947714c61f8d1e4537a6e2daef8138e7a64a9
+    command: ["serve"]
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_NO_CLOUD: "1"
+    volumes:
+      - /var/lib/gatewayai-openviking/ollama:/root/.ollama
+    networks: [memory]
+    restart: unless-stopped
+    mem_limit: 1500m
+    cpus: 1.5
+    pids_limit: 128
+    security_opt: ["no-new-privileges:true"]
+
+  openviking:
+    image: ghcr.io/volcengine/openviking@sha256:6521d77c8dc6ea6037b47ea539175224bdc5efa1e806f071202c0b6cc10e59dd
+    environment:
+      OPENVIKING_CONFIG_FILE: /app/.openviking/ov.conf
+    volumes:
+      - /var/lib/gatewayai-openviking/openviking:/app/.openviking
+    ports:
+      - "127.0.0.1:1933:1933"
+    networks: [memory, provider-egress]
+    depends_on: [embedding]
+    restart: unless-stopped
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  memory:
+    internal: true
+  provider-egress:
+    external: true
+    name: ${GATEWAY_PROVIDER_EGRESS:?Set the live gateway provider-egress network}

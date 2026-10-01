@@ -1,0 +1,10 @@
+[Unit]
+Description=Unprivileged proxy to laptop Ollama SSH reverse tunnel
+
+[Service]
+ExecStart=/usr/lib/systemd/systemd-socket-proxyd 127.0.0.1:11435
+DynamicUser=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes

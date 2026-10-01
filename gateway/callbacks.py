@@ -6,7 +6,7 @@ import threading
 import time
 from fastapi import HTTPException
 from litellm.integrations.custom_logger import CustomLogger
-from gateway.policy import Denied, Ledger, Policy
+from gateway.policy import Denied, Ledger, Policy, streaming_timeout
 
 
 class GatewayPolicy(CustomLogger):
@@ -82,7 +82,7 @@ class GatewayPolicy(CustomLogger):
         data.pop("tools", None)
         data["max_completion_tokens"] = output
         data["num_retries"] = 0
-        data["timeout"] = 60
+        data["timeout"] = 300 if all(c["model"].startswith("ollama/") for c in candidates) else 60
         data["fallbacks"] = [{candidates[0]["alias"]: [c["alias"] for c in candidates[1:]]}]
         return data
 
@@ -136,7 +136,7 @@ class GatewayPolicy(CustomLogger):
     async def async_post_call_streaming_iterator_hook(self, user_api_key_dict, response, request_data):
         completed = False
         try:
-            async with asyncio.timeout(120):
+            async with asyncio.timeout(streaming_timeout(request_data, self.policy.config)):
                 async for item in response:
                     yield item
             completed = True

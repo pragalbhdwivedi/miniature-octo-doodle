@@ -27,6 +27,17 @@ def budget_micro(value):
     return int(amount * 1000000)
 
 
+def streaming_timeout(request_data, config):
+    """Give only configured all-Ollama routes the longer stream ceiling."""
+    route = request_data.get("model") if isinstance(request_data, dict) else None
+    candidates = (config.get("resolved_routes") or {}).get(route) if isinstance(route, str) else None
+    if (isinstance(candidates, list) and candidates
+            and all(isinstance(item, dict) and isinstance(item.get("model"), str)
+                    and item["model"].startswith("ollama/") for item in candidates)):
+        return 300
+    return 120
+
+
 class Ledger:
     def __init__(self, path, limit, concurrency=4, lease_seconds=300):
         self.path, self.limit = str(path), budget_micro(limit)
@@ -54,7 +65,7 @@ class Ledger:
         finally:
             db.close()
 
-    def reserve(self, route, candidates, debit, now=None):
+    def reserve(self, route, candidates, debit, now=None, allow_zero=False):
         now = time.time() if now is None else now
         period = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m")
         request_id = uuid.uuid4().hex
@@ -66,7 +77,7 @@ class Ledger:
                 raise Denied("concurrency_limit", 429)
             db.execute("INSERT OR IGNORE INTO months VALUES (?,0)", (period,))
             spent = db.execute("SELECT debit FROM months WHERE period=?", (period,)).fetchone()[0]
-            if debit <= 0 or spent + debit > self.limit:
+            if debit < 0 or (debit == 0 and not allow_zero) or spent + debit > self.limit:
                 raise Denied("monthly_budget_exhausted", 429)
             db.execute("UPDATE months SET debit=debit+? WHERE period=?", (debit, period))
             db.execute("INSERT INTO requests VALUES (?,?,?,?,?,1,0)",
@@ -146,6 +157,8 @@ class Policy:
         if not candidates:
             raise Denied("unknown_or_unavailable_route")
         allowed = {"openai", "gemini"}
+        if self.config.get("local_models_enabled") is True:
+            allowed.add("ollama")
         for restrictions in (meta, key_metadata):
             if "allowed_providers" in restrictions:
                 values = restrictions["allowed_providers"]
@@ -155,6 +168,9 @@ class Policy:
         candidates = [c for c in candidates if c["model"].split('/')[0] in allowed]
         if not candidates:
             raise Denied("no_allowed_provider")
+        providers = {c["model"].split('/')[0] for c in candidates}
+        if "ollama" in providers and providers != {"ollama"}:
+            raise Denied("mixed_local_cloud_route_denied")
         messages = body.get("messages")
         if not isinstance(messages, list) or not 1 <= len(messages) <= 32:
             raise Denied("invalid_messages", 400)
@@ -178,5 +194,6 @@ class Policy:
             if not price:
                 raise Denied("unreviewed_model_price")
             debit += (input_bytes + 4096) * price["input_micro_usd"] + output * price["output_micro_usd"]
-        request_id = self.ledger.reserve(route, candidates, debit)
+        request_id = self.ledger.reserve(route, candidates, debit,
+                                         allow_zero=providers == {"ollama"})
         return request_id, candidates, output

@@ -52,9 +52,13 @@ Canonical source code and project history.
 
 ### Graphify
 Structural representation of repositories and relationships in code. It augments Git; it does not replace it.
+The first Phase 9 VM index covers only this public repository and exposes
+read-only advisory queries after fresh-main and provenance checks. It is not
+connected to controller dispatch or a private-source adapter.
 
 ### OpenViking
 Persistent contextual memory for agents, decisions, resources, and prior work. It augments Git; it does not replace it.
+It remains uninstalled pending model, persistence and recovery design.
 
 ### Agent Controller
 Future orchestration layer for architect, implementer, tester, reviewer, security, and documentation agents.
@@ -78,7 +82,12 @@ Mandatory central OpenAI-compatible gateway. Provider keys live behind the gatew
 Initial human-facing browser interface.
 
 ### Ollama / llama.cpp
-Optional local inference. No model is downloaded by default.
+Optional local inference. The owner-authorized laptop Ollama route now carries
+two public/synthetic aliases through LiteLLM. A loopback SSH reverse tunnel and
+unprivileged VM bridge limit transport to the existing gateway container;
+Windows Ollama is not LAN-bound. The separate Windows proposal agent calls
+Ollama directly only for local public-source evaluation and has no controller
+authority. `local-private` remains disabled; no local route falls back to cloud.
 
 ## Routing trust rule
 

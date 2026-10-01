@@ -187,6 +187,10 @@ database migrations affecting real data, external communications, credentials,
 spending outside approved limits and other consequential actions.
 
 ## Phase 9 - Agent context and repository intelligence
+Status: STARTED / PARTIAL. The public code-only Graphify index and a read-only,
+fresh-Git query gate passed on VM9125. OpenViking and controller context use are
+not yet enabled; see BUILD_STATUS and GRAPHIFY for measured scope.
+
 Add context systems only after the controller can work correctly from Git alone.
 
 - OpenViking persistent development context
@@ -257,8 +261,10 @@ storage, security and current need justify them:
 - security-reviewed reusable engineering skills
 
 The owner activated the Windows laptop Ollama/local-model evaluation lane on
-1 October 2026. It remains separate from Phase 9 and has no VM LiteLLM route;
-see [local model operations](LOCAL_MODEL.md) for measured scope and limits.
+1 October 2026, then requested a 15 GB coding model, a small thinking
+supervisor and both models in the existing WebUI. Their two local-only LiteLLM
+aliases passed bounded live tests. This lane remains separate from Phase 9's
+context work; see [local model operations](LOCAL_MODEL.md) for scope and limits.
 
 Provider/model additions must remain behind LiteLLM capability aliases and the
 deterministic policy layer.
