@@ -8,6 +8,16 @@ Modular local/cloud AI coding platform with a single AI gateway, browser UI, opt
 
 ## Current phase
 
+1 October 2026 local AADI coordination: IMPLEMENTED and LIVE TESTED for one
+operator-admitted code-only task. Antigravity Gemini generated a candidate, the
+new MCP coordinator automatically invoked signed-in Codex and local Qwen, and
+the app displayed matching persisted candidate hashes/findings. Eleven fixtures
+and the existing 16 desktop/local bridge tests passed. Qwen produced an
+unsupported wording criticism; findings remain advisory. This active-session
+subscription lane is not unattended backlog execution or acceptance of the VM
+AADI adapter, which stays disabled. No candidate source was applied or executed.
+See [coordination](docs/CODER_COORDINATION.md).
+
 Desktop supervisor increment (1 October 2026): a stdio MCP bridge is locally
 configured for Antigravity, using installed Qwen3 thinking and existing public-main
 proposal guards. Local protocol and live review checks passed. A deliberately

@@ -2,6 +2,38 @@
 
 Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
+## Local AADI two-coder coordination, 1 October 2026
+
+PARTIAL overall; live subscription handoff PASSED. Antigravity 2.19.1 displayed
+four new tools alongside the unchanged three public-supervisor tools. Gemini
+3.1 Pro Low claimed an operator-reviewed exact-Dev package-docstring task and
+submitted its own replacement. After user-handled app permissions, one
+`advance_task` invoked Codex CLI 0.158.0-alpha.2.1 / `gpt-6-astra`, then the existing
+local Qwen3 thinking. Both independent candidates, applicable patches, hashes
+and advisory findings persisted outside Git/sync. App-rendered hashes matched
+fresh local recomputation. Codex event evidence contains no tool execution.
+Final state was `human_review_required`; no candidate code was applied or run.
+
+Qwen returned `revise`, speculating that mentioning the already-known project
+name invented context. This is not a supported defect; the quality limitation
+remains open and Qwen cannot approve or automatically reject a release.
+
+Executed: eleven real-Git/SQLite coordination fixtures; existing 16 local-agent,
+desktop-handoff and MCP regressions; repository YAML/security contract and diff
+checks. Independent static review prompted result retrieval, explicit operator
+close, strict CLI configuration/event checks and provider-environment isolation.
+Initial fixture cleanup exposed unclosed Windows SQLite handles; explicit
+connection closing fixed it. A strict CLI probe and the actual Antigravity child
+run passed. Physical packaged-app LocalCache paths fixed native MCP startup.
+
+Gemini CLI authentication failed with provider `IneligibleTierError`, directing
+this individual account to Antigravity. No fallback credentials were used.
+Disk was 10.17 GiB free, below the 15-GiB floor; no optional install/download.
+Background Gemini execution, automatic candidate tests/application, unified VM
+ownership and full private AADI controller acceptance remain NOT IMPLEMENTED.
+See [runbook](CODER_COORDINATION.md). Detailed private source evidence stays in
+the private AADI handover and local artifacts, never this public repository.
+
 | Subsystem | Status | Evidence |
 |---|---|---|
 | Repository bootstrap | COMPLETE | Initial source-of-truth files committed |

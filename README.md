@@ -3,6 +3,11 @@
 A modular, self-hosted AI development platform, developed on Windows + WSL2 with
 a dedicated Linux control-plane VM now hosting the live gateway.
 
+The optional [local two-coder handoff](docs/CODER_COORDINATION.md) connects an
+operator-admitted AADI task in Antigravity to independent Codex generation and
+local Qwen comparison. It produces review artifacts; source application, isolated
+tests and publication remain separate steps.
+
 This repository is the permanent source of truth for the platform. It is designed to start lean on a laptop with limited free disk space, while preserving a documented path to a larger multi-agent coding system.
 
 ## Canonical target architecture

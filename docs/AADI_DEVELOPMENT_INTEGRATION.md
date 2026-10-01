@@ -6,6 +6,13 @@
 
 ## Purpose
 
+1 October 2026 bounded increment: the optional
+[desktop subscription handoff](CODER_COORDINATION.md) has live two-coder evidence
+for an operator-reviewed AADI Dev task. It is a separate proposal-only lane; it
+does not satisfy the full VM controller acceptance below or enable its private
+adapter. Standing owner direction uses `Dev` for development and preserves
+`main` for reviewed integration; refresh both before admitting tasks.
+
 This repository is the shared AI development/control platform for AADI and
 future approved software projects. It provides the model gateway, development
 controller, isolated coding workers, run state and human approval interface.
@@ -36,6 +43,7 @@ For AADI the adapter records at minimum:
 project: aadi
 repository: pragalbhdwivedi/aadi
 default_branch: main
+development_branch: Dev
 bootstrap:
   - PROJECT.md
   - PROJECT_STATE.md

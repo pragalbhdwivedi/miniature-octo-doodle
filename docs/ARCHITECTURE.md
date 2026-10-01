@@ -47,6 +47,14 @@
 
 ## Architectural roles
 
+The optional [local subscription coordination lane](CODER_COORDINATION.md)
+uses operator-admitted AADI Dev packets, a private SQLite ownership ledger,
+Antigravity Gemini, installed signed-in Codex and local Qwen advice. It has no
+test execution or publication authority and does not share ownership with the
+VM controller. The disabled VM AADI adapter must remain disabled until private
+transport and a single cross-lane ownership mechanism are accepted. LiteLLM
+remains the canonical gateway for the separate controller/API architecture.
+
 ### Git/GitHub
 Canonical source code and project history.
 
