@@ -106,6 +106,18 @@ publication in PR #22. See [dispatch operations](docs/CONTROLLER_DISPATCH.md)
 and [review operations](docs/CONTROLLER_REVIEW.md).
 See `docs/BUILD_STATUS.md` for measured results and remaining Phase 5 gates.
 
+## Desktop coding handoff - 1 October 2026
+
+PARTIAL, local implementation: `scripts/desktop_review.py` prepares exact-public-main
+packets for ChatGPT Work or Gemini Pro and imports bounded proposals into the
+existing local Qwen critique. No source edit, test execution, controller dispatch,
+publication or automatic desktop scheduling is granted. The Gemini account's
+supported memory-import flow received a curated project summary and returned a
+saved-memory acknowledgment. This is a one-time transfer, not live memory sync.
+See [desktop agents](docs/DESKTOP_AGENTS.md) and BUILD_STATUS for acceptance.
+The existing checkout and VM runtime remain preserved. Optional CLI installation
+is stopped below the 15-GiB laptop disk floor.
+
 ## Hardware baseline
 - Windows 11
 - AMD Ryzen 7 4800H

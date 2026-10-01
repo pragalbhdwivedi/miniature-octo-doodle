@@ -78,6 +78,10 @@ The control plane deliberately separates **authority**, **decision intelligence*
 
 ## Source-of-truth rule
 
+For the operator-mediated ChatGPT Work/Gemini proposal handoff and local Qwen
+review, see [desktop agents](docs/DESKTOP_AGENTS.md). This does not enable
+unattended desktop control or replace the VM controller.
+
 Repository files and Git history are authoritative for this project. Chat history is not.
 
 Before implementation, read:

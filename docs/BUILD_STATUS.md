@@ -33,6 +33,45 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
 | Telegram approvals | PARTIAL | Exact private callback was consumed for live draft PR #32; bounded publication gate passed, broader Phase 8 actions/notifications pending |
 
+## Desktop memory and proposal handoff - 1 October 2026
+
+- Refreshed GitHub main `3e8672b8412d2084fbd145bf6f42cb842ad90ffd`, issues and
+  open PRs. The original Phase 6 checkout and untracked dashboard work were
+  preserved. Prepared a separate `feat/desktop-agent-handoff` worktree.
+- Gemini Desktop 1.13.1 was running with Gemini Pro selected. Its native input
+  failed twice with Windows access denied; the signed-in Edge browser supported
+  the account's memory importer. A curated summary of available ChatGPT project
+  memory, stable preferences and dated public-Git context was submitted. Gemini
+  returned a saved-memory acknowledgment in the resulting chat. No complete
+  ChatGPT account export, credentials, raw records or private source was imported.
+  Future-chat recall and automatic cross-product memory synchronization are not
+  proven by this acknowledgment. Personal import text/evidence remains outside Git.
+- Added Gemini project instructions, shared handoff rules and a manual proposal
+  adapter reusing `local_agent.py` guards. It accepts only current clean public
+  main and named tracked text files. Source identity, file/byte bounds, JSON shape
+  and Git patch applicability are checked; review output stays in LocalAppData.
+  It cannot apply patches, execute candidate tests, invoke the VM controller or
+  publish. No task scheduler/claim integration or private AADI adapter is enabled.
+- Five new guard tests and six existing local-agent tests passed. Repository
+  YAML/core-security validation passed using the existing venv; Python syntax and
+  Git whitespace checks passed. No packages were installed.
+- A real ChatGPT-authored docstring proposal passed local Qwen review and Git
+  applicability checking. A separate AST comparison confirmed executable statements
+  were unchanged. Source remained clean; no provisioning script was executed.
+  The Qwen verdict is advisory, not code-quality or deployment acceptance.
+- Gemini's first rendered response had invalid JSON; its first repair violated
+  the required schema. The adapter rejected the latter before model review or
+  edits. The handoff prompt now requests a JSON code block to preserve escaping.
+  A full-packet follow-up stalled; after reloading the saved conversation, that
+  pending follow-up was absent. Gemini-to-Qwen positive acceptance remains
+  unverified; no response was fabricated or silently repaired into an accepted
+  candidate. The saved conversation retains the two rejected attempts.
+- Laptop disk measured about 12.05 GiB initially and 11.50 GiB later, below the
+  15-GiB floor. Host changes are not attributable solely to this task. Only small
+  source/context/evidence files were created; no CLI, model, image, service or VM
+  was installed. Autonomous desktop/CLI dispatch and end-to-end dual-coder
+  supervision remain unimplemented and unvalidated.
+
 ## Laptop local models in the existing WebUI - 1 October 2026
 
 - The owner authorized one ~15 GB coding model plus a small thinking supervisor.

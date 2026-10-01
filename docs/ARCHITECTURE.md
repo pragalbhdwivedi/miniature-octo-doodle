@@ -120,6 +120,11 @@ It requires no additional service/image. Jev live execution remains disabled;
 only its offline decision contract is tested. See [ADR 0007](adr/0007-phase2-local-policy-ledger.md).
 
 ## Core principle
+
+An optional [desktop handoff](DESKTOP_AGENTS.md) accepts proposals authored in
+ChatGPT Work or Gemini for exact public-main files and reuses local Qwen advisory
+review. It cannot dispatch the VM worker, edit source, publish or merge. Desktop
+subscription sessions are not LiteLLM API credentials; task transfer is manual.
 Document the full architecture now, install components only when they are needed and disk capacity allows it.
 
 ## Phase 1 implementation boundary
