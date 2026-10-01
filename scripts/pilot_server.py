@@ -15,6 +15,7 @@ import controller_state
 import controller_telegram as telegram
 import pilot_state as state
 import pilot_views as views
+import pilot_answers as answers
 
 
 class Store(controller_state.Store):
@@ -59,7 +60,10 @@ def show(s, view, level, key):
         elif s['batch']['state']=='awaiting_publication':
             text=('Approve the verified combined test file for Dev?\nArtifact: '+s['publication_digest']+'\nMain and production remain unchanged.\n\n'+text)[:3500]
             markup['inline_keyboard'].insert(0,[{'text':'Publish verified result to Dev','callback_data':state.signed(s,'publish',key)}])
+            markup['inline_keyboard'].insert(1,[{'text':'Keep unpublished','callback_data':'p:defer:brief'},
+                                               {'text':'Custom','callback_data':'p:feedback:brief'}])
     state.message(s,text,markup)
+    if view=='questions':answers.show_pending(s,key)
 
 
 def handle(s, update, key):
@@ -71,7 +75,8 @@ def handle(s, update, key):
     if query:
         data=query.get('data','')
         try:
-            if data.startswith('p!'): state.decide(s,data,key)
+            if data.startswith('q:'):answers.handle_callback(s,data,key)
+            elif data.startswith('p!'): state.decide(s,data,key)
             elif data.startswith('p:'):
                 _,view,level=data.split(':')
                 if level not in ('brief','detailed','full'): raise ValueError('Unknown detail level')
@@ -91,20 +96,39 @@ def handle(s, update, key):
                     else: state.message(s,'Resume was received. The pilot is not paused; open Status or Decisions to see what it needs.')
                 elif view=='report': state.message(s,'Your comprehensive report is attached.',report=True)
                 elif view=='ask': state.message(s,'Ask anything about this pilot: type your question here. Qwen will answer from saved task evidence. New project work is saved for a separate scope decision.')
+                elif view=='defer':
+                    if s['batch']['state']!='awaiting_publication':raise ValueError('There is no current publication decision to defer')
+                    state.message(s,'Received: keep the result unpublished. Nothing was published. You can review Outputs and return to Decisions later.')
+                    state.event(s,'Owner chose to leave the current result unpublished.')
+                elif view=='feedback':
+                    if s['batch']['state']!='awaiting_publication':raise ValueError('There is no current publication decision')
+                    q={'id':secrets.token_hex(4),'kind':'decision','state':'pending',
+                       'question':'What would you like changed or explained before publication?',
+                       'options':['Explain the changes','Show test evidence','Keep unpublished'],
+                       'context_digest':s.get('publication_digest')}
+                    existing=next((x for x in s['questions'] if x.get('state')=='pending' and x.get('context_digest')==s.get('publication_digest') and x.get('question')==q['question']),None)
+                    if existing:q=existing
+                    else:s['questions'].append(q)
+                    answers.handle_callback(s,answers.callback(s,q,'custom',key),key)
                 elif view in ('status','inputs','outputs','questions','controls','usage'): show(s,view,level,key)
                 else: raise ValueError('Unknown button')
             else: raise ValueError('This button is no longer active')
         except ValueError as error: state.message(s,'Click received. '+str(error)+'. Use /menu for current buttons.')
     else:
         text=update.get('message',{}).get('text','').strip()[:3000]
-        if text in ('/start','/menu','/status'): show(s,'status','brief',key)
+        if text in ('/start','/menu','/status'): show(s,'status',s.get('detail_level','brief'),key)
+        elif text=='/cancel':
+            s.pop('pending_reply',None);state.message(s,'Custom entry cancelled. Open Decisions to choose an answer.')
+        elif text=='/answer':
+            if not answers.show_pending(s,key):state.message(s,'There is no pending question to answer. Use Ask / follow-up for a new question.')
         elif text.startswith('/answer '):
             bits=text.split(' ',2)
             q=next((q for q in s['questions'] if len(bits)==3 and q['id']==bits[1] and q.get('kind')=='decision'),None)
-            if q:
-                q['answer']=bits[2];q['state']='answered'
-                state.message(s,'Your instruction is saved with the decision. The blocked stage remains stopped for an operator to validate a safe continuation; no uncertain work was repeated.')
-            else: state.message(s,'I could not match that decision. Open Decisions for the current question and reply format.')
+            if q and q.get('state')=='pending':answers.record(s,q,bits[2],'custom')
+            else:state.message(s,'That question is missing or already answered. Open Decisions for current answer buttons.')
+        elif text.startswith('/'):
+            state.message(s,'Command not recognized. Use /menu or /answer; choose Custom on a question to type your own reply.')
+        elif text and answers.custom_text(s,text):pass
         elif text:
             pending=sum(q.get('state') in ('pending','answering') for q in s['questions'] if q.get('kind')=='ask')
             if pending>=5: state.message(s,'Your earlier questions are still queued. Please wait for an answer before adding more.')
@@ -141,7 +165,8 @@ def deliver(store, config, call=telegram.bot_call):
         if item['report']: result=document(config,views.report(snapshot))
         else:
             payload={'chat_id':config['chat_id'],'text':item['text']}
-            payload['reply_markup']=item['markup'] or views.keyboard('status','brief')
+            q=next((q for q in snapshot['questions'] if q['id']==item.get('question_id') and q.get('state')=='pending'),None)
+            payload['reply_markup']=answers.keyboard(snapshot,q,config['signing_key_hex']) if q else (item['markup'] or views.keyboard('status','brief'))
             result=call(config,'sendMessage',payload)
         if result.get('chat',{}).get('id')!=config['chat_id'] or not isinstance(result.get('message_id'),int): raise RuntimeError('Uncertain delivery identity')
         status='sent'

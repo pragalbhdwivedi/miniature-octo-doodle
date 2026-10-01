@@ -29,7 +29,7 @@ ADMITTED = frozenset('id goal state created_at deadline max_tasks title prompt '
     'mutation_detected new_test test_count sha256 planner_note selected attempt '
     'results coordination_result coordination_task_id mutation last_seen '
     'published commit commit_sha artifact_sha256 branch repository source_branch '
-    'base_sha selected_candidate receipt checks publication_digest'.split())
+    'base_sha selected_candidate receipt checks publication_digest answer_mode answered_at '.split())
 SECRET_KEY = re.compile(r'(?i)(?:password|passwd|secret|credential|private[_ -]?key|'
                         r'api[_ -]?key|access[_ -]?token|refresh[_ -]?token|bot[_ -]?token)')
 ASSIGNMENT = re.compile(r'''(?ix)\b(password|passwd|secret|api[_ -]?key|access[_ -]?token|
@@ -152,7 +152,11 @@ def _section(view, level, data):
         if data['publication_result']:
             lines += ['', 'Publication result:\n'+_text(data['publication_result'])]
     elif view == 'questions':
-        lines += ['Pending questions and recorded decisions:', _text(data['questions'])]
+        questions=data['questions'] if isinstance(data['questions'],list) else []
+        visible=[q for q in questions if isinstance(q,dict) and q.get('state') in ('pending','answering')]
+        if not visible:lines += ['No answer is needed right now.']
+        for q in visible:lines += ['',str(q.get('question','Question')), 'Choose a fixed answer below, or Custom to type your own.']
+        if not short:lines += ['Recorded answers and decisions:', _text(questions)]
         if not short:
             lines += ['Decision history:\n'+_text(data['events'])]
         lines += ['Use Ask / follow-up for clarification. A model suggestion does not record your approval.']

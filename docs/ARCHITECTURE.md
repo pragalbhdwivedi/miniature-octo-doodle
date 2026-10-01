@@ -1,6 +1,6 @@
 # Architecture
 
-The [Telegram pilot](TELEGRAM_PILOT.md) adds VM-owned parent task reservations around the existing laptop coordination lane. The laptop remains a delegated operator worker; local Qwen is advisory. Telegram approvals bind the batch scope and exact publication result.
+The [Telegram pilot](TELEGRAM_PILOT.md) adds VM-owned parent task reservations around the existing laptop coordination lane. The laptop remains a delegated operator worker; local Qwen is advisory. Telegram approvals bind the batch scope and exact publication result. Signed question buttons bind fixed answers or Custom text capture to one pending question. Operator-only saved-proposal recovery preserves source/candidate integrity and requires fresh isolated tests and independent review; it cannot generate new coder runs.
 
 The optional desktop subscription lane now supports
 [unattended delivery of operator-admitted tasks](CODER_SCHEDULING.md) through

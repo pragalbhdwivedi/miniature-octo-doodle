@@ -20,9 +20,34 @@ def event(s, text):
     s['events'] = s['events'][-100:]
 
 
-def message(s, text, markup=None, report=False):
+def message(s, text, markup=None, report=False, question_id=None):
     s['outbox'].append({'id': secrets.token_hex(8), 'state': 'pending',
-                        'text': text[:3500], 'markup': markup, 'report': report})
+                        'text': text[:3500], 'markup': markup, 'report': report,'question_id':question_id})
+
+
+def begin_recovery(s, evidence):
+    """Operator invokes after fresh owner approval; not exposed through model RPC."""
+    b=s['batch']
+    if b['state'] not in ('blocked','expired') or s.get('recovery'):
+        raise ValueError('Recovery is not available or was already authorized')
+    if any(x['state']=='running' for x in s['leases'].values()):
+        raise ValueError('An in-flight stage must be reconciled first')
+    tasks=s['tasks']
+    if len(tasks)!=3 or any(t['state']!='verified' for t in tasks[:2]) or tasks[2]['state']!='blocked':
+        raise ValueError('Recovery requires exactly the saved third task')
+    task=tasks[2]
+    if (evidence.get('task_id')!=task.get('coordination_task_id')
+            or evidence.get('source_sha')!=task['source_sha']
+            or evidence.get('state')!='human_review_required'
+            or evidence.get('advisory_status')!='unavailable'):
+        raise ValueError('Recovery evidence mismatch')
+    s['recovery']={'authorized_at':stamp(),'previous_deadline':b['deadline'],
+                   'starting_gpt_calls':b['gpt_calls'],'max_new_gpt_calls':2,'minutes':15,
+                   'new_coder_runs':False}
+    b.update(state='running',deadline=(datetime.now(timezone.utc)+timedelta(minutes=15)).isoformat(),max_gpt_calls=b['gpt_calls']+2)
+    task.update(state='ready_test',coordination_result=copy.deepcopy(evidence))
+    event(s,'Owner authorized 15-minute saved-proposal recovery with at most two GPT reviews and no coder reruns.')
+    message(s,'Recovery started: I will test task 3’s saved proposals, independently review the selected result, then check the combined file. Limit: 15 minutes and two GPT reviews. No coder regeneration. Publication still needs your Telegram approval.')
 
 
 def make_state(sha):
@@ -130,6 +155,9 @@ def work(s):
 
 def reserve(s, stage, task=None, question=None):
     b=s['batch']
+    if s.get('recovery') and stage in ('plan','dispatch'):
+        b['state']='blocked';message(s,'Recovery stopped: the approved recovery does not allow new coder runs.')
+        return {'action':'idle'}
     if stage!='ask' and deadline_reached(s): return {'action':'idle'}
     if stage=='publish' and (not s.get('approved_publication_digest')
             or digest(s.get('publication'))!=s['approved_publication_digest']
@@ -200,7 +228,7 @@ def finish(s, request):
         if verdict=='pass' and choice in ('gemini','codex') and evidence.get('passed') is True:
             task['selected']=choice;task['state']='verified';task['result']=evidence
             message(s,task['title']+'\nVerified: the selected proposal passed isolated tests and independent GPT review. It is not published yet.')
-        elif verdict=='repair' and task['attempt']<1:
+        elif verdict=='repair' and task['attempt']<1 and not s.get('recovery'):
             task['attempt']+=1;task['state']='ready'
             task['prompt']=(task['prompt']+' Repair the prior proposal using these bounded findings: '+json.dumps(review.get('findings',[])))[:1000]
             message(s,task['title']+'\nA repair is needed. I will allow one repair attempt within the existing scope.')
@@ -208,7 +236,8 @@ def finish(s, request):
             task['state']='waiting_input';b['state']='blocked'
             q={'id':secrets.token_hex(4),'kind':'decision','state':'pending','task_id':task['id'],
                'question':'Verification needs your decision: '+json.dumps(review.get('findings',[]))[:1400]}
-            s['questions'].append(q);message(s,q['question']+'\nReply with /answer '+q['id']+' followed by your instruction. This will be recorded; it cannot broaden the approved files or rerun uncertain work.')
+            q['options']=['Keep stopped','Request a repair']
+            s['questions'].append(q);message(s,q['question']+'\nChoose an answer below, or Custom to type your own. Answers are recorded for review; they do not authorize an uncertain rerun.',question_id=q['id'])
     elif stage=='ask':
         q=next(q for q in s['questions'] if q['id']==lease['question_id'])
         answer=result.get('answer','')
@@ -232,7 +261,7 @@ def finish(s, request):
 
 def snapshot(s):
     value={k:copy.deepcopy(s[k]) for k in ('batch','tasks','events','questions','totals','limits')}
-    value.update({k:copy.deepcopy(s.get(k,{})) for k in ('publication','publication_result','worker')})
+    value.update({k:copy.deepcopy(s.get(k,{})) for k in ('publication','publication_result','worker','recovery')})
     value['totals']={'gpt_calls':s['batch']['gpt_calls'],
                      'records':[{'started_at':at,'usage':copy.deepcopy(usage)} for at,usage in s['totals'].items()]}
     return value
@@ -258,7 +287,8 @@ def rpc(s, request):
                    'question':'Antigravity delivery was not confirmed. Open AADI Two-Coder Acceptance Task and send: Run next queued task. The exact-task claim prevents duplicate coding.'}
                 s['questions'].append(q)
                 event(s,'Antigravity delivery uncertain for '+task['title']+'; no automatic resend.')
-                message(s,'Input needed: '+q['question']+' Then reply /answer '+q['id']+' Sent. Coding will continue when the saved task is claimed.')
+                q['options']=['Sent','Still blocked']
+                message(s,'Input needed: '+q['question']+' Choose your answer below. Coding will continue when the saved task is claimed.',question_id=q['id'])
             return {'ok':True}
         if result.get('state')=='human_review_required':
             if result.get('source_sha')!=task['source_sha']: raise ValueError('Observed source changed')

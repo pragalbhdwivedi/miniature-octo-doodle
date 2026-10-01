@@ -18,9 +18,17 @@ Expired buttons explain how to open current controls. Delivery uncertainty is
 recorded rather than silently resending an action.
 
 Questions are acknowledged and queued for local Qwen to answer from saved
-evidence. Its answer is advisory. Replies to explicit decisions use
-`/answer QUESTION_ID instruction`; they are saved for operator reconciliation
-and cannot expand scope or retry an uncertain stage automatically.
+evidence. Its answer is advisory. Explicit questions now show fixed-answer buttons
+and **Custom**. A fixed tap saves that answer; Custom captures the next text
+message for the exact question, with a Cancel option. Both receive a durable
+acknowledgement. Signed callbacks bind the batch, question, options and context;
+changed or answered questions reject stale buttons. `/answer` displays pending
+buttons and never becomes a Qwen question. The older `/answer ID text` syntax
+remains supported for pending questions. Replies are saved for operator review
+and cannot expand scope or retry an uncertain stage automatically. Publication
+retains its separate exact-artifact approval. Brief Decisions lists only pending
+questions; detailed history remains available. A detail-preference question can
+save Brief, Detailed or Comprehensive as the default for `/menu`.
 
 Decisions presents the exact three-task charter before starting. The batch tests
 case-sensitive source-system names, internal spaces in external IDs, and
@@ -77,7 +85,8 @@ settings preserved. Its automatic idle tick completed without model calls, then
 its next timer reserved planning after the owner approval. The original
 five-minute exact-child delivery sidecar remains active. Forty-eight pilot tests
 and twenty-seven existing coordination/scheduler/Telegram tests passed. Three-task
-completion and final publication remain pending; this record does not assert them.
+completion and final publication were pending at initial deployment; the completed
+recovery acceptance below supersedes that status.
 
 
 Live pilot handoff boundary: planning and parent-to-local task admission passed,
@@ -102,3 +111,32 @@ Four lifecycle regressions and nine existing scheduler tests pass; live delivery
 through the surviving managed timer passed at 20:01 UTC. Agentapi wrote one
 successful delivery event and Gemini claimed the exact third task without UI input. No Windows security
 setting, authentication, app permission or UI-click workaround is changed.
+
+
+## Saved-proposal recovery and completed acceptance, 2 October 2026
+
+The third task retained complete Gemini and Codex proposals after local advisory
+review stopped. The original stop reason was not durably retained; an observed
+HTTP success alone does not establish a successful advisory review. The owner
+authorized a 15-minute recovery, at most two fresh GPT reviews and no new coder
+runs. Operator-only recovery verifies source freshness, original submissions,
+candidate hashes, patches and CLI completion before exposing the saved proposals
+as requiring human review. It is not exposed as a model or MCP operation. Local
+advisory remains explicitly unavailable; no review success is manufactured.
+
+The timer tested the saved third-task proposals, independently reviewed the
+selected result, then tested and independently reviewed the combined file. All
+22 normal tests passed. Each of the three fixed normalization mutations failed
+only its intended added test. Selected candidates were Gemini, Codex, Codex;
+baseline-modifying alternatives were rejected. Exactly two additional GPT calls
+were reserved and no coder was rerun. The owner approved the exact combined
+artifact using Telegram; the timer published one test-only commit to Dev and
+read back the remote branch. Main was unchanged. The bounded batch is completed;
+this does not authorize further tasks or establish reboot/laptop-off operation.
+Private IDs, source revisions and runtime evidence remain outside this repository.
+
+Fixed-answer and Custom controls are deployed to the VM service. Sixty pilot
+tests passed, including recovery integrity/budgets, stale/replayed callbacks,
+custom capture, immediate acknowledgement and the bare-command regression.
+Telegram accepted delivery of a real detail-preference question. A live user
+answer is recorded separately from unit-test evidence.

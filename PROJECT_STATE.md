@@ -1,5 +1,21 @@
 # Project State
 
+## Completed pilot recovery and reply controls, 2 October 2026
+
+LIVE VALIDATED: the owner-authorized saved-proposal recovery completed all three
+tasks using two fresh GPT reviews and no coder reruns. The combined 22-test suite
+passed and all three defect mutations were detected. Exact Telegram approval
+triggered a verified test-only Dev publication; main was unchanged. The batch is
+completed, with no new scope admitted. Local task-3 advisory was unavailable and
+was explicitly replaced by fresh isolated tests and independent acceptance.
+
+DEPLOYED: fixed-answer buttons, question-bound Custom capture, Cancel and durable
+acknowledgements. Bare `/answer` opens buttons instead of querying Qwen. Sixty
+pilot tests passed. Live delivery of the preference question passed; user-answer
+acceptance is tracked separately. Earlier pending-completion entries below are
+historical. See [pilot recovery and replies](docs/TELEGRAM_PILOT.md).
+
+
 ## Automatic handoff repair, 2 October 2026
 
 FIXED and live-validated: an orphaned one-minute Antigravity timer survived its

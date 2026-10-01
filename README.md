@@ -1,6 +1,6 @@
 # miniature-octo-doodle
 
-The bounded [Telegram coordination pilot](docs/TELEGRAM_PILOT.md) adds readable controls, immediate button acknowledgements, durable VM ownership, and a delegated laptop worker. Publication remains an exact-result owner decision.
+The bounded [Telegram coordination pilot](docs/TELEGRAM_PILOT.md) adds readable controls, immediate button acknowledgements, durable VM ownership, and a delegated laptop worker. Publication remains an exact-result owner decision. The three-task recovery has completed and published after Telegram approval. Questions now offer fixed-answer buttons and Custom text capture.
 
 A modular, self-hosted AI development platform, developed on Windows + WSL2 with
 a dedicated Linux control-plane VM now hosting the live gateway.

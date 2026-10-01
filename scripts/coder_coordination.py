@@ -256,6 +256,49 @@ class Coordinator:
                        (json.dumps(value), task_id))
         return {'task_id': task_id, 'state': 'gemini_submitted', 'candidate_sha256': digest(value)}
 
+    def recover_saved(self, task_id, reason):
+        """Operator-only: salvage complete saved candidates, never repeat inference."""
+        if not isinstance(reason,str) or not 10<=len(reason)<=1000:
+            raise agent.AgentError('Explicit bounded recovery reason required')
+        with self.connect() as db:
+            row=db.execute('SELECT * FROM tasks WHERE id=?',(task_id,)).fetchone()
+        if not row or row['state']!='blocked':
+            raise agent.AgentError('Only a blocked task with saved evidence can be recovered')
+        packet=json.loads(row['packet']);self.fresh(packet)
+        folder=self.root/task_id
+        if (folder/'result.json').exists():
+            raise agent.AgentError('Existing result requires reconciliation, not replay')
+        values={}
+        for owner in ('gemini','codex'):
+            value=json.loads((folder/(owner+'.json')).read_text(encoding='utf-8'))
+            normalized,patch=candidate(value,packet['source']['files'])
+            if digest(value)!=digest(normalized) or (folder/(owner+'.patch')).read_text(encoding='utf-8')!=patch:
+                raise agent.AgentError('Saved candidate/patch mismatch')
+            values[owner]=value
+        if digest(values['gemini'])!=digest(json.loads(row['gemini'])):
+            raise agent.AgentError('Saved Gemini candidate differs from original submission')
+        answer,_=candidate(json.loads((folder/'codex-answer.json').read_text(encoding='utf-8')),packet['source']['files'])
+        if digest(answer)!=digest(values['codex']):
+            raise agent.AgentError('Saved Codex candidate differs from original CLI output')
+        events=(folder/'codex-events.jsonl').read_text(encoding='utf-8').splitlines()
+        if not any(json.loads(line).get('type')=='turn.completed' for line in events):
+            raise agent.AgentError('Codex completion evidence missing')
+        result={'task_id':task_id,'state':'human_review_required','source_sha':packet['source']['sha'],
+                'gemini_sha256':digest(values['gemini']),'codex_sha256':digest(values['codex']),
+                'critique':{'verdict':'revise','findings':['Local advisory did not complete. These are recovered proposals, not accepted code; isolated tests and independent review are required.']},
+                'advisory_status':'unavailable','recovery_reason':reason,
+                'source_writes':False,'tests_executed':[],'publication':False}
+        with self.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            current=db.execute('SELECT * FROM tasks WHERE id=?',(task_id,)).fetchone()
+            if current['state']!='blocked' or current['packet']!=row['packet'] or current['gemini']!=row['gemini']:
+                raise agent.AgentError('Recovery ownership changed')
+            with (folder/'result.json').open('x',encoding='utf-8') as stream:
+                json.dump(result,stream,indent=2)
+            db.execute('UPDATE tasks SET state=?,result=?,error=? WHERE id=?',
+                       (result['state'],json.dumps(result),'Operator recovered saved proposals; advisory unavailable; independent acceptance required.',task_id))
+        return result
+
     def advance(self, task_id, token):
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
