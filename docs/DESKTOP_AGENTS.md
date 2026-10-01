@@ -85,3 +85,81 @@ in BUILD_STATUS. A synthetic proposal does not prove Gemini generated code, memo
 was imported, dual-agent orchestration works, or an AADI task is ready. Automated
 desktop/CLI dispatch, task claiming, cancellation, independent sandbox testing
 and controller ingestion still require implementation and end-to-end validation.
+
+## Antigravity local supervisor connection
+
+`scripts/supervisor_mcp.py` is a dependency-free stdio MCP server. It reuses the
+existing source, candidate and patch guards and the loopback-only local Qwen
+adapter. This adds direct tool-based review transport, not autonomous control of
+either coding application. It accepts no caller-supplied repository, endpoint,
+model, executable or output path. The operator configures the fixed source root.
+
+Tools:
+- `supervisor_status`: describes the boundary; it does not claim model health.
+- `prepare_review(task, paths)`: checks clean current public GatewayAI main,
+  reads one to eight named tracked files and returns source plus a session task ID.
+- `review_proposal(task_id, candidate)`: validates the same source and candidate,
+  checks patch applicability, calls `qwen3:4b-thinking`, rechecks source, saves
+  local evidence, then returns findings and an audit ID. Candidate fields are
+  `summary`, `proposal`, and `changes` (complete replacement contents).
+
+Only public/synthetic content may be submitted. Although Qwen runs locally,
+its findings return to the cloud coding client. This bridge is not a route for
+private AADI code or institutional records. Model output can be wrong; a `review`
+verdict still means `human_review_required`, never acceptance or permission.
+
+The stdio process opens no listening port, exposes no source writes or command
+execution tool, and receives no new production credentials. It makes fixed Git
+validation calls and loopback inference requests. It uses the existing desktop
+evaluation exception, separate from the VM's LiteLLM execution/approval pipeline.
+The bridge does not sandbox Antigravity's own built-in tools. Existing app
+security settings remain operator-controlled.
+
+Configure a custom server using Google's documented
+[MCP configuration](https://antigravity.google/docs/mcp). The global file is
+`~/.gemini/config/mcp_config.json`; preserve existing entries and back it up first:
+
+```json
+{
+  "mcpServers": {
+    "gatewayai-local-supervisor": {
+      "command": "C:/Python314/python.exe",
+      "args": ["-u", "C:/path/to/runtime/supervisor_mcp.py",
+               "--repo", "C:/path/to/clean-public-main",
+               "--output-root", "C:/Users/USER/AppData/Local/GatewayAI/supervisor-reviews"],
+      "env": {"PYTHONUTF8": "1"}
+    }
+  }
+}
+```
+
+Use the actual installed Python and keep `supervisor_mcp.py`, `desktop_review.py`
+and `local_agent.py` together. Local runtime copies live outside Git/sync under
+`~/.local/share/gatewayai-supervisor`. Evidence must resolve beneath LocalAppData;
+an explicit matching LOCALAPPDATA environment override handles app virtualization.
+There are no additional Python packages. Refresh MCP servers in Antigravity
+Settings > Customizations, then use a new conversation if discovery is stale.
+App permissions, if requested, must be handled by the user.
+
+A local `~/.gemini/config/rules/gatewayai-supervisor.md` rule with
+`trigger: model_decision` describes when to use the tools. Project `GEMINI.md`
+also documents the workflow. These instructions encourage tool use; they are
+not a mandatory enforcement hook on every app action.
+
+For app acceptance, use a new conversation with no private project: ask Gemini
+to call `supervisor_status`, prepare a task explaining validation in
+`scripts/controller-init.py`, author an accurate no-change candidate, then call
+`review_proposal`. Require actual findings and audit ID in the final response.
+Do not run the provisioning script. Match the returned ID to local evidence
+before claiming success. A scripted MCP call is not proof of Antigravity use.
+
+Each process retains at most 16 task packets. Restarting discards task IDs; prepare
+a fresh task afterward. Calls are serial and local inference has a 600-second
+upper timeout; stopping the client/server interrupts the connection. The source
+must remain clean at current public main. If main advances, update the dedicated
+source checkout deliberately and prepare a new task. Never point at a dirty
+coding branch to bypass the check.
+
+Rollback: remove only the `gatewayai-local-supervisor` entry and refresh MCP.
+Retain other entries and local review evidence. The original configuration is
+backed up next to the config file. No merge or deployment is part of this setup.

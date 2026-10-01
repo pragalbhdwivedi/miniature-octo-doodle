@@ -35,6 +35,40 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
 ## Desktop memory and proposal handoff - 1 October 2026
 
+### Antigravity MCP supervisor increment
+
+- IMPLEMENTED: dependency-free stdio MCP tools for fixed-source preparation,
+  bounded candidate review and boundary status. Runtime copies of three Python
+  modules are outside Git/sync under `.local/share/gatewayai-supervisor`.
+  The existing global MCP config was backed up and only the named server added.
+  A model-decision rule describes public GatewayAI review usage.
+- TESTED: five new bridge tests cover child-process initialization/status,
+  malformed/oversized protocol frames, notification non-execution, path/argument
+  rejection, stale-source rejection and audit/source preservation. Six existing
+  local-agent and five desktop handoff tests pass (16 total). Repository
+  YAML/security validation and Git whitespace checks pass.
+- LIVE LOCAL MCP: configured command started; current public main
+  `3e8672b8412d2084fbd145bf6f42cb842ad90ffd` and selected public source were checked.
+  A private `creds` path was rejected before inference. Qwen returned findings
+  over stdio in 27.09 seconds, with an evidence record and no source changes.
+- REVIEW QUALITY: the first prompt gave a misleading verdict for a deliberately
+  false explanation and included an unsupported finding on an accurate one.
+  Clarified verdict semantics and required exact wording comparison. Retested:
+  false platform/admin-role claims returned `revise` in 19.77 seconds; an accurate
+  explanation returned `review` in 20.79 seconds. The latter still contains
+  imprecise Linux-versus-POSIX commentary. These probes establish transport and
+  bounded behavior, not general model accuracy or acceptance authority.
+- PENDING: a real Antigravity/Gemini tool call and rendered review result. UI
+  inspection confirmed models and account usage, but input later failed with
+  Windows access denied. A user-created AADI project was observed; it was not
+  used for public-only acceptance. No AADI source integration.
+- STORAGE: about 10.16 GiB free, below the 15-GiB optional installation floor.
+  Only small source/config/evidence files were created; existing Python/Ollama
+  reused. No model/package/image download or new VM.
+- LIMITS: no automatic assignment between coders, controller claims, source
+  edits, test execution, enforcement on Antigravity's own tools, publishing,
+  merging or deployment. Restart/logon app discovery remains unverified.
+
 Later CLI installation checkpoint: after being informed of the storage stop,
 the owner explicitly requested Gemini CLI installation. Used the official npm
 package `@google/gemini-cli@0.62.0` with existing Node 24.14.1/npm 11.19.0,

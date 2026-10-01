@@ -124,7 +124,11 @@ only its offline decision contract is tested. See [ADR 0007](adr/0007-phase2-loc
 An optional [desktop handoff](DESKTOP_AGENTS.md) accepts proposals authored in
 ChatGPT Work or Gemini for exact public-main files and reuses local Qwen advisory
 review. It cannot dispatch the VM worker, edit source, publish or merge. Desktop
-subscription sessions are not LiteLLM API credentials; task transfer is manual.
+subscription sessions are not LiteLLM API credentials. The optional stdio MCP
+adapter automates proposal transfer to the existing local-only Qwen review path.
+It fixes the source checkout and model at operator startup, exposes no shell,
+and cannot invoke the VM controller. MCP findings return to the calling coding
+client, so only public/synthetic tasks and candidates are permitted.
 Document the full architecture now, install components only when they are needed and disk capacity allows it.
 
 ## Phase 1 implementation boundary

@@ -7,6 +7,15 @@
 Modular local/cloud AI coding platform with a single AI gateway, browser UI, optional agent memory/code graph, and future multi-agent orchestration.
 
 ## Current phase
+
+Desktop supervisor increment (1 October 2026): a stdio MCP bridge is locally
+configured for Antigravity, using installed Qwen3 thinking and existing public-main
+proposal guards. Local protocol and live review checks passed. A deliberately
+incorrect explanation was flagged `revise` and an accurate one `review`; both
+remain advisory. Antigravity-originated tool use is pending desktop access.
+No private AADI source, worker dispatch, source edits, merge or deployment are
+enabled by this bridge. See DESKTOP_AGENTS and BUILD_STATUS for acceptance limits.
+
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
 restore and clean container rebuild COMPLETE for the tested same-host scope.
 Phase 4: COMPLETE for local developer Kubernetes validation.
