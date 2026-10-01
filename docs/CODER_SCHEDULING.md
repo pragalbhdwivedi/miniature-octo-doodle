@@ -18,6 +18,14 @@ MCP `claim_next_task` now requires `expected_task_id`, checked inside the same
 SQLite transaction that claims the task. A delayed notification cannot claim
 a replacement task. Existing clients must refresh the MCP server/tool schema.
 
+Before reserving delivery on Windows, the helper verifies a live process chain:
+Python -> native schedule process -> Antigravity host -> Antigravity desktop.
+Windows creation times reject reused parent IDs. If any ancestor has exited or
+cannot be checked, the helper stops without reserving work or overwriting the
+current heartbeat. This guards against native timers left behind by an app restart.
+A direct shell invocation is not a valid delivery context; use the managed sidecar.
+Deploy `sidecar_runtime.py` alongside the helper.
+
 Reservations survive app restarts. A timeout, crash, ambiguous send or source
 failure never automatically retries; the operator must inspect the ledger and
 reconcile it. `schedule-status.json` holds the latest heartbeat and preserves
@@ -115,3 +123,12 @@ already-running Gemini/Codex/Qwen turn.
 Official references checked 2 October 2026:
 [Antigravity sidecars and agentapi](https://www.antigravity.google/docs/sidecars/),
 [Codex noninteractive execution](https://learn.chatgpt.com/docs/non-interactive-mode).
+
+
+Repair acceptance, 2 October 2026: the orphan from the previous host was stopped;
+one current managed scheduler remained. The normal five-minute tick passed the
+new lifecycle guard, recorded a successful agentapi event and moved the third
+pilot task from queued to gemini_claimed without UI input. Four lifecycle tests
+and nine existing scheduler regressions pass. This establishes delivery and claim,
+not full batch acceptance or publication. Old uncertain reservations remain in
+the ledger as history; none were deleted or replayed to obtain this result.

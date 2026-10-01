@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 
 from coder_coordination import Coordinator
+from sidecar_runtime import active_host
 
 
 def now():
@@ -100,6 +101,12 @@ def main():
     config = json.loads(args.config.read_text(encoding='utf-8'))
     coordinator = Coordinator(json.loads(Path(config['coordination_config']).read_text(encoding='utf-8')))
     executable = shutil.which('agentapi')
+    if not active_host():
+        # Old Antigravity timers can outlive their host on Windows. Do not let
+        # their dead agentapi context take a task reservation or overwrite the
+        # current scheduler heartbeat. A direct shell invocation is also idle.
+        print(json.dumps({'checked_at':now(),'state':'inactive_sidecar_host','model_calls':0}))
+        return
     if executable:
         result = tick(coordinator, config['conversation_id'], executable)
     else:

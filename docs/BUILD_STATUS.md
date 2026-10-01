@@ -1,5 +1,19 @@
 # Build Status
 
+## Automatic handoff repair, 2 October 2026
+
+FIXED and live-validated: an orphaned one-minute Antigravity timer survived its
+parent host and stole delivery reservations from the active five-minute timer.
+The confirmed orphan was stopped. A read-only Windows ancestry/creation-time
+check now rejects disconnected or reused host chains before reserving delivery.
+At 20:01 UTC the normal timer delivered pilot task 3, agentapi recorded a successful
+event, and Gemini claimed the exact queued task without UI input. The two earlier
+tasks were already verified; complete batch acceptance/publication remains a
+separate gate. Four lifecycle tests and nine scheduler regressions passed.
+No download or permission change; free C: measured 10.23 GiB. The small helper and
+regressions add no runtime model/image footprint. See [scheduler operations](CODER_SCHEDULING.md).
+
+
 ## Telegram pilot, 2 October 2026
 
 DEPLOYED for the bounded pilot; end-to-end completion remains PARTIAL. The VM service and native laptop timer are running. Menu delivery, zero-model idle worker RPC, schema backup/restore/CAS and owner-confirmed button acknowledgement passed. The owner approved the three-task scope through Telegram. Forty-eight pilot tests plus twenty-seven existing coordination/scheduling/Telegram regressions passed. Full three-task coding/verification/publication is not yet established. See [pilot operations](TELEGRAM_PILOT.md).

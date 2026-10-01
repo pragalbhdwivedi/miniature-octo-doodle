@@ -87,3 +87,18 @@ to resend. Windows UI input returned `GetCursorPos: Access is denied`. An action
 recovery instruction was delivered through Telegram. The worker now surfaces this
 condition once per task automatically and resumes observation of the same child;
 full unattended coder delivery/completion is not claimed for this pilot run.
+
+
+## Orphan timer repair
+
+Investigation found a one-minute native scheduler from a previous Antigravity
+instance still running after its parent had exited. It raced the current
+five-minute scheduler and reserved new tasks through its disconnected delivery
+context. The confirmed orphan was stopped without restarting Antigravity or
+clearing task claims. The scheduler now checks the live Windows process ancestry
+and creation times before any reservation. Missing, unreadable, unrelated or
+reused parents are rejected without overwriting the current timer heartbeat.
+Four lifecycle regressions and nine existing scheduler tests pass; live delivery
+through the surviving managed timer passed at 20:01 UTC. Agentapi wrote one
+successful delivery event and Gemini claimed the exact third task without UI input. No Windows security
+setting, authentication, app permission or UI-click workaround is changed.
