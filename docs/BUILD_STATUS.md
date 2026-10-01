@@ -40,7 +40,9 @@ jitter; the cadence is not an exact wall-clock completion guarantee. App restart
 and durable no-repeat behavior were observed; laptop reboot, logout, sleep/wake
 and laptop-off availability were NOT TESTED. No OS-startup setting was changed.
 The helper's latest heartbeat is bounded; Antigravity owns its existing logs.
-Free laptop storage was 10.33 GiB before setup, below the 15-GiB install floor.
+Free laptop storage was 10.33 GiB before setup and 10.27 GiB afterward, below
+the 15-GiB install floor. No image/model/dependency installation footprint was
+added; ordinary app/log and host storage changes were not separately attributed.
 Private config, conversation IDs, evidence and backups stay outside Git/sync.
 See [operation, recovery and rollback](CODER_SCHEDULING.md).
 
