@@ -1,0 +1,16 @@
+[Unit]
+Description=Mirror the configured Open WebUI administrator's saved chats to private OpenViking sessions
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/python3 /opt/gatewayai-openviking/private.py --db /var/lib/docker/volumes/gatewayai-recovery-live-20260930_open-webui-data/_data/webui.db --root /var/lib/gatewayai-openviking
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadOnlyPaths=/var/lib/docker/volumes/gatewayai-recovery-live-20260930_open-webui-data/_data/webui.db
+ReadWritePaths=/var/lib/gatewayai-openviking
+RestrictAddressFamilies=AF_UNIX AF_INET

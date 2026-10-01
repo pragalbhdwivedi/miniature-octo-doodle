@@ -61,8 +61,16 @@ and clean-host memory recovery were pending at installation. On 1 October a
 exact current GitHub main SHA. Live sync and three bounded content hits passed.
 The operator controller's optional advisory lookup returned three live hits and
 denied a mismatched SHA; fixture tests cover prompt inclusion and Git-only
-fallback. A paid reviewer run with retrieved context, private memory permissions,
-WebUI chat capture and clean-host memory recovery remain pending. See
+fallback. On 1 October a bounded paid reviewer call consumed three retrieved
+public excerpts and returned approve on a synthetic correct candidate within
+a $1 one-shot reservation. The user's five saved WebUI admin chats were mirrored
+into a separate account with a two-minute sync timer; owner/other/root/anonymous
+read checks and synthetic update/deletion checks passed. This captures raw text
+sessions only; long-term extraction and WebUI prompt injection remain disabled.
+An encrypted backup was restored on clean VM9127: authenticated public search,
+five private sessions, account isolation and the local embedding model passed.
+The isolated test containers are stopped. The VMs share one NAS, so NAS/site-loss
+recovery, memory quality and private extracted-memory deletion remain open. See
 [Graphify](docs/GRAPHIFY.md), [OpenViking](docs/OPENVIKING.md) and
 [build evidence](docs/BUILD_STATUS.md).
 
