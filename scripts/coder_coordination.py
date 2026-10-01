@@ -74,10 +74,11 @@ def candidate(value, files):
     return value, patch
 
 
-def codex_candidate(executable, prompt, directory):
+def codex_candidate(executable, prompt, directory, schema=None):
     """Installed signed-in CLI, fixed model, no shell interpolation or fallback."""
+    schema_value = agent.CODER_SCHEMA if schema is None else schema
     schema = directory/'schema.json'
-    schema.write_text(json.dumps(agent.CODER_SCHEMA), encoding='utf-8')
+    schema.write_text(json.dumps(schema_value), encoding='utf-8')
     output = directory/'codex-answer.json'
     command = [str(executable), 'exec', '--strict-config', '--ignore-user-config', '--ephemeral',
                '--sandbox', 'read-only', '--skip-git-repo-check', '-m', MODEL,

@@ -1,5 +1,9 @@
 # Build Status
 
+## Telegram pilot, 2 October 2026
+
+DEPLOYED for the bounded pilot; end-to-end completion remains PARTIAL. The VM service and native laptop timer are running. Menu delivery, zero-model idle worker RPC, schema backup/restore/CAS and owner-confirmed button acknowledgement passed. The owner approved the three-task scope through Telegram. Forty-eight pilot tests plus twenty-seven existing coordination/scheduling/Telegram regressions passed. Full three-task coding/verification/publication is not yet established. See [pilot operations](TELEGRAM_PILOT.md).
+
 Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 
 ## Unattended admitted-task delivery, 2 October 2026

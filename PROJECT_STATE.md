@@ -1,5 +1,9 @@
 # Project State
 
+## Telegram pilot deployment, 2 October 2026
+
+DEPLOYED for the bounded pilot: VM service, private Telegram menu/report delivery and the native laptop timer are live. The owner confirmed button acknowledgements and approved the three-task scope. The additive schema preserved five prior runs. Full batch completion and publication remain unverified; see [pilot contract](docs/TELEGRAM_PILOT.md).
+
 ## Project
 `pragalbhdwivedi/miniature-octo-doodle`
 
