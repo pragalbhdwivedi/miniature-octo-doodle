@@ -50,6 +50,26 @@ class LocalCoderTests(unittest.TestCase):
         self.assertEqual(body['options']['num_ctx'],8192)
         self.assertNotIn('tools',body);self.assertEqual(result['candidate'],value)
 
+    def test_explicit_installed_instruct_coder_keeps_selected_model_identity(self):
+        selected='qwen3:4b-instruct'
+        self.payload['model']=selected
+        self.payload['message']['content']=json.dumps({'summary':'Complete','proposal':'No execution',
+            'changes':[{'path':'src/example.py','content':'VALUE = 2\n'}]})
+        opener=Mock();opener.open.return_value=io.BytesIO(json.dumps(self.payload).encode())
+        result=local.run('Compact admitted task',self.root,model=selected,opener=opener,development=True)
+        self.assertEqual(json.loads(opener.open.call_args.args[0].data)['model'],selected)
+        self.assertEqual(result['route']['model'],selected)
+        self.assertEqual(result['usage']['cloud_tokens'],0)
+
+    def test_model_identity_mismatch_is_held_without_alternate_inference(self):
+        opener=Mock();opener.open.return_value=io.BytesIO(json.dumps(self.payload).encode())
+        with self.assertRaisesRegex(ValueError,'wrong model'):
+            local.run('Compact admitted task',self.root,model='qwen3:4b-instruct',opener=opener,development=True)
+        opener.open.assert_called_once()
+        with self.assertRaisesRegex(ValueError,'replay'):
+            local.run('Compact admitted task',self.root,model='qwen3:4b-instruct',opener=opener,development=True)
+        opener.open.assert_called_once()
+
     def test_method_placement_preserves_baseline_and_rejects_extra_code(self):
         before='import unittest\nclass Checks(unittest.TestCase):\n    def test_old(self):\n        self.assertTrue(True)\n\nif __name__=="__main__":\n    unittest.main()\n'
         method='def test_new(self):\n    self.assertEqual(1, 1)'

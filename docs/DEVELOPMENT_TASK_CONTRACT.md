@@ -43,12 +43,28 @@ and security. Tests and review must bind the same candidate before publication;
 changing the acceptance profile invalidates old receipts. Test diagnostics are
 not a proof of production service acceptance or adversarial code correctness.
 
-The local Devstral lane can generate full-file proposals for compact development
-tasks using the already installed model, a 24 KiB input bound, 8192 context and
-3072 output-token ceiling. Incomplete output is held, not silently truncated.
-Configured `local_fallback` can use that lane when cloud allowance is unavailable
-while preserving immutable task ownership and reporting the actual local model.
-This is proposal generation only; tests and independent review still follow.
+The local lane supports the explicitly configured installed coding models
+`devstral-small-2:24b` and `qwen3:4b-instruct`. The separate thinking model remains
+the planner. No model is downloaded or selected as an automatic retry after an
+uncertain inference. Responses must identify the exact configured model.
+
+Local development prompts contain the complete writable files and complete task
+requirements. Read-only file contents are explicitly omitted; their paths, byte
+counts and SHA-256 hashes remain, together with the complete snapshot digest.
+The broker retains all original files for tests, and independent review still
+receives the full bounded candidate diff and test evidence. If omitted context
+is needed, the coder must explain the missing context and return unchanged
+writable files, which cannot pass development acceptance. There is no silent
+truncation. Complete local prompts must fit 24,000 bytes, with 8192 context and a
+3072 output-token ceiling. Incomplete output remains held for reconciliation.
+
+On 2 October 2026, a Devstral run with roughly 7000 prompt tokens timed out at
+600 seconds on predominantly CPU execution; measured generation was about 1.2
+tokens/second. That run was cancelled and its evidence retained. The installed
+4B instruct model is an operator-selectable lower-cost CPU coder for compact
+tasks; successful inference and acceptance must still be verified separately.
+Configured `local_fallback` preserves immutable task ownership while reporting
+the actual local model. Tests and independent review remain required.
 
 Verified 2 October 2026: offline contract/worker tests and actual existing Docker
 image execution. A source change with a new regression test passed (baseline one

@@ -90,5 +90,52 @@ class DevelopmentWorkerTests(unittest.TestCase):
             with self.assertRaises(ValueError):self.w.local_fallback({'job':self.job},self.directory)
             local.assert_not_called()
 
+    def test_compact_context_preserves_complete_writes_and_explicit_readonly_hashes(self):
+        self.before['tests/test_app.py']='READ_ONLY_ACCEPTANCE_BODY_MUST_NOT_ENTER_LOCAL_CONTEXT\n'
+        self.job['repair']='Keep every required behavior. '+('No truncation of these findings. '*30)
+        compact=worker.compact_local_prompt(self.job,{'sha':'a'*40,'files':self.before})
+        context=json.loads(compact.split('\nContext: ',1)[1])
+        self.assertEqual(context['writable_files'],{p:self.before[p] for p in self.job['write_paths']})
+        self.assertNotIn('READ_ONLY_ACCEPTANCE_BODY_MUST_NOT_ENTER_LOCAL_CONTEXT',compact)
+        self.assertIn('CONTENTS ARE OMITTED',compact)
+        self.assertEqual(context['task']['repair_findings'],self.job['repair'])
+        readonly=context['read_only_files'][0]
+        self.assertEqual(readonly['path'],'tests/test_app.py')
+        self.assertEqual(readonly['sha256'],worker.hashlib.sha256(self.before['tests/test_app.py'].encode()).hexdigest())
+        self.assertEqual(context['complete_snapshot_sha256'],coordination.digest({'sha':'a'*40,'files':self.before}))
+
+    def test_compact_context_rejects_wrong_source_or_oversized_writable_content(self):
+        with self.assertRaises(ValueError):worker.compact_local_prompt(self.job,{'sha':'b'*40,'files':self.before})
+        with self.assertRaises(ValueError):worker.compact_local_prompt(self.job,{'sha':'a'*40,'files':{'src/app.py':'source'}})
+        self.before['src/app.py']='x'*24001
+        with self.assertRaises(ValueError):worker.compact_local_prompt(self.job,{'sha':'a'*40,'files':self.before})
+
+    def test_local_and_fallback_never_forward_full_coordinator_packet(self):
+        self.before['tests/test_app.py']='READ_ONLY_PRIVATE_TRANSCRIPT_SENTINEL\n'
+        answer={'candidate':self.value,'route':{'model':ongoing_local.MODEL,'provider':'ollama_local'},'usage':{'cloud_tokens':0}}
+        def assigned(child,generator):
+            generator('WHOLE_COORDINATOR_PACKET_SENTINEL '+self.before['tests/test_app.py'],self.directory)
+            return self.result
+        self.w.coordinator.run_local=assigned;self.w.coordinator.run_gemini=assigned
+        for method in ('local','local_fallback'):
+            with self.subTest(method=method),patch.object(ongoing_local,'run',return_value=copy.deepcopy(answer)) as local:
+                getattr(self.w,method)({'job':self.job},self.directory)
+                prompt=local.call_args.args[0]
+                self.assertNotIn('WHOLE_COORDINATOR_PACKET_SENTINEL',prompt)
+                self.assertNotIn('READ_ONLY_PRIVATE_TRANSCRIPT_SENTINEL',prompt)
+                context=json.loads(prompt.split('\nContext: ',1)[1])
+                self.assertEqual(context['writable_files']['src/app.py'],self.before['src/app.py'])
+
+    def test_api_review_still_receives_full_bound_diff_and_evidence(self):
+        self.accepted();self.w.config['openai_api_review']={'enabled':True}
+        answer={'candidate':{'verdict':'pass','findings':[],'confidence':8,'confidence_reason':'Source and test evidence checked'},
+                'route':{'model':'api-review'},'usage':{}}
+        with patch.object(self.w,'api_review',return_value=answer) as reviewer:
+            self.w.review({'job':self.job},self.directory)
+        sent=str(reviewer.call_args)
+        self.assertIn('+    return 2',sent)
+        self.assertIn(coordination.digest(self.value),sent)
+        self.assertIn(self.job['tests']['profile_sha256'],sent)
+
 
 if __name__=='__main__':unittest.main()

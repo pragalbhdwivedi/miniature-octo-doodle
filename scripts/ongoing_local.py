@@ -8,6 +8,7 @@ import local_agent
 from pilot_worker import write_json
 
 MODEL='devstral-small-2:24b'
+CODER_MODELS=frozenset({MODEL,'qwen3:4b-instruct'})
 MAX_PROMPT_BYTES=10000
 METHOD_SCHEMA={'type':'object','properties':{k:{'type':'string'} for k in ('summary','proposal','method_source')},
                'required':['summary','proposal','method_source'],'additionalProperties':False}
@@ -48,8 +49,8 @@ def proposal(before,value,path):
 
 def run(prompt,directory,model=MODEL,opener=None,development=False):
     maximum=24000 if development else MAX_PROMPT_BYTES
-    if model!=MODEL or not isinstance(prompt,str) or not prompt.strip() or len(prompt.encode())>maximum:
-        raise ValueError('Local lane supports the installed Devstral model and compact tasks only')
+    if model not in CODER_MODELS or not isinstance(prompt,str) or not prompt.strip() or len(prompt.encode())>maximum:
+        raise ValueError('Local lane supports explicitly configured installed coding models and compact tasks only')
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     if (directory/'local-intent.json').exists():raise ValueError('Local inference already reserved; replay denied')
     route={'model':model,'provider':'ollama_local','cloud_quota_used':False,'api_fallback':False}
