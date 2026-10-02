@@ -18,6 +18,26 @@ PATH='tests/test_one.py'
 
 
 class OngoingWorkerTests(unittest.TestCase):
+    def test_development_reviewer_sees_existing_guard_and_complete_new_tests(self):
+        before={'app.py':'def read(value):\n    if not isinstance(value, dict):\n        return None\n    return value\n', 'tests/test_new.py':''}
+        changes={'app.py':before['app.py'].replace('return value','return dict(value)'),
+                 'tests/test_new.py':'# complete new coverage marker'}
+        job={'prompt':'Preserve invalid input handling','tests':{'passed':True,'summary':'verbose-output-must-not-dominate',
+             'baseline':{'passed':True,'test_count':1},'candidate':{'passed':True,'test_count':2}}}
+        prompt=worker.development_review_prompt(job,before,changes)
+        self.assertIn('if not isinstance(value, dict)',prompt)
+        self.assertIn('complete new coverage marker',prompt)
+        self.assertIn('"test_count": 2',prompt)
+        self.assertNotIn('verbose-output-must-not-dominate',prompt)
+        self.assertIn('optional coverage suggestions',prompt)
+
+    def test_development_review_keeps_removed_writable_test_assertions(self):
+        before={'tests/test_old.py':'assert old_contract\n'}
+        changes={'tests/test_old.py':'assert new_contract\n'}
+        prompt=worker.development_review_prompt({'prompt':'Preserve compatibility','tests':{}},before,changes)
+        self.assertIn('-assert old_contract',prompt)
+        self.assertIn('+assert new_contract',prompt)
+
     def setUp(self):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
         self.root=Path(temp.name)

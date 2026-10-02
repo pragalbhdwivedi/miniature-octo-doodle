@@ -90,3 +90,12 @@ The saved gateway-alias response was reconciled without repeating inference.
 The account UI confirms complimentary enrollment and Tier 1, but does not establish
 remaining free balance or exact eligibility for the configured model. Receipts
 continue to record `free_usage_verified: false`.
+
+
+Development reviews include complete changed files and diffs for every existing
+changed file, including writable tests. This exposes unchanged guards and removed
+assertions. Verified test metadata is compacted instead of truncating source.
+Unchanged context omissions are explicit; missing prompt context is not itself a
+code defect. The 24,000-byte ceiling still fails closed and requests a smaller
+scope. A context repair uses an explicitly audited new attempt, never silent
+replay of an existing provider request identity.
