@@ -38,6 +38,19 @@ def rpc(s,r):
         action=r['action']
         if action=='ongoing_future_seed':
             result=future.seed(candidate,r['entries'],now)
+        elif action=='ongoing_future_cancel':
+            task=next(t for t in b['future']['tasks'] if t['id']==r['task_id'])
+            if task.get('intake_id'):
+                intake=next(i for i in b['intake'] if i['id']==task['intake_id'])
+                if (not intake.get('paused') or intake['state'] not in ('planned','needs_scope','cancelled') or
+                        any(j.get('intake_id')==intake['id'] for j in candidate['ongoing']['jobs'])):
+                    raise ValueError('Pause unadmitted intake before cancellation; running work is retained')
+                reason=board._safe(r['reason'],1000)
+                if not reason:raise ValueError('A rejection reason is required')
+                intake.update(state='cancelled',error=reason,updated_at=now)
+                task.update(state='cancelled',reason=reason,cancelled_at=now,updated_at=now)
+                result={'ok':True,'state':'cancelled','task_id':task['id'],'intake_id':intake['id']}
+            else:result=future.cancel_task(candidate,r['task_id'],r['reason'],now)
         elif action=='ongoing_future_prepare':
             reconcile(candidate,now)
             result=future.promote(candidate,r['scope_ids'],now)
@@ -61,15 +74,24 @@ def rpc(s,r):
             o=candidate['ongoing'];today=now[:10]
             if not o['enabled'] or o.get('lease'):return {'execute':False,'reason':'paused_or_busy'}
             if o.get('day')!=today:o.update(day=today,calls=0)
-            if o['calls']>=o['policy']['max_calls_per_day']:return {'execute':False,'reason':'daily_model_limit'}
+            if o['calls']+2>o['policy']['max_calls_per_day']:return {'execute':False,'reason':'daily_model_limit'}
             result=future.begin_generation(candidate,r['request_id'],now)
-            if result.get('execute'):o['calls']+=1
+            if result.get('execute'):o['calls']+=2
         elif action=='ongoing_future_finish':
             result=future.finish_generation(candidate,r['request_id'],r['proposals'],r['model'],now)
+            reviewer=r.get('reviewer_model','not_recorded')
+            if not isinstance(reviewer,str) or not 1<=len(reviewer)<=160:raise ValueError('Invalid planning reviewer')
+            if result.get('reviewer_model',reviewer)!=reviewer:raise ValueError('Planning reviewer changed')
+            generation=b['future']['generation']
+            if generation.get('request_id')==r['request_id']:generation['reviewer_model']=reviewer
+            for request in b['future']['requests']:
+                if request['request_id']==r['request_id']:request['reviewer_model']=reviewer
+            result['reviewer_model']=reviewer
             if before!=b.get('future'):
                 import pilot_state
                 pilot_state.message(candidate,'Supervisor · Windows worker\n'+str(len(result.get('added',[])))+
                     ' new future tasks are ready for scope checks. Planned by '+r['model']+
+                    '; task proposals checked by '+reviewer+
                     '. I will refill the next ten as eligible work completes. Coding and PR checks follow separately.',
                     {'inline_keyboard':[[{'text':'View future tasks','url':'https://control.aadi.dgoi.local/#future'}]]})
         elif action=='ongoing_future_fail':

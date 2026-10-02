@@ -18,7 +18,7 @@ PR evidence. Ready-for-review results release the planning window for independen
 work without satisfying merge dependencies.
 
 The backlog is bounded at 500 retained entries and the existing 1.9 MB ledger
-limit. No history is silently removed. Unconfigured areas remain visible as
+limit. Verified merged tasks can be archived automatically when the retained queue reaches 450 entries. The operator writes and reads back an immutable full snapshot before compacting completed task text, terminal generation receipts and audit events; dependency and deduplication identities remain indexed. No history is silently removed. Unconfigured areas remain visible as
 `needs_scope`; proposed paths do not create execution authority. Destructive or
 production work remains a separate owner decision. Fixed scope manifests and
 protected offline acceptance tests remain authoritative at coding admission.
@@ -34,12 +34,12 @@ protected offline acceptance tests remain authoritative at coding admission.
   current repository code, admitted scope descriptions, source SHA receipts and
   existing task titles to a higher-capability subscription model. Model choice
   uses the native installed inventory and both weekly/five-hour shared quotas.
-  Planning outputs are proposals, independently matched to an existing scope.
+  A different higher-capability model checks the concrete code gaps and rejects already-implemented or unsupported proposals before intake. Accepted outputs are then independently matched to an existing scope.
 - Automatic generation requests another batch of up to ten when the eligible
   future pool falls below ten, at most once per hour. Malformed or ambiguous
   inference retains evidence for recovery instead of repeatedly spending tokens.
 
-Planning reserves one stage against the same daily cloud-work cap. Exhausted
+Planning conservatively reserves two stages (proposal and independent review) against the same daily cloud-work cap. Exhausted
 subscription quotas wait for their observed reset; they do not silently consume
 OpenAI API capacity for planning. Coding retains the existing configured local
 fallback. Daily reservations are conservative capacity accounting, not invoices.

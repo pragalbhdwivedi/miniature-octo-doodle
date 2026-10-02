@@ -244,6 +244,10 @@ def main():
         raw=sys.stdin.buffer.read(350001)
         if len(raw)>350000: raise ValueError('RPC limit')
         request=json.loads(raw)
+        if request.get('action')=='ongoing_future_archive':
+            import supervisor_future_archive
+            print(json.dumps(supervisor_future_archive.run(store,request,config.get('supervisor_archive',{}))))
+            return
         if request.get('action') in ('ongoing_archive','ongoing_archive_history'):
             import supervisor_archive_operator
             print(json.dumps(supervisor_archive_operator.run(store,request,config.get('supervisor_archive',{}))))

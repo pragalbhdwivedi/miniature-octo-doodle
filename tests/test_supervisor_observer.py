@@ -274,6 +274,20 @@ class ObserverTests(unittest.TestCase):
         consume = next(call for call in self.calls if call['action'] == 'ongoing_consume_corrections')
         self.assertEqual(consume['verified_jobs'], [])
 
+    def test_merged_cache_skips_polling_but_refreshes_for_archival(self):
+        job={'id':'job-one','state':'draft_ready','repository':o.github.REPOSITORY,
+            'publication':{'pull_request':{'number':7}}}
+        self.board['jobs']=[job]
+        state={'pr_sync':{'job-one':{'state':'merged'}}}
+        self.assertEqual(self.observer._sync_prs(self.board,state),[])
+        self.publisher.reconcile_pr.assert_not_called()
+        self.config['archive_enabled']=True
+        self.board['padding']='x'*1500000
+        self.publisher.reconcile_pr.return_value={'number':7,'repository':o.github.REPOSITORY,
+            'state':'merged','head_sha':'a'*40}
+        self.assertEqual(self.observer._sync_prs(self.board,state),['job-one'])
+        self.publisher.reconcile_pr.assert_called_once_with(7,'job-one')
+
     def test_inbox_preserves_owner_file_and_deduplicates_commands(self):
         self.config['roadmap_enabled'] = False
         directory = Path(self.config['supervision_directory'])

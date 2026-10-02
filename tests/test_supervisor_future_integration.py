@@ -66,7 +66,7 @@ class FutureIntegrationTests(unittest.TestCase):
         self.s['ongoing']['enabled']=True
         self.assertTrue(runtime.rpc(self.s,req)['execute'])
         self.assertFalse(runtime.rpc(self.s,req)['execute'])
-        self.assertEqual(self.s['ongoing']['calls'],1)
+        self.assertEqual(self.s['ongoing']['calls'],2)
 
     def test_http_controls_do_not_accept_operator_seed(self):
         with self.assertRaises(ValueError):self.command('ongoing_future_seed')
@@ -78,6 +78,20 @@ class FutureIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(result['total'],100)
         self.assertEqual(len(result['added']),len(rows))
         self.assertEqual(f.seed(self.s,rows,'2026-10-02T15:01:00+00:00')['added'],[])
+
+    def test_reject_linked_proposal_requires_pause_and_no_admitted_job(self):
+        runtime.rpc(self.s,{'action':'ongoing_future_seed','entries':[entry()]})
+        runtime.rpc(self.s,{'action':'ongoing_future_prepare','scope_ids':['gateway-choice-validation']})
+        task=self.s['supervision']['future']['tasks'][0]
+        intake=next(i for i in self.s['supervision']['intake'] if i['id']==task['intake_id'])
+        req={'action':'ongoing_future_cancel','task_id':task['id'],'reason':'Already implemented in the supplied code.'}
+        with self.assertRaises(ValueError):runtime.rpc(self.s,req)
+        intake['paused']=True
+        self.s['ongoing']['jobs'].append({'id':'admitted-future','intake_id':intake['id']})
+        with self.assertRaises(ValueError):runtime.rpc(self.s,req)
+        self.s['ongoing']['jobs'].pop()
+        self.assertEqual(runtime.rpc(self.s,req)['state'],'cancelled')
+        self.assertEqual(intake['state'],'cancelled')
 
     def test_review_ready_and_blocked_free_slots_without_completing_dependencies(self):
         import supervisor_future as f

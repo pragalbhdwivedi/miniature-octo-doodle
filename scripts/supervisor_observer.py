@@ -202,7 +202,9 @@ class Observer:
                 previous=state.get('pr_sync',{}).get(job['id'],{})
                 correction=any(c.get('key')==job['id'] and c.get('state')=='rerun_waiting'
                                for c in board['supervision'].get('corrections',[]))
-                if previous.get('state')=='merged' and not correction:
+                archive_due=self.config.get('archive_enabled') is True and (
+                    len(board['jobs'])>=80 or len(json.dumps(board).encode())>=1500000)
+                if previous.get('state')=='merged' and not correction and not archive_due:
                     # Merged PRs are immutable. This is not fresh review authority
                     # and deliberately does not enter verified_jobs.
                     continue

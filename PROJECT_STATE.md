@@ -9,11 +9,18 @@ searchable future section. Fourteen seed tasks fit currently registered source
 scopes; 96 await additional scope admission, including four owner-evidence gates.
 Dependencies mean fewer than ten tasks may be immediately eligible.
 
-TESTED: full Linux suite ran 549 tests with three opt-in skips; 23 pure future
-state tests and 13 planner transport tests passed. Real-browser mocked API checks
+TESTED: final Linux suite ran 583 tests with three opt-in skips. Pure-state,
+verified archive, independent task-review and planner transport tests passed. Real-browser mocked API checks
 passed 14 assertions each at phone and desktop widths. Model recovery reuses
 saved results without another inference. Deployment/live acceptance is tracked
 separately; these tests do not establish production execution of future tasks.
+
+LIVE VERIFIED: 110 seed tasks loaded; strict HTTPS state and both acknowledged
+controls passed. Phone/desktop rendering at 390/1440 pixels has no page overflow.
+Gemini Pro generated five further proposals; operator review held one already-
+implemented suggestion, motivating independent task review before future intake.
+The first new development task passed isolated tests and Claude Sonnet review
+and published AADI draft PR #41. Draft publication is separate from integration.
 
 The existing worker was enabled and idle after all ten admitted PRs were merged;
 the finite recipe list was exhausted. During preparation, an unrelated NAS/CIFS
