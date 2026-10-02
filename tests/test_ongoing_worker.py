@@ -18,6 +18,26 @@ PATH='tests/test_one.py'
 
 
 class OngoingWorkerTests(unittest.TestCase):
+    def test_development_reviewer_sees_existing_guard_and_complete_new_tests(self):
+        before={'app.py':'def read(value):\n    if not isinstance(value, dict):\n        return None\n    return value\n', 'tests/test_new.py':''}
+        changes={'app.py':before['app.py'].replace('return value','return dict(value)'),
+                 'tests/test_new.py':'# complete new coverage marker'}
+        job={'prompt':'Preserve invalid input handling','tests':{'passed':True,'summary':'verbose-output-must-not-dominate',
+             'baseline':{'passed':True,'test_count':1},'candidate':{'passed':True,'test_count':2}}}
+        prompt=worker.development_review_prompt(job,before,changes)
+        self.assertIn('if not isinstance(value, dict)',prompt)
+        self.assertIn('complete new coverage marker',prompt)
+        self.assertIn('"test_count": 2',prompt)
+        self.assertNotIn('verbose-output-must-not-dominate',prompt)
+        self.assertIn('optional coverage suggestions',prompt)
+
+    def test_development_review_keeps_removed_writable_test_assertions(self):
+        before={'tests/test_old.py':'assert old_contract\n'}
+        changes={'tests/test_old.py':'assert new_contract\n'}
+        prompt=worker.development_review_prompt({'prompt':'Preserve compatibility','tests':{}},before,changes)
+        self.assertIn('-assert old_contract',prompt)
+        self.assertIn('+assert new_contract',prompt)
+
     def setUp(self):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
         self.root=Path(temp.name)
@@ -157,6 +177,18 @@ class OngoingWorkerTests(unittest.TestCase):
             with patch.object(worker.models,'run') as model:
                 with self.assertRaises(ValueError):self.w.review({'job':j},self.directory)
                 model.assert_not_called()
+
+    def test_complex_review_uses_independent_subscription_pool_when_configured(self):
+        self.accepted();j=dict(self.job,complexity='complex')
+        self.w.config.update(complex_review_via_antigravity=True,antigravity_cli='native',openai_api_review={'enabled':True})
+        answer={'candidate':{'verdict':'pass','findings':[]},'route':{},'usage':{}}
+        with patch.object(self.w,'candidate',return_value=(self.value,{PATH:self.value['changes'][0]['content']})), \
+             patch('ongoing_antigravity.run',return_value=answer) as native, patch.object(self.w,'api_review') as api:
+            result=self.w.review({'job':j},self.directory)
+        api.assert_not_called()
+        self.assertEqual(native.call_args.kwargs['prefer_group'],'Claude and GPT models')
+        self.assertEqual(native.call_args.kwargs['complexity'],'complex')
+        self.assertEqual(result['route']['provider'],'antigravity_subscription')
 
     def test_recovery_counter_does_not_escalate_a_routine_reviewer(self):
         self.accepted();j=dict(self.job,attempt=1)

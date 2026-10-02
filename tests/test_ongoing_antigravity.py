@@ -40,6 +40,22 @@ class NativeTests(unittest.TestCase):
         o['jobs'][0]['retry_at']='2000-01-01T00:00:00+00:00'
         self.assertEqual(s.work(value)['action'],'antigravity')
 
+    def test_two_native_turns_preserve_one_result_and_tool_boundary(self):
+        route={'model':'gemini-3.8-flash-medium'}
+        events=[{'event':'init','init':{'model':route['model'],'agent':'aadi-proposal','permission_mode':'strict'}},
+                {'event':'result','result':{'status':'SUCCESS','num_turns':2,'structured_output':{'changes':[]}}}]
+        def encoded():return ('\n'.join(json.dumps(x) for x in events)).encode()
+        self.assertEqual(a.parse_result(encoded(),route)['route']['native_turns'],2)
+        for invalid in (0,3,True,'2',None):
+            events[-1]['result']['num_turns']=invalid
+            with self.assertRaises(ValueError):a.parse_result(encoded(),route)
+        events[-1]['result']['num_turns']=2
+        events.append({'event':'step_update','step_update':{'step_type':'tool','tool_name':'run_command'}})
+        with self.assertRaises(ValueError):a.parse_result(encoded(),route)
+        events.pop()
+        events.append(events[-1])
+        with self.assertRaises(ValueError):a.parse_result(encoded(),route)
+
     def test_wrong_model_tools_or_failed_response_rejected(self):
         events=[{'event':'init','init':{'model':'gemini-3.8-flash-medium','agent':'aadi-proposal','tools':[],'permission_mode':'strict'}},
                 {'event':'result','result':{'status':'SUCCESS','num_turns':1,'structured_output':{'changes':[]},'usage':{'input_tokens':10}}}]

@@ -21,6 +21,7 @@ import ongoing_github as github
 DOCUMENTS = {'future_supervisor_tasks.md', 'active_supervisor_tasks.md',
              'completed_supervisor_tasks.md', 'rerun_supervision_tasks.md', 'supervisor_audit.md'}
 TERMINAL = {'draft_ready', 'reviewed', 'completed', 'cancelled', 'closed', 'merged'}
+HELD = {'blocked', 'needs_owner'}
 PLAN_SCHEMA = {'type': 'object', 'properties': {'title': {'type': 'string'}, 'prompt': {'type': 'string'}},
                'required': ['title', 'prompt'], 'additionalProperties': False}
 
@@ -305,7 +306,7 @@ class Observer:
             return {'state': 'budget_wait'}
         cloud_available=budget['calls']+2<=budget['policy']['max_calls_per_day']
         jobs = board['jobs']
-        if sum(j.get('state') not in TERMINAL for j in jobs) >= 3:
+        if sum(j.get('state') not in TERMINAL | HELD for j in jobs) >= 3:
             return {'state': 'capacity_wait'}
         interval = self.config.get('roadmap_interval_minutes', 30)
         if interval not in (5, 15, 30, 60):
@@ -335,11 +336,19 @@ class Observer:
             raise ObserverError('Catalog has no admission capacity')
         known = {j['id'] for j in catalog} | {j['id'] for j in jobs} | {j['key'] for j in archived}
         # A local addition not yet mirrored to the VM also consumes queue capacity.
-        if sum(j.get('state') not in TERMINAL for j in jobs) + len({j['id'] for j in catalog} - {j['id'] for j in jobs}) >= 3:
+        if sum(j.get('state') not in TERMINAL | HELD for j in jobs) + len({j['id'] for j in catalog} - {j['id'] for j in jobs}) >= 3:
             return {'state': 'capacity_wait'}
         consumed = {j.get('roadmap_recipe_id') for j in catalog + jobs + archived}
         for recipe in recipes:
             job_id = recipe_job_id(recipe)
+            # A failed coder keeps its claim until explicit reconciliation. It
+            # must not consume every queue slot or cause conflicting admissions.
+            if any(j.get('state') in HELD and j.get('child_id')
+                   and (j.get('owner', 'dual') in ('dual', recipe['owner']) or
+                        (j.get('repository', github.REPOSITORY) == recipe['repository'] and
+                         {p.casefold() for p in j.get('write_paths', j.get('paths', []))} &
+                         {p.casefold() for p in recipe['write_paths']})) for j in jobs):
+                continue
             if not cloud_available and recipe['owner']!='local':continue
             if (job_id in known or recipe['recipe_id'] in consumed or any(
                     j.get('repository')==recipe['repository'] and j.get('source_sha')==recipe['source_sha']
