@@ -186,6 +186,9 @@ def repair(s,j,reason):
 
 
 def rpc(s,r):
+    if r['action'] in ('ongoing_future_seed','ongoing_future_prepare','ongoing_future_request','ongoing_future_begin','ongoing_future_finish','ongoing_future_fail'):
+        import supervisor_future_runtime
+        return supervisor_future_runtime.rpc(s,r)
     if r['action'] in ('ongoing_intake_hold','ongoing_board_data','ongoing_documents','ongoing_board_snapshot','ongoing_board_action','ongoing_pr_sync','ongoing_consume_corrections'):
         import supervisor_runtime
         return supervisor_runtime.rpc(s,r)

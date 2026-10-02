@@ -77,11 +77,20 @@ def admit_intake(observer, board, state, now):
                 raise ValueError('Invalid intake classification')
             plan.update(state='planned',answer=answer);_write(path,plan)
         answer=plan['answer'];key=answer['profile']
+        if request.get('scope_hint') and key!=request['scope_hint']:
+            key='none'
         if key not in candidates:
             observer.remote({'action':'ongoing_intake_hold','task_id':request['id'],
                 'reason':'This request needs a matching development area or a destructive/production decision: '+answer['reason']})
             return {'state':'needs_scope','task_id':request['id']}
         scope=candidates[key]
+        # A retained coder claim is exclusive across projects. File claims are
+        # exclusive inside their repository, including failed/held attempts.
+        if any(j.get('child_id') and j.get('state') in ('blocked','needs_owner') and
+               (j.get('owner','dual') in ('dual',scope['owner']) or
+                (j.get('repository',github.REPOSITORY)==scope['repository'] and
+                 {p.casefold() for p in j.get('write_paths',j.get('paths',[]))} &
+                 {p.casefold() for p in scope['write_paths']})) for j in board['jobs']):continue
         catalog_path=Path(observer.config['ongoing_catalog']);catalog=_read(catalog_path)
         previous=next((j for j in catalog if j['id']==job_id),None)
         if previous:

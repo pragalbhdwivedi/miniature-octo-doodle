@@ -1,5 +1,27 @@
 # Project State
 
+## Future development backlog, 2 October 2026
+
+IMPLEMENTED: 110 repository-grounded future tasks (52 AADI, 58 GatewayAI),
+rolling ten-candidate scheduling, timestamp/dependency/scope gates, higher-model
+planning requests, immediate button receipts, override start, and a bounded
+searchable future section. Fourteen seed tasks fit currently registered source
+scopes; 96 await additional scope admission, including four owner-evidence gates.
+Dependencies mean fewer than ten tasks may be immediately eligible.
+
+TESTED: full Linux suite ran 549 tests with three opt-in skips; 23 pure future
+state tests and 13 planner transport tests passed. Real-browser mocked API checks
+passed 14 assertions each at phone and desktop widths. Model recovery reuses
+saved results without another inference. Deployment/live acceptance is tracked
+separately; these tests do not establish production execution of future tasks.
+
+The existing worker was enabled and idle after all ten admitted PRs were merged;
+the finite recipe list was exhausted. During preparation, an unrelated NAS/CIFS
+interruption temporarily stalled controller access. Filesystem access and ledger
+reads recovered; storage integrity is not inferred from a successful HTTP read.
+See [future scheduling](docs/FUTURE_TASK_SCHEDULING.md) for the operation contract.
+
+
 ## Real development and API review, 2 October 2026
 
 IMPLEMENTED: source-code development tasks with fixed writable files, immutable

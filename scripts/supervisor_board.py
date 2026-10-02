@@ -269,7 +269,18 @@ def action(s, request, now=None):
         intake=next((i for i in board['intake'] if i['id']==task_id),None)
         result={'ok':True,'task_id':None if task_id=='all' else task_id,'action':command}
         detail=''
-        if command in ('pause','resume'):
+        if command in ('generate_future','override_start'):
+            if task_id!='all':raise ValueError('This control applies to the supervisor')
+            import supervisor_future as future
+            if command=='generate_future':
+                result['generation']=future.request_generation(candidate,rid,at)
+                detail='Request received. A higher-capability planner will generate repository-grounded future tasks; execution still requires admitted scope.'
+            else:
+                candidate.setdefault('ongoing',{})['enabled']=True
+                future.request_override(candidate,at)
+                detail='Start override received. Scheduling resumes on the next worker check; existing leases, scope, quota and recovery holds remain enforced.'
+            result['message']=detail
+        elif command in ('pause','resume'):
             paused=command=='pause'
             if task_id=='all': candidate.setdefault('ongoing',{})['enabled']=not paused
             elif meta and job:
@@ -390,7 +401,19 @@ def _public(s, now=None, limit=200):
     policy={k:_safe(v,200) if not isinstance(v,(bool,int)) else v for k,v in o.get('policy',{}).items()
             if k in ('max_active','max_calls_per_day','repairs','publication','routine_decisions','destructive')}
     from supervisor_archive import history_index
+    from supervisor_future import public as future_public
+    future=future_public(s,instant)
+    runnable=[t for t in tasks if t['state'] not in TERMINAL|{'blocked','needs_owner','needs_scope'} and not t.get('paused')]
+    if not o.get('enabled'):
+        work_status={'state':'paused','label':'Work is paused','reason':'Scheduling was paused. Override start resumes eligible work.'}
+    elif o.get('lease'):
+        work_status={'state':'working','label':'Work is running','reason':'A worker stage owns the current lease.'}
+    elif runnable:
+        work_status={'state':'waiting','label':'Waiting for the next worker step','reason':'Queued work is subject to scope, capacity, dependencies and model allowance.'}
+    else:
+        work_status={'state':'idle','label':'Enabled · waiting for eligible work','reason':'No coding task is active. The supervisor checks the future backlog every five minutes.'}
     return {'revision':board.get('revision',0),'enabled':bool(o.get('enabled')),
+            'future':future,'work_status':work_status,
             'archived':history_index(s,limit=100),
             'tasks':tasks[:limit] if limit else tasks,'tasks_omitted':max(0,len(tasks)-limit) if limit else 0,
             'events':copy.deepcopy(events[-100:] if limit else events),
@@ -424,6 +447,11 @@ def documents(s):
             'completed_supervisor_tasks.md':('Completed supervisor tasks',[t for t in data['tasks'] if t['state'] in TERMINAL])}
     output={name:'# '+title+'\n\nDraft-ready means ready for review, not merged or deployed.\n\n'+
             ('\n'.join(task_text(t) for t in tasks) if tasks else 'No tasks in this view.\n') for name,(title,tasks) in groups.items()}
+    future=data.get('future',{})
+    output['future_supervisor_tasks.md']+='\n## Repository development backlog\n\nNext batch: up to 10 tasks. The scheduler checks every five minutes; times are earliest eligibility, not promised completion.\n\n'+''.join(
+        '### '+_md(t['id'])+' — '+_md(t['title'])+'\n\n'+
+        '\n'.join('- '+k.replace('_',' ').capitalize()+': '+_md(t.get(k,'')) for k in ('project','state','priority','scope_id','created_at','updated_at','not_before','reason','prompt'))+'\n\n'
+        for t in future.get('tasks',[]))
     output['rerun_supervision_tasks.md']='# Rerun supervision tasks\n\nCorrection requests preserve task lineage and require worker reconciliation/admission. No automatic retry is authorized here.\n\n'+('\n\n'.join(
         '## '+_md(c['id'])+' / '+_md(c['task_id'])+'\n\n'+'\n'.join('- '+k.replace('_',' ').capitalize()+': '+_md(v) for k,v in c.items() if k not in ('id','task_id'))
         for c in data['corrections']) or 'No correction requests.\n')
