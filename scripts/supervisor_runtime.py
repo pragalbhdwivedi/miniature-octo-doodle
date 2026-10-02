@@ -13,7 +13,7 @@ def notice(s,j,text):
     coder=j.get('coding',{});review=j.get('review',{})
     def model(item):return item.get('route',{}).get('model','not yet recorded')
     lines=['Observer · Control VM | '+sid,text,
-           'Performed by: '+model(coder)+(' · Laptop/local' if j['owner']=='local' else ' · Laptop/cloud CLI'),
+           'Performed by: '+model(coder)+(' · Laptop/local' if coder.get('route',{}).get('provider')=='ollama_local' or j['owner']=='local' else ' · Laptop/cloud CLI'),
            'Checked by: '+model(review)]
     if j.get('publication'):lines.append(j['publication'].get('pull_request',{}).get('url',''))
     if review.get('confidence') is not None:lines.append('Reviewer confidence: '+str(review['confidence'])+'/10 · '+review.get('confidence_reason',''))
@@ -40,6 +40,14 @@ def rpc(s,r):
     action=r['action']
     if action=='ongoing_board_data':return {'jobs':copy.deepcopy(s['ongoing']['jobs']),'supervision':copy.deepcopy(s['supervision']),
         'ongoing':{k:copy.deepcopy(s['ongoing'][k]) for k in ('enabled','calls','day','policy')}}
+    if action=='ongoing_intake_hold':
+        item=next(i for i in s['supervision']['intake'] if i['id']==r['task_id'])
+        if item['state']=='needs_scope':return {'ok':True}
+        if item['state']!='planned':raise ValueError('Intake is no longer pending')
+        item.update(state='needs_scope',error=str(r['reason'])[:800],updated_at=pilot.stamp())
+        pilot.message(s,item['id']+': '+item['error']+' Reply with this task ID and the missing project/module details.')
+        s['supervision']['revision']+=1
+        return {'ok':True}
     if action=='ongoing_documents':return {'documents':board.documents(s)}
     if action=='ongoing_board_snapshot':return board.snapshot(s)
     if action=='ongoing_board_action':return board.action(s,r['request'])
@@ -89,7 +97,7 @@ def rpc(s,r):
             j=next(j for j in s['ongoing']['jobs'] if j['id']==c['key'])
             if j['id'] not in r.get('verified_jobs',[]):continue
             if j['state']!='draft_ready' or j.get('supervision_paused'):continue
-            current_scope=board._hash({k:j.get(k) for k in ('id','owner','repo','repository','project','operation','write_paths','source_sha','prompt')})
+            current_scope=board._hash({k:j.get(k) for k in ('id','owner','repo','repository','project','operation','development_profile','paths','write_paths','test_files','source_sha','prompt')})
             if current_scope!=c['scope_digest'] or c['requested_attempt']!=j['attempt']+1:
                 c['state']='reconciliation_required';continue
             observed=j.get('pr_observation',{})

@@ -24,8 +24,10 @@ def install(s, catalog):
     for item in catalog:
         if (not re.fullmatch('[a-z0-9-]{1,48}', item['id']) or
                 item['owner'] not in ('gemini','codex','local') or item.get('risk')!='reversible' or
-                item.get('operation')!='test_addition' or not item.get('write_paths')):
-            raise ValueError('Only admitted reversible test additions are enabled')
+                item.get('operation') not in ('test_addition','development_change') or not item.get('write_paths')):
+            raise ValueError('Only admitted reversible development tasks are enabled')
+        if item['operation']=='development_change' and not re.fullmatch('[a-z0-9-]{1,64}',str(item.get('development_profile',''))):
+            raise ValueError('Development tasks require an operator test profile')
         if any(j['id']==item['id'] for j in jobs):raise ValueError('Duplicate task')
         jobs.append({**copy.deepcopy(item),'state':'queued','attempt':0})
     known={j['id'] for j in jobs}
@@ -48,7 +50,10 @@ def reserve(s, stage, job=None):
     if today!=o['day']:o.update(day=today,calls=0)
     charge=1 if stage in ('codex','antigravity','review') or (stage=='admit' and job['owner']=='gemini' and job.get('transport','sidecar')=='sidecar') else 0
     if stage=='parallel_code':charge=sum(j['owner']!='local' for j in job)
-    if o['calls']+charge>o['policy']['max_calls_per_day']:return {'action':'idle','reason':'daily_model_limit'}
+    if o['calls']+charge>o['policy']['max_calls_per_day']:
+        if stage in ('codex','antigravity') and o['policy'].get('local_coding_fallback'):
+            stage='local_fallback';charge=0
+        else:return {'action':'idle','reason':'daily_model_limit'}
     o['calls']+=charge
     token=secrets.token_hex(16)
     o['lease']={'stage':stage,'job_id':job['id'] if isinstance(job,dict) else None,'token':token,'started_at':pilot.stamp()}
@@ -81,9 +86,10 @@ def work(s):
         else:
             local=next((j for j in ready_code if j['owner']=='local'),None)
             if local:return reserve(s,'local',local)
+            if o['policy'].get('local_coding_fallback'):return reserve(s,'local_fallback',ready_code[0])
         return result
     budget_wait=False
-    for stage,ready in [('test','ready_test'),('review','ready_review'),('publish','ready_publish'),('codex','codex_ready'),('antigravity','antigravity_ready'),('local','local_ready')]:
+    for stage,ready in [('test','ready_test'),('review','ready_review'),('publish','ready_publish'),('codex','codex_ready'),('antigravity','antigravity_ready'),('local','local_ready'),('local_fallback','local_fallback_ready')]:
         for j in o['jobs']:
             if j['state']==ready and not j.get('supervision_paused'):
                 reserved=reserve(s,stage,j)
@@ -113,7 +119,7 @@ def finish(s, request):
         next_state=('local_ready' if j['owner']=='local' else 'codex_ready' if j['owner']=='codex' else ('antigravity_ready' if j.get('transport')=='cli' else 'coding'))
         j.update(state=next_state,child_id=result['child_id'],issue=result['issue'])
         notify(s,j,j['owner'].capitalize()+' assigned: '+j['title']+'. '+result['issue'].get('url',''))
-    elif stage in ('codex','antigravity','local'):
+    elif stage in ('codex','antigravity','local','local_fallback'):
         if stage=='antigravity' and result.get('state')=='quota_wait':quota_wait(s,j,result)
         else:j.update(state='ready_test',coding=result)
     elif stage=='parallel_code':
@@ -160,6 +166,10 @@ def quota_wait(s,j,result):
     if instant.tzinfo is None or result.get('inference_started') is not False:
         raise ValueError('Quota wait requires pre-inference evidence and observed reset')
     s['ongoing']['calls']-=1
+    if s['ongoing']['policy'].get('local_coding_fallback'):
+        j.update(state='local_fallback_ready',retry_at=result['retry_at'])
+        notify(s,j,'Cloud coding allowances are exhausted. The local coder will take this subtask; independent review still follows.')
+        return
     j.update(state='waiting_quota',retry_at=result['retry_at'])
     display=instant.astimezone(timezone(timedelta(hours=5,minutes=30))).strftime('%d %b, %I:%M %p IST')
     notify(s,j,'The available model allowances are used up. '+j['title']+
@@ -176,7 +186,7 @@ def repair(s,j,reason):
 
 
 def rpc(s,r):
-    if r['action'] in ('ongoing_board_data','ongoing_documents','ongoing_board_snapshot','ongoing_board_action','ongoing_pr_sync','ongoing_consume_corrections'):
+    if r['action'] in ('ongoing_intake_hold','ongoing_board_data','ongoing_documents','ongoing_board_snapshot','ongoing_board_action','ongoing_pr_sync','ongoing_consume_corrections'):
         import supervisor_runtime
         return supervisor_runtime.rpc(s,r)
     if r['action']=='ongoing_sync':
