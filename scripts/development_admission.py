@@ -84,10 +84,10 @@ def admit_intake(observer, board, state, now):
                 'reason':'This request needs a matching development area or a destructive/production decision: '+answer['reason']})
             return {'state':'needs_scope','task_id':request['id']}
         scope=candidates[key]
-        # A retained coder claim is exclusive across projects. File claims are
-        # exclusive inside their repository, including failed/held attempts.
+        # A held attempt retains its files, not its coder. Only a legacy dual
+        # claim or overlapping paths in the same repository prevent admission.
         if any(j.get('child_id') and j.get('state') in ('blocked','needs_owner') and
-               (j.get('owner','dual') in ('dual',scope['owner']) or
+               (j.get('owner','dual') == 'dual' or
                 (j.get('repository',github.REPOSITORY)==scope['repository'] and
                  {p.casefold() for p in j.get('write_paths',j.get('paths',[]))} &
                  {p.casefold() for p in scope['write_paths']})) for j in board['jobs']):continue
