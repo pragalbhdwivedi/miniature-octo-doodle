@@ -148,6 +148,8 @@ def _ensure(s, at):
             intake=next((i for i in board['intake'] if i['id']==job.get('intake_id')),None)
             if job.get('intake_id') and (not intake or intake['project']!=_project(job) or intake['state'] not in ('planned','admitted')):
                 raise ValueError('Intake lineage does not match the admitted project')
+            if intake and (intake.get('job_id',job['id'])!=job['id'] or intake['id'] in board['tasks']):
+                raise ValueError('Intake is already bound to another job')
             task_id=intake['id'] if intake else _allocate(board)
             if intake:intake.update(state='admitted',job_id=job['id'],updated_at=at)
             board['by_key'][job['id']]=task_id

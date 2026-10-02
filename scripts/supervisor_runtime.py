@@ -14,7 +14,7 @@ def notice(s,j,text):
     def model(item):return item.get('route',{}).get('model','not yet recorded')
     lines=['Observer · Control VM | '+sid,text,
            'Performed by: '+model(coder)+(' · Laptop/local' if coder.get('route',{}).get('provider')=='ollama_local' or j['owner']=='local' else ' · Laptop/cloud CLI'),
-           'Checked by: '+model(review)]
+           'Checked by: '+model(review)+(' · OpenAI API via gateway' if review.get('route',{}).get('provider')=='openai_api_via_gateway' else '')]
     if j.get('publication'):lines.append(j['publication'].get('pull_request',{}).get('url',''))
     if review.get('confidence') is not None:lines.append('Reviewer confidence: '+str(review['confidence'])+'/10 · '+review.get('confidence_reason',''))
     markup={'inline_keyboard':[[{'text':'Explain','callback_data':'st:'+sid+':ask'},

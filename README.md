@@ -3,13 +3,15 @@
 [Continuous task supervision](docs/SUPERVISOR_CONTROL.md) now tracks both
 projects with task IDs, audited Markdown queues, roadmap subtasks, PR corrections,
 Telegram conversation and an internal no-login control page linked from dash.
-The executable scope remains admitted synthetic tests and reviewed draft PRs.
+[Real development scopes](docs/DEVELOPMENT_TASK_CONTRACT.md) now support source changes,
+protected acceptance tests and automatic matching of owner intake. The original
+test-only path remains available for regression work.
 
 New work uses [assigned-subtask coordination](docs/ONGOING_COORDINATION.md):
 Qwen orders admitted work; Codex, the official Antigravity CLI and an installed
 local Devstral coder own separate tasks. Routine decisions, isolated checks and
-draft PR publication are delegated. Integration and destructive actions remain
-owner decisions. Model selection considers task size and shared quota groups.
+draft PR publication are delegated. Routine source integration may be reviewed and merged by the operator when
+authorized; destructive actions remain owner decisions. Model selection considers task size and shared quota groups.
 
 The bounded [Telegram coordination pilot](docs/TELEGRAM_PILOT.md) adds readable controls, immediate button acknowledgements, durable VM ownership, and a delegated laptop worker. Publication remains an exact-result owner decision. The three-task recovery has completed and published after Telegram approval. Questions now offer fixed-answer buttons and Custom text capture.
 

@@ -1,5 +1,40 @@
 # Build Status
 
+## Real development and API review, 2 October 2026
+
+IMPLEMENTED: source-code development tasks with fixed writable files, immutable
+source revisions, read-only acceptance tests and offline baseline/candidate
+checks. Owner intake is automatically matched to configured source scopes;
+requests outside those scopes remain visible with a reason. Distinct coder
+assignments remain the default. The first scopes cover ERP manifest validation,
+mapping freshness and gateway choice validation.
+
+REVIEWED AND MERGED: AADI PRs #27, #29, #31, #32, #33 and #35 into `Dev`;
+GatewayAI PRs #37 and #40 into `main`. Three standalone demonstration PRs
+(#16, #23, #32) were closed without merging. AADI release `main` is separate.
+These source merges do not establish live institution/provider acceptance.
+
+BUDGET: the owner authorized 80 cloud coding/review stages per day, with
+Antigravity preferred for coding and the installed local coder for compact
+fallback tasks. Large local prompts are held for splitting rather than truncated.
+OpenAI review can use the central API gateway instead of ChatGPT subscription
+capacity. A synthetic API review returned 179 tokens (139 input, 40 output).
+The gateway identifies the configured model as GPT-5.4 mini; its response alias
+is recorded separately. Complimentary enrollment is confirmed, but exact free
+model eligibility and zero billing remain unverified. A conservative separate
+API token reservation cap does not measure account-wide free allowance.
+
+VALIDATION: 202 related integration tests passed before two additional prompt
+preservation regressions; the resulting 18 new admission/controller tests pass.
+The three live isolated profile baselines passed 5, 20 and 17 tests, using an
+existing image. Deployment and real model-generated development PR evidence
+are tracked separately below and in the development runbook.
+
+See [development tasks](DEVELOPMENT_TASK_CONTRACT.md) and
+[OpenAI API review](OPENAI_API_REVIEW.md). Production data writes, migrations,
+credential changes and unattended base-branch merging are separate operations.
+
+
 ## Continuous task supervision, 2 October 2026
 
 IMPLEMENTED and DEPLOYED: a durable, timestamped task board for AADI and

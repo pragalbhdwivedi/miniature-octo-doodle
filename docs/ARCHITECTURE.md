@@ -13,8 +13,11 @@ The VM owns durable stage leases, task dependencies and budgets. Qwen orders the
 admitted catalog; three separate owner slots support Codex, Antigravity native
 CLI and local Devstral proposals. Immutable shared context is allowed, writable
 files are disjoint. The operator runs isolated tests and a fresh compact review,
-then publishes a separate draft PR. This optional subscription/local development
-lane does not replace the canonical LiteLLM application gateway.
+then publishes a separate draft PR. Optional independent OpenAI API review uses
+the canonical LiteLLM gateway with a review-only key and atomic daily token
+reservations. Coding still uses subscription/local proposal lanes. Free-text
+intake is admitted only to configured source/test profiles; models cannot invent
+commands, writable paths or production access.
 
 The [Telegram pilot](TELEGRAM_PILOT.md) adds VM-owned parent task reservations around the existing laptop coordination lane. The laptop remains a delegated operator worker; local Qwen is advisory. Telegram approvals bind the batch scope and exact publication result. Signed question buttons bind fixed answers or Custom text capture to one pending question. Operator-only saved-proposal recovery preserves source/candidate integrity and requires fresh isolated tests and independent review; it cannot generate new coder runs.
 

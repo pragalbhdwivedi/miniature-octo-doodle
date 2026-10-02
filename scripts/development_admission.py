@@ -81,11 +81,21 @@ def admit_intake(observer, board, state, now):
             observer.remote({'action':'ongoing_intake_hold','task_id':request['id'],
                 'reason':'This request needs a matching development area or a destructive/production decision: '+answer['reason']})
             return {'state':'needs_scope','task_id':request['id']}
-        scope=candidates[key];project=observer.worker.for_job(scope)
+        scope=candidates[key]
+        catalog_path=Path(observer.config['ongoing_catalog']);catalog=_read(catalog_path)
+        previous=next((j for j in catalog if j['id']==job_id),None)
+        if previous:
+            if (previous.get('intake_id')!=request['id'] or previous.get('development_profile')!=key
+                    or previous.get('title')!=request['title'] or previous.get('prompt')!=request['prompt']
+                    or any(previous.get(k)!=scope.get(k) for k in ('repository','owner','paths','write_paths','test_files'))):
+                raise ValueError('Retained intake catalog does not match its scope')
+            observer.remote({'action':'ongoing_sync','catalog':catalog})
+            return {'state':'admitted','task_id':request['id'],'job_id':job_id,'profile':key,'reconciled':True}
+        project=observer.worker.for_job(scope)
         if not refresh_source(project,board):return {'state':'source_busy'}
         source=project.coordinator.source(scope['paths'])
         job={k:scope[k] for k in ('repository','owner','complexity','paths','write_paths','test_files','parent_issue')}
-        job.update(id=job_id,intake_id=request['id'],title=request['title'],prompt=request['prompt'][:900],
+        job.update(id=job_id,intake_id=request['id'],title=request['title'],prompt=request['prompt'],
             operation='development_change',development_profile=key,risk='reversible',source_sha=source['sha'],
             project=request['project'],transport='cli' if scope['owner']=='gemini' else 'sidecar',depends_on=[])
         import development_tasks

@@ -272,6 +272,10 @@ def usage(s):
             u=item.get('usage',{});r=item['route']
             lines.append(j['title']+' / '+kind+': '+r['model']+
                 '; input '+str(u.get('input_tokens','unknown'))+', output '+str(u.get('output_tokens','unknown'))+
-                ('; local, no cloud generation quota' if r.get('provider')=='ollama_local' else ''))
+                ('; local, no cloud generation quota' if r.get('provider')=='ollama_local' else
+                 '; OpenAI API via gateway; complimentary billing unverified' if r.get('provider')=='openai_api_via_gateway' else ''))
+            if item.get('budget'):
+                lines.append('API adapter cap: '+str(item['budget'].get('daily_token_cap','unknown'))+
+                    ' reserved tokens/day; this is not the account free-token balance.')
     lines.append('Earlier failed attempts may have unreported usage. These are observed tokens, not a price estimate. Idle checks use no model calls.')
     return '\n'.join(lines)

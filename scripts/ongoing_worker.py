@@ -150,7 +150,7 @@ class Worker:
                 'No commands, credentials, package installs, tools, publication or deployment. Do not claim tests ran. '
                 'Start summary with Confidence: N/10 and an evidence-based reason.')
         if j.get('repair'):prompt+=' Repair findings: '+j['repair'][:500]
-        prompt=prompt[:1000]
+        if len(prompt)>4000:raise ValueError('Complete task prompt exceeds bound; split the task')
         self.coordinator.admit(self.child(j),prompt,j['paths'],owner=j['owner'],write_paths=j['write_paths'],transport=j.get('transport','sidecar'))
         return {'child_id':self.child(j),'issue':issue}
 
@@ -158,12 +158,12 @@ class Worker:
         j=work['job'];self.spec(j)
         reports=[]
         def generate(executable,prompt,folder):
-            try:r=models.run(executable,prompt,folder,complexity=j.get('complexity','routine'),stage='code',attempt=routing_attempt(j))
+            try:r=models.run(executable,prompt,folder,complexity=self.complexity(j),stage='code',attempt=routing_attempt(j))
             except Exception:
                 if not models.confirmed_quota_denial(folder):raise
                 import ongoing_antigravity
                 r=ongoing_antigravity.run(self.config['antigravity_cli'],prompt,folder/'quota-fallback',
-                    complexity=j.get('complexity','routine'),attempt=routing_attempt(j),prefer_group='Claude and GPT models')
+                    complexity=self.complexity(j),attempt=routing_attempt(j),prefer_group='Claude and GPT models')
                 r['route']['reason']='Confirmed Codex quota denial before generation'
             reports.append(r)
             return r['candidate']
@@ -177,12 +177,12 @@ class Worker:
         j=work['job'];self.spec(j)
         reports=[]
         try:route=ongoing_antigravity.prepare(self.config['antigravity_cli'],directory/'preflight',
-                    complexity=j.get('complexity','routine'),attempt=routing_attempt(j))
+                    complexity=self.complexity(j),attempt=routing_attempt(j))
         except ongoing_antigravity.QuotaWait as exc:
             return {'state':'quota_wait','retry_at':exc.reset_at,'inference_started':False}
         def generate(prompt,folder):
             r=ongoing_antigravity.run(self.config['antigravity_cli'],prompt,folder,
-                complexity=j.get('complexity','routine'),attempt=routing_attempt(j),prepared=route);reports.append(r)
+                complexity=self.complexity(j),attempt=routing_attempt(j),prepared=route);reports.append(r)
             return r['candidate']
         result=self.coordinator.run_gemini(self.child(j),generate)
         if reports:result.update(route=reports[0]['route'],usage=reports[0]['usage'])
@@ -292,17 +292,48 @@ class Worker:
                         if isinstance(method,ast.FunctionDef) and method.name in j['tests']['added']:
                             pieces.append(ast.get_source_segment(content,method))
         if prompt is None:prompt='Independently review this synthetic test-only task. Return pass or repair and concise findings. Existing AST preservation and isolated suite were mechanically checked; do not claim you ran them. Check assertions meet the task, meaningful edge coverage and no invented acceptance. Task: '+j['prompt']+'\nAdded tests:\n'+'\n'.join(pieces)+'\nEvidence:'+json.dumps(j['tests'])
-        try:answer=models.run(self.coordinator.executable,prompt,directory,schema=REVIEW,
-                          complexity=self.complexity(j),stage='review',attempt=0)
-        except Exception:
-            if not models.confirmed_quota_denial(directory):raise
-            import ongoing_antigravity
-            group=j.get('coding',{}).get('route',{}).get('group')
-            answer=ongoing_antigravity.run(self.config['antigravity_cli'],prompt,directory/'quota-fallback',
-                schema=REVIEW,complexity=self.complexity(j),prefer_group='Gemini Models' if group=='Claude and GPT models' else 'Claude and GPT models')
-            answer['route']['reason']='Confirmed Codex quota denial before review'
+        if self.config.get('openai_api_review',{}).get('enabled') is True:
+            answer=self.api_review(j,value,prompt,directory)
+        else:
+            try:answer=models.run(self.coordinator.executable,prompt,directory,schema=REVIEW,
+                              complexity=self.complexity(j),stage='review',attempt=0)
+            except Exception:
+                if not models.confirmed_quota_denial(directory):raise
+                import ongoing_antigravity
+                group=j.get('coding',{}).get('route',{}).get('group')
+                answer=ongoing_antigravity.run(self.config['antigravity_cli'],prompt,directory/'quota-fallback',
+                    schema=REVIEW,complexity=self.complexity(j),prefer_group='Gemini Models' if group=='Claude and GPT models' else 'Claude and GPT models')
+                answer['route']['reason']='Confirmed Codex quota denial before review'
         return {**answer['candidate'],'route':answer['route'],'usage':answer['usage'],
-                'candidate_sha256':coordination.digest(value)}
+                'candidate_sha256':coordination.digest(value),
+                **{k:answer[k] for k in ('budget','free_usage_verified','response_id') if k in answer}}
+
+    def api_review(self,j,value,prompt,directory):
+        """Send only admitted public candidate evidence to the protected API broker."""
+        cfg=self.config['openai_api_review']
+        if cfg.get('enabled') is not True or set(cfg)!={'enabled','ssh_host','remote_script','remote_config'}:
+            raise ValueError('Invalid API reviewer configuration')
+        if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.@-]{0,200}',cfg['ssh_host']):
+            raise ValueError('Invalid API reviewer host')
+        for key in ('remote_script','remote_config'):
+            if not re.fullmatch(r'/[a-zA-Z0-9_./-]+',cfg[key]) or '..' in cfg[key].split('/'):
+                raise ValueError('Invalid API reviewer path')
+        sha=coordination.digest(value)
+        if not isinstance(prompt,str) or not 1<=len(prompt.encode())<=24000:raise ValueError('API review prompt exceeds bound; split task')
+        identity=json.dumps([self.repository,j['id'],j['attempt'],sha],separators=(',',':')).encode()
+        request={'request_id':'review-'+hashlib.sha256(identity).hexdigest(),
+                 'prompt':prompt,'data_class':'public','candidate_sha256':sha}
+        command=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=10','--',cfg['ssh_host'],
+                 'sudo','-n','python3',cfg['remote_script'],'--config',cfg['remote_config']]
+        code,out,_=pilot.bounded_run(command,data=json.dumps(request).encode(),timeout=115,limit=131072)
+        if code:raise ValueError('API review held; reconcile protected receipt without automatic replay')
+        result=json.loads(out)
+        if result.get('candidate_sha256')!=sha or result.get('request_id')!=request['request_id']:
+            raise ValueError('API review receipt does not bind this candidate')
+        if result.get('route',{}).get('provider')!='openai_api_via_gateway':
+            raise ValueError('Unadmitted API review provider')
+        pilot.write_json(directory/'api-receipt.json',result)
+        return result
 
     def publish(self,work,directory):
         j=work['job'];value,changes=self.candidate(j)

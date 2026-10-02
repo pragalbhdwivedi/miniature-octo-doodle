@@ -209,7 +209,7 @@ class Coordinator:
 
     def admit(self, task_id, task, paths, owner="dual", write_paths=None, transport="sidecar"):
         if (not isinstance(task_id, str) or not re.fullmatch('[a-z0-9-]{1,64}', task_id)
-                or not isinstance(task, str) or not 1 <= len(task) <= 1000):
+                or not isinstance(task, str) or not 1 <= len(task) <= 4000):
             raise agent.AgentError('Invalid task specification')
         if owner not in ('dual', 'gemini', 'codex', 'local'):
             raise agent.AgentError('Unknown coder owner')

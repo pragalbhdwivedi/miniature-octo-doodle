@@ -55,3 +55,29 @@ image execution. A source change with a new regression test passed (baseline one
 test, candidate two); an incorrect replacement failed the regression. No new
 image/model was installed. These checks do not establish deployment of these
 modules, actual model generation, service integration or a production release.
+
+## Owner intake and scheduling
+
+`development_enabled` matches owner requests to configured `development_scopes`.
+Qwen selects only a scope identifier. Paths, test commands, repository, coder
+and complexity remain operator-owned. Uncertain classifications do not repeat.
+Requests outside the configured scopes become `needs_scope` with an explanation.
+The existing SUP identifier is retained upon admission.
+
+Roadmap recipes are finite and consumed once. Add a new recipe ID when review
+produces a new requirement; completing a task does not authorize unrelated work.
+A clean source is refreshed only while no task on that project is executing.
+An admission whose acknowledgement was lost replays its immutable saved catalog
+entry. At most three tasks are active. The owner authorized 80 cloud stages/day.
+
+`openai_api_review` configures the Windows broker with `enabled`, `ssh_host`,
+`remote_script` and `remote_config`. Linux holds the review-only gateway key and
+atomic API-token ledger. Responses bind a canonical request ID and candidate
+hash; model provenance, usage and unverified free billing stay in the audit.
+An uncertain API result is held rather than retried or replaced by another call.
+The adapter allowance is separate from provider subscription quotas.
+
+Verification: all three isolated source profiles passed their baselines (5 ERP,
+20 feed and 17 gateway tests). A mapping module import smoke check also passed.
+These are module-level checks; project integration CI and PR review remain
+required. No new images or model weights were downloaded.
