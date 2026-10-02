@@ -63,3 +63,11 @@ and native inference intent prevent concurrent/repeated calls after a lost reply
 Do not label a queued proposal as implemented, reviewed, merged or deployed.
 Confidence remains an uncalibrated model report, recorded when coding/review
 actually returns evidence. A planning task has no fabricated confidence score.
+
+A blocked task retains its evidence, dependency identity and exact writable-path
+claim, but releases its coder slot so unrelated queued tasks continue. Complete
+assigned output that failed only an envelope limit is normalized deterministically
+and returned to isolated testing without another model call; the original provider
+receipt remains unchanged. Reproducible test or review failures use the permitted
+single repair attempt and prefer Claude through the native subscription pool.
+Ambiguous provider completion remains held to prevent duplicate generation.

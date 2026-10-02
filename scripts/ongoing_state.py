@@ -218,6 +218,21 @@ def rpc(s,r):
         if r['result'].get('state')=='human_review_required':j.update(state='ready_test',coding=r['result'])
         elif r['result'].get('state')=='blocked':j.update(state='blocked',error='Coder stopped; claim retained')
         return {'ok':True}
+    if r['action']=='ongoing_recovered':
+        j=next(j for j in s['ongoing']['jobs'] if j['id']==r['job_id'])
+        result=r.get('result',{})
+        if (j['state']!='blocked' or j.get('child_id')!=r.get('child_id')
+                or result.get('state')!='human_review_required'
+                or result.get('task_id')!=j['child_id'] or result.get('source_sha')!=j['source_sha']
+                or result.get('owner')!=j['owner'] or result.get('model_replayed') is not False
+                or result.get('operator_correction')!='summary_shortened_to_contract'):
+            raise ValueError('Recovered candidate provenance mismatch')
+        j.update(state='ready_test',coding=copy.deepcopy(result))
+        j.pop('error',None)
+        notify(s,j,'Recovered retained candidate for '+j['title']+
+               ' without another model call. Isolated tests and independent review will continue; other queued work remains active.')
+        pilot.event(s,'Recovered saved assigned candidate for '+j['id']+' without model replay')
+        return {'ok':True,'state':'ready_test'}
     raise ValueError('Unknown ongoing RPC')
 
 

@@ -154,6 +154,35 @@ class OngoingWorkerTests(unittest.TestCase):
             self.result={**original,key:value};self.save()
             with self.subTest(key=key),self.assertRaises(ValueError):self.w.candidate(self.job)
 
+    def test_recovery_resends_saved_result_after_lost_controller_receipt(self):
+        j={**self.job,'state':'blocked','child_id':self.w.child(self.job)}
+        result={**self.result,'model_replayed':False,
+                'operator_correction':'summary_shortened_to_contract'}
+        self.w.remote=Mock(side_effect=[{'jobs':[j]},{'ok':True,'state':'ready_test'}])
+        self.w.for_job=Mock(return_value=self.w)
+        self.w.coordinator.status=Mock(return_value={'tasks':[{
+            'id':j['child_id'],'state':'human_review_required','result':result}]})
+        self.w.coordinator.recover_assigned=Mock()
+        with patch.object(self.w,'spec'):
+            self.assertEqual(self.w.recover_assigned(j['id'],'Retry exact saved receipt'),result)
+        self.w.coordinator.recover_assigned.assert_not_called()
+        self.assertEqual(self.w.remote.call_args_list[-1].args[0]['result'],result)
+
+    def test_parallel_code_recovers_envelope_failure_before_marking_blocked(self):
+        jobs=[{**self.job,'id':'one','owner':'gemini'},
+              {**self.job,'id':'two','owner':'gemini'}]
+        recovered={**self.result,'model_replayed':False,
+                   'operator_correction':'summary_shortened_to_contract'}
+        child=SimpleNamespace(antigravity=Mock(side_effect=ValueError('envelope')),
+            codex=Mock(),local=Mock(),child=lambda j:'ongoing-'+j['id']+'-a0',
+            coordinator=SimpleNamespace(recover_assigned=Mock(return_value=recovered)))
+        self.w.for_job=Mock(return_value=child)
+        directory=self.root/'parallel';directory.mkdir()
+        result=self.w.parallel_code({'jobs':jobs},directory)
+        self.assertEqual([result[x['id']]['state'] for x in jobs],
+                         ['human_review_required','human_review_required'])
+        self.assertEqual(child.coordinator.recover_assigned.call_count,2)
+
     def test_isolated_test_uses_exact_candidate_and_no_network_or_new_image(self):
         result=self.w.test({'job':self.job},self.directory)
         self.assertTrue(result['passed']);self.assertEqual(result['test_count'],2)
@@ -247,9 +276,11 @@ class OngoingWorkerTests(unittest.TestCase):
 
     def test_gemini_correction_uses_current_repair_cycle(self):
         import ongoing_antigravity
-        job=dict(self.job,owner='gemini',attempt=5,repair_start=5)
+        job=dict(self.job,owner='gemini',attempt=5,repair_start=5,
+                 repair='Independent tests found a reproducible failure')
         self.w.config['antigravity_cli']='synthetic-antigravity'
         self.w.coordinator.run_gemini=Mock(return_value=self.result)
         with patch.object(self.w,'spec'),patch.object(ongoing_antigravity,'prepare',return_value={}) as prepare:
             self.w.antigravity({'job':job},self.directory)
         self.assertEqual(prepare.call_args.kwargs['attempt'],0)
+        self.assertEqual(prepare.call_args.kwargs['prefer_group'],'Claude and GPT models')

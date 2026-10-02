@@ -232,6 +232,44 @@ class AssignedCoderTests(unittest.TestCase):
         self.assertEqual(self.calls,['gemini-cli'])
         self.assertEqual(self.coordinator.claim(),{'state':'no_queued_task'})
 
+    def test_oversized_summary_recovers_saved_candidate_without_model_replay(self):
+        self.coordinator.admit('cli-gemini','Synthetic CLI task',self.paths,
+                               owner='gemini',write_paths=['example.py'],transport='cli')
+        oversized={**self.value,'summary':'Confidence: 9/10. '+('evidence '*80)}
+        original=json.loads(json.dumps(oversized))
+        def generate(prompt,directory):
+            self.calls.append('gemini-cli')
+            (directory/'antigravity-result.json').write_text(json.dumps({
+                'candidate':oversized,'route':{'model':'synthetic'},'usage':{}}))
+            return oversized
+        with self.assertRaises(c.agent.AgentError):
+            self.coordinator.run_gemini('cli-gemini',generate)
+        result=self.coordinator.recover_assigned(
+            'cli-gemini','Normalize the retained oversized summary and run independent acceptance')
+        self.assertEqual(self.calls,['gemini-cli'])
+        self.assertFalse(result['model_replayed'])
+        self.assertEqual(result['operator_correction'],'summary_shortened_to_contract')
+        self.assertEqual(result['route']['model'],'synthetic')
+        saved=json.loads((self.coordinator.root/'cli-gemini'/'gemini.json').read_text())
+        self.assertLessEqual(len(saved['summary']),512)
+        self.assertEqual(saved['proposal'],original['proposal'])
+        self.assertEqual(saved['changes'],original['changes'])
+        receipt=json.loads((self.coordinator.root/'cli-gemini'/'antigravity-result.json').read_text())
+        self.assertEqual(receipt['candidate'],original)
+        with self.assertRaises(c.agent.AgentError):
+            self.coordinator.recover_assigned('cli-gemini','A duplicate recovery must be rejected')
+
+    def test_blocked_task_releases_coder_but_keeps_write_path_claim(self):
+        self.admit('codex-task','codex','example.py')
+        self.coordinator.coder=lambda *args: (_ for _ in ()).throw(RuntimeError('failure'))
+        with self.assertRaises(c.agent.AgentError):self.coordinator.run_codex('codex-task')
+        self.admit('independent','codex','second.py')
+        with self.assertRaises(c.agent.AgentError):
+            self.coordinator.admit('overlap','Another task',self.paths,
+                                   owner='gemini',write_paths=['example.py'])
+        self.assertEqual([x['state'] for x in self.coordinator.status()['tasks']],
+                         ['blocked','queued'])
+
     def test_cli_runner_cannot_take_sidecar_or_other_coder_task(self):
         self.admit('sidecar-gemini','gemini','example.py')
         self.admit('codex-task','codex','second.py')

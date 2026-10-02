@@ -169,15 +169,15 @@ class ObserverTests(unittest.TestCase):
         self.assertEqual(self.chat.call_count,1)
         self.assertTrue(all(j['state']=='blocked' for j in self.board['jobs']))
 
-    def test_held_coder_remains_exclusive_across_repositories(self):
+    def test_held_task_releases_coder_for_unrelated_work(self):
         self.board['jobs']=[{'id':'other-project','state':'blocked','child_id':'held-claim',
             'repository':'pragalbhdwivedi/miniature-octo-doodle','owner':'gemini','write_paths':['unrelated.py']}]
-        self.observer.tick()
-        self.chat.assert_not_called()
-        self.assertEqual(json.loads(self.catalog.read_text()),[])
+        self.assertEqual(self.observer.tick()['roadmap']['state'],'admitted')
+        self.assertEqual(self.chat.call_count,1)
+        self.assertEqual(len(json.loads(self.catalog.read_text())),1)
 
-    def test_held_coder_or_write_claim_is_not_reused(self):
-        for owner,paths in [('gemini',['unrelated.py']),('local',self.recipe['write_paths'])]:
+    def test_held_write_claim_is_not_reused(self):
+        for owner,paths in [('gemini',self.recipe['write_paths']),('local',self.recipe['write_paths'])]:
             self.board['jobs']=[{'id':'held','state':'blocked','child_id':'held-claim',
                 'repository':self.recipe['repository'],'owner':owner,'write_paths':paths}]
             self.observer.tick()

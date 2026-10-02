@@ -175,6 +175,28 @@ class Worker:
         if set(changes)!=set(j['write_paths']):raise ValueError('Candidate write scope mismatch')
         return value,changes
 
+    def recover_assigned(self, job_id, reason):
+        """Reconcile saved assigned evidence and return it to isolated testing."""
+        board=self.remote({'action':'ongoing_board_data'})
+        j=next((item for item in board['jobs'] if item['id']==job_id),None)
+        if not j or j.get('state')!='blocked' or not j.get('child_id'):
+            raise ValueError('Only blocked assigned work with retained evidence can be recovered')
+        worker=self.for_job(j);worker.spec(j)
+        child=next((x for x in worker.coordinator.status()['tasks']
+                    if x['id']==j['child_id']),None)
+        if (child and child.get('state')=='human_review_required'
+                and isinstance(child.get('result'),dict)
+                and child['result'].get('model_replayed') is False
+                and child['result'].get('operator_correction')=='summary_shortened_to_contract'):
+            # The local commit may have succeeded before the controller receipt
+            # was lost. Re-send the exact saved result; never replay recovery.
+            result=child['result']
+        else:
+            result=worker.coordinator.recover_assigned(j['child_id'],reason)
+        self.remote({'action':'ongoing_recovered','job_id':j['id'],'child_id':j['child_id'],
+                     'result':result})
+        return result
+
     def plan(self,work,directory):
         ids=[j['id'] for j in work['jobs']]
         schema={'type':'object','properties':{'order':{'type':'array','items':{'type':'string'}},
@@ -230,7 +252,8 @@ class Worker:
         j=work['job'];self.spec(j)
         reports=[]
         try:route=ongoing_antigravity.prepare(self.config['antigravity_cli'],directory/'preflight',
-                    complexity=self.complexity(j),attempt=routing_attempt(j))
+                    complexity=self.complexity(j),attempt=routing_attempt(j),
+                    prefer_group='Claude and GPT models' if j.get('repair') else None)
         except ongoing_antigravity.QuotaWait as exc:
             return {'state':'quota_wait','retry_at':exc.reset_at,'inference_started':False}
         def generate(prompt,folder):
@@ -250,6 +273,13 @@ class Worker:
                 pilot.write_json(folder/'result.json',result)
                 return result
             except Exception as exc:
+                try:
+                    recovered=worker.coordinator.recover_assigned(worker.child(j),
+                        'Automatic parallel envelope-only recovery; retain original provider receipt and continue independent acceptance')
+                    pilot.write_json(folder/'result.json',recovered)
+                    return recovered
+                except Exception:
+                    pass
                 pilot.write_json(folder/'failure.json',{'type':type(exc).__name__,'detail':str(exc)[:500]})
                 return {'state':'blocked'}
         with ThreadPoolExecutor(max_workers=3) as pool:
@@ -453,6 +483,18 @@ class Worker:
                     Observer(self)._mirror({})
                 return {'state':'finished','stage':stage}
             except Exception as exc:
+                # A complete provider receipt may have failed only the local
+                # response envelope. Normalize that saved receipt once without
+                # another inference call, then continue to independent tests.
+                if stage=='antigravity' and j:
+                    try:
+                        recovered=worker.coordinator.recover_assigned(worker.child(j),
+                            'Automatic envelope-only recovery; retain original provider receipt and continue independent acceptance')
+                        pilot.write_json(directory/'result.json',recovered)
+                        self.remote({'action':'ongoing_finish','token':work['token'],'result':recovered})
+                        return {'state':'finished','stage':'antigravity_recovery','model_calls':0}
+                    except Exception:
+                        pass
                 if directory.exists():pilot.write_json(directory/'failure.json',{'type':type(exc).__name__,'detail':str(exc)[:500]})
                 self.remote({'action':'ongoing_fail','token':work['token'],'result':{'error':'Stage failed; saved evidence requires reconciliation, no automatic replay.'}})
                 return {'state':'blocked','stage':stage}

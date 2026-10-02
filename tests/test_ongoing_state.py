@@ -140,6 +140,24 @@ class OngoingStateTests(unittest.TestCase):
                        'child_id':'other-child','result':{'state':'human_review_required'}})
         self.assertEqual(j['state'],'coding')
 
+    def test_recovered_candidate_returns_to_tests_and_other_work_continues(self):
+        self.planned()
+        first=self.s['ongoing']['jobs'][0]
+        first.update(state='blocked',child_id='ongoing-'+first['id']+'-a0',
+                     error='Saved evidence requires reconciliation')
+        result={'state':'human_review_required','task_id':first['child_id'],
+                'source_sha':first['source_sha'],'owner':first['owner'],
+                'model_replayed':False,'operator_correction':'summary_shortened_to_contract'}
+        self.assertEqual(state.rpc(self.s,{'action':'ongoing_recovered','job_id':first['id'],
+            'child_id':first['child_id'],'result':result}),{'ok':True,'state':'ready_test'})
+        self.assertEqual(first['state'],'ready_test')
+        self.assertNotIn('error',first)
+        self.assertEqual(state.work(self.s)['action'],'admit')
+        altered={**result,'model_replayed':True}
+        first['state']='blocked'
+        with self.assertRaises(ValueError):state.rpc(self.s,{'action':'ongoing_recovered',
+            'job_id':first['id'],'child_id':first['child_id'],'result':altered})
+
     def test_publication_receipt_shows_actual_confirmed_pr_url(self):
         self.planned()
         j=self.s['ongoing']['jobs'][0];j.update(state='ready_publish',tests={'passed':True},review={'verdict':'pass'})

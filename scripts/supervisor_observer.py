@@ -356,10 +356,11 @@ class Observer:
         consumed = {j.get('roadmap_recipe_id') for j in catalog + jobs + archived}
         for recipe in recipes:
             job_id = recipe_job_id(recipe)
-            # A failed coder keeps its claim until explicit reconciliation. It
-            # must not consume every queue slot or cause conflicting admissions.
+            # A failed task keeps its exact write-path claim until explicit
+            # reconciliation. It releases the coder so unrelated work can
+            # continue; legacy dual claims remain globally exclusive.
             if any(j.get('state') in HELD and j.get('child_id')
-                   and (j.get('owner', 'dual') in ('dual', recipe['owner']) or
+                   and (j.get('owner', 'dual') == 'dual' or
                         (j.get('repository', github.REPOSITORY) == recipe['repository'] and
                          {p.casefold() for p in j.get('write_paths', j.get('paths', []))} &
                          {p.casefold() for p in recipe['write_paths']})) for j in jobs):

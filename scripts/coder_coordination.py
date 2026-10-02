@@ -227,10 +227,13 @@ class Coordinator:
                   'data_class': 'operator-reviewed-code-only', 'transport': transport}
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
-            for row in db.execute('SELECT packet FROM tasks WHERE state != ?', ('closed',)):
+            for row in db.execute('SELECT packet,state FROM tasks WHERE state != ?', ('closed',)):
                 active = json.loads(row['packet'])
                 other = active.get('owner', 'dual')
-                if owner == 'dual' or other == 'dual' or owner == other:
+                # A blocked proposal keeps its exact write-path claim for safe
+                # reconciliation, but must not monopolize a coder for unrelated
+                # work. Running and queued claims remain coder-exclusive.
+                if row['state'] != 'blocked' and (owner == 'dual' or other == 'dual' or owner == other):
                     raise agent.AgentError('Coder already owns an unclosed task; reconcile before admission')
                 held = {p.casefold() for p in active.get('write_paths', active['paths'])}
                 if held.intersection(p.casefold() for p in write_paths):
@@ -452,6 +455,76 @@ class Coordinator:
                 json.dump(result,stream,indent=2)
             db.execute('UPDATE tasks SET state=?,result=?,error=? WHERE id=?',
                        (result['state'],json.dumps(result),'Operator recovered saved proposals; advisory unavailable; independent acceptance required.',task_id))
+        return result
+
+    def recover_assigned(self, task_id, reason):
+        """Recover a complete assigned result after an envelope-only failure.
+
+        This never invokes a model. The original provider receipt remains
+        immutable; only an oversized summary is deterministically shortened.
+        """
+        if not isinstance(reason,str) or not 10<=len(reason)<=1000:
+            raise agent.AgentError('Explicit bounded recovery reason required')
+        with self.connect() as db:
+            row=db.execute('SELECT * FROM tasks WHERE id=?',(task_id,)).fetchone()
+        if not row or row['state']!='blocked':
+            raise agent.AgentError('Only a blocked assigned task can be recovered')
+        packet=json.loads(row['packet']);owner=packet.get('owner','dual')
+        if owner not in ('gemini','codex','local'):
+            raise agent.AgentError('Assigned recovery does not admit legacy dual tasks')
+        self.fresh(packet)
+        folder=self.root/task_id
+        if (folder/'result.json').exists():
+            raise agent.AgentError('Existing result requires reconciliation, not replay')
+        failure=json.loads((folder/'assigned-failure.json').read_text(encoding='utf-8'))
+        if failure!={'type':'AgentError','detail':'Candidate schema or limits violated'}:
+            raise agent.AgentError('Saved failure is not an envelope-only candidate error')
+        receipt={'gemini':'antigravity-result.json','codex':'codex-answer.json',
+                 'local':'local-result.json'}[owner]
+        saved=json.loads((folder/receipt).read_text(encoding='utf-8'))
+        value=saved.get('candidate') if owner in ('gemini','local') else saved
+        if (not isinstance(value,dict) or set(value)!={'summary','proposal','changes'}
+                or not isinstance(value['summary'],str) or not 512<len(value['summary'])<=2000):
+            raise agent.AgentError('Saved candidate is not recoverable by bounded summary normalization')
+        normalized=copy.deepcopy(value)
+        normalized['summary']=value['summary'][:509].rstrip()+'...'
+        # Re-run every ordinary schema, path, size and patch check after changing
+        # the presentation-only field. Any other defect remains blocked.
+        normalized,_=candidate(normalized,self.writable(packet))
+        original_sha=digest(value);normalized_sha=digest(normalized)
+        recovery={'task_id':task_id,'owner':owner,'reason':reason,
+                  'original_candidate_sha256':original_sha,
+                  'normalized_candidate_sha256':normalized_sha,
+                  'original_summary_length':len(value['summary']),
+                  'normalized_summary_length':len(normalized['summary']),
+                  'model_replayed':False,'source_writes':False}
+        with self.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            current=db.execute('SELECT state,packet FROM tasks WHERE id=?',(task_id,)).fetchone()
+            if not current or current['state']!='blocked' or current['packet']!=row['packet']:
+                raise agent.AgentError('Recovery ownership changed')
+            changed=db.execute('UPDATE tasks SET state="running",error=? WHERE id=? AND state="blocked"',
+                               ('Operator is validating the retained assigned candidate without model replay.',task_id)).rowcount
+            if changed!=1:raise agent.AgentError('Recovery ownership changed')
+        try:
+            with (folder/'assigned-recovery.json').open('x',encoding='utf-8') as stream:
+                json.dump(recovery,stream,indent=2)
+            result=self.complete_assigned(task_id,packet,owner,normalized,folder)
+        except Exception:
+            with self.connect() as db:
+                db.execute('UPDATE tasks SET state="blocked",error=? WHERE id=? AND state="running"',
+                           ('Assigned recovery stopped; saved evidence retained; no model replay.',task_id))
+            raise
+        result.update(operator_correction='summary_shortened_to_contract',
+                      original_candidate_sha256=original_sha,
+                      model_replayed=False,recovery_reason=reason)
+        if owner in ('gemini','local') and isinstance(saved.get('route'),dict):
+            result['route']=copy.deepcopy(saved['route'])
+            result['usage']=copy.deepcopy(saved.get('usage',{'status':'unavailable'}))
+        with self.connect() as db:
+            db.execute('UPDATE tasks SET result=?,error=? WHERE id=? AND state="human_review_required"',
+                       (json.dumps(result),'Operator normalized only the retained summary; independent acceptance required.',task_id))
+        (folder/'result.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
         return result
 
     def advance(self, task_id, token):
