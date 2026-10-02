@@ -24,6 +24,8 @@ class DevelopmentChoiceTests(unittest.TestCase):
             float("-inf"),
             -0.001,
             -1.0,
+            10**1000,
+            -(10**1000),
             1.001,
             2.0,
             None,
