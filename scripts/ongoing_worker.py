@@ -182,7 +182,17 @@ class Worker:
         if not j or j.get('state')!='blocked' or not j.get('child_id'):
             raise ValueError('Only blocked assigned work with retained evidence can be recovered')
         worker=self.for_job(j);worker.spec(j)
-        result=worker.coordinator.recover_assigned(j['child_id'],reason)
+        child=next((x for x in worker.coordinator.status()['tasks']
+                    if x['id']==j['child_id']),None)
+        if (child and child.get('state')=='human_review_required'
+                and isinstance(child.get('result'),dict)
+                and child['result'].get('model_replayed') is False
+                and child['result'].get('operator_correction')=='summary_shortened_to_contract'):
+            # The local commit may have succeeded before the controller receipt
+            # was lost. Re-send the exact saved result; never replay recovery.
+            result=child['result']
+        else:
+            result=worker.coordinator.recover_assigned(j['child_id'],reason)
         self.remote({'action':'ongoing_recovered','job_id':j['id'],'child_id':j['child_id'],
                      'result':result})
         return result
@@ -263,6 +273,13 @@ class Worker:
                 pilot.write_json(folder/'result.json',result)
                 return result
             except Exception as exc:
+                try:
+                    recovered=worker.coordinator.recover_assigned(worker.child(j),
+                        'Automatic parallel envelope-only recovery; retain original provider receipt and continue independent acceptance')
+                    pilot.write_json(folder/'result.json',recovered)
+                    return recovered
+                except Exception:
+                    pass
                 pilot.write_json(folder/'failure.json',{'type':type(exc).__name__,'detail':str(exc)[:500]})
                 return {'state':'blocked'}
         with ThreadPoolExecutor(max_workers=3) as pool:
