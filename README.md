@@ -1,5 +1,10 @@
 # miniature-octo-doodle
 
+[Continuous task supervision](docs/SUPERVISOR_CONTROL.md) now tracks both
+projects with task IDs, audited Markdown queues, roadmap subtasks, PR corrections,
+Telegram conversation and an internal no-login control page linked from dash.
+The executable scope remains admitted synthetic tests and reviewed draft PRs.
+
 New work uses [assigned-subtask coordination](docs/ONGOING_COORDINATION.md):
 Qwen orders admitted work; Codex, the official Antigravity CLI and an installed
 local Devstral coder own separate tasks. Routine decisions, isolated checks and

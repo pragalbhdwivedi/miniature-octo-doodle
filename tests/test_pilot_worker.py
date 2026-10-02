@@ -424,6 +424,54 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(finish['question_id'], 'q-1')
         self.assertTrue(finish['result']['advisory'])
 
+    def test_ongoing_task_question_excludes_legacy_pilot_and_other_task_evidence(self):
+        directory=self.worker.root/'scoped-question'
+        directory.mkdir()
+        snapshot={'batch':{'id':'LEGACY_BATCH_MARKER','state':'awaiting_publication'},
+            'tasks':[{'id':'t1','title':'LEGACY_IDENTITY_TASK_MARKER','state':'verified'}],
+            'events':[{'summary':'LEGACY_APPROVAL_EVENT_MARKER'}],
+            'totals':{'legacy_usage':'LEGACY_USAGE_MARKER'},
+            'limits':{'legacy_limit':'LEGACY_LIMIT_MARKER'},
+            'supervision':{'enabled':True,'policy':{'publication':'draft_pr'},'tasks':[
+                {'id':'SUP-000040','title':'CURRENT_GATEWAY_TASK_MARKER','state':'draft_ready','owner':'gemini',
+                 'project':'GatewayAI','pr_url':'https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/40'},
+                {'id':'SUP-000041','title':'OTHER_ONGOING_TASK_MARKER','state':'queued'}]}}
+        captured=[]
+        def chat(model,messages,schema,tokens):
+            captured.append(json.loads(messages[-1]['content']))
+            return {'answer':'The selected task has a draft PR; it is not merged.'}
+        self.worker.chat=chat
+        self.worker.coder=lambda *a,**k:self.fail('No cloud calls for a task question')
+        work={'question':{'id':'question-scoped','task_id':'SUP-000040','question':'Explain this task.'},
+              'snapshot':snapshot}
+        result=self.worker.ask(work,directory)
+        self.assertTrue(result['advisory'])
+        encoded=json.dumps(captured)
+        self.assertIn('CURRENT_GATEWAY_TASK_MARKER',encoded)
+        self.assertIn('SUP-000040',encoded)
+        self.assertIn('/pull/40',encoded)
+        evidence=captured[0]['evidence']
+        self.assertEqual(evidence['task']['assigned_coder'],'gemini')
+        self.assertNotIn('owner',evidence['task'])
+        self.assertIn('human project owner',evidence['workflow'])
+        self.assertEqual(snapshot['supervision']['tasks'][0]['owner'],'gemini')
+        self.assertNotIn('assigned_coder',snapshot['supervision']['tasks'][0])
+        for forbidden in ('LEGACY_BATCH_MARKER','LEGACY_IDENTITY_TASK_MARKER',
+                          'LEGACY_APPROVAL_EVENT_MARKER','LEGACY_USAGE_MARKER',
+                          'LEGACY_LIMIT_MARKER','OTHER_ONGOING_TASK_MARKER','awaiting_publication'):
+            self.assertNotIn(forbidden,encoded)
+
+    def test_unknown_supervisor_task_question_stops_before_model_or_prompt_write(self):
+        self.worker.chat=lambda *a,**k:self.fail('Unknown task must not call the model')
+        for index,snapshot in enumerate(({}, {'supervision':{'tasks':[{'id':'SUP-000001','title':'Another task'}]}})):
+            with self.subTest(snapshot=snapshot):
+                directory=self.worker.root/('unknown-question-'+str(index))
+                directory.mkdir()
+                with self.assertRaises(w.WorkerError):
+                    self.worker.ask({'question':{'id':'unknown','task_id':'SUP-999999','question':'Explain.'},
+                                     'snapshot':snapshot},directory)
+                self.assertFalse((directory/'prompt.md').exists())
+
     def test_fixed_config_denies_image_tags_or_shell_metacharacters(self):
         with self.assertRaisesRegex(w.WorkerError, 'digest'):
             w.Worker({**self.config, 'test_image': 'python:latest'}, coordinator=self.coordinator)

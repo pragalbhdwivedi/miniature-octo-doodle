@@ -8,6 +8,13 @@ import pilot_state as pilot
 TERMINAL = {'draft_ready', 'blocked', 'needs_owner'}
 
 
+def notify(s,j,text):
+    if j and s.get('supervision'):
+        import supervisor_runtime
+        supervisor_runtime.notice(s,j,text)
+    else:pilot.message(s,text)
+
+
 def install(s, catalog):
     if s.get('ongoing'):
         raise ValueError('Ongoing controller already installed')
@@ -55,17 +62,18 @@ def work(s):
     o['last_seen']=pilot.stamp()
     if not o['enabled'] or o.get('lease'):return {'action':'idle'}
     if not o['planned']:return reserve(s,'plan')
+    o['jobs'].sort(key=lambda j:(not bool(j.get('repair')), -j.get('supervision_priority',0)))
     for j in o['jobs']:
         if j['state']=='waiting_quota' and datetime.fromisoformat(j['retry_at'])<=datetime.now(timezone.utc):
             j['state']='antigravity_ready'
     # Admit both owners before starting a blocking Codex CLI call.
     active=[j for j in o['jobs'] if j['state'] not in TERMINAL|{'queued'}]
     for j in o['jobs']:
-        if j['state']!='queued' or len(active)>=o['policy']['max_active']:continue
-        if any(x['owner']==j['owner'] or {p.casefold() for p in x['write_paths']}&{p.casefold() for p in j['write_paths']} for x in active):continue
+        if j['state']!='queued' or j.get('supervision_paused') or len(active)>=o['policy']['max_active']:continue
+        if any(x['owner']==j['owner'] or (x.get('repository','pragalbhdwivedi/aadi')==j.get('repository','pragalbhdwivedi/aadi') and {p.casefold() for p in x['write_paths']}&{p.casefold() for p in j['write_paths']}) for x in active):continue
         if any(next(x for x in o['jobs'] if x['id']==d)['state']!='draft_ready' for d in j.get('depends_on',[])):continue
         return reserve(s,'admit',j)
-    ready_code=[j for j in o['jobs'] if j['state'] in ('codex_ready','antigravity_ready','local_ready')]
+    ready_code=[j for j in o['jobs'] if j['state'] in ('codex_ready','antigravity_ready','local_ready') and not j.get('supervision_paused')]
     if len(ready_code)>=2:
         result=reserve(s,'parallel_code',ready_code)
         if result['action']!='idle':
@@ -77,7 +85,7 @@ def work(s):
     budget_wait=False
     for stage,ready in [('test','ready_test'),('review','ready_review'),('publish','ready_publish'),('codex','codex_ready'),('antigravity','antigravity_ready'),('local','local_ready')]:
         for j in o['jobs']:
-            if j['state']==ready:
+            if j['state']==ready and not j.get('supervision_paused'):
                 reserved=reserve(s,stage,j)
                 if reserved['action']!='idle':return reserved
                 budget_wait=True
@@ -96,7 +104,7 @@ def finish(s, request):
             for task in o['jobs']:
                 if task['id'] in lease['job_ids']:task.update(state='blocked',error='Parallel stage interrupted; reconcile saved claims before any retry.')
         else:o['planned']=True
-        pilot.message(s,'Technical recovery needed: '+(j['title'] if j else 'Local planning')+'. This is not an approval request; no answer is required from you. Saved evidence is held for recovery; other independent work can continue.')
+        notify(s,j,'Technical recovery needed: '+(j['title'] if j else 'Local planning')+'. This is not an approval request; no answer is required from you. Saved evidence is held for recovery; other independent work can continue.')
     elif stage=='plan':
         ids=result.get('order',[])
         if len(ids)!=len(o['jobs']) or set(ids)!={j['id'] for j in o['jobs']}:raise ValueError('Planner changed admitted scope')
@@ -104,7 +112,7 @@ def finish(s, request):
     elif stage=='admit':
         next_state=('local_ready' if j['owner']=='local' else 'codex_ready' if j['owner']=='codex' else ('antigravity_ready' if j.get('transport')=='cli' else 'coding'))
         j.update(state=next_state,child_id=result['child_id'],issue=result['issue'])
-        pilot.message(s,j['owner'].capitalize()+' assigned: '+j['title']+'. '+result['issue'].get('url',''))
+        notify(s,j,j['owner'].capitalize()+' assigned: '+j['title']+'. '+result['issue'].get('url',''))
     elif stage in ('codex','antigravity','local'):
         if stage=='antigravity' and result.get('state')=='quota_wait':quota_wait(s,j,result)
         else:j.update(state='ready_test',coding=result)
@@ -117,7 +125,7 @@ def finish(s, request):
             elif item.get('state')=='human_review_required':task.update(state='ready_test',coding=item)
             else:
                 task.update(state='blocked',error='Assigned coder stopped; evidence retained.')
-                pilot.message(s,'Technical recovery needed: '+task['title']+'. No approval or answer is required from you. Saved evidence is held; other completed work continues.')
+                notify(s,task,'Technical recovery needed: '+task['title']+'. No approval or answer is required from you. Saved evidence is held; other completed work continues.')
     elif stage=='test':
         j['tests']=result
         if result.get('passed'):j['state']='ready_review'
@@ -131,12 +139,17 @@ def finish(s, request):
         pr=result.get('pull_request',{})
         if (result.get('task_id')!=j['id'] or result.get('source_sha')!=j['source_sha'] or
                 result.get('merged') is not False or result.get('deployed') is not False or
-                pr.get('state')!='confirmed' or pr.get('draft') is not True or pr.get('base')!='Dev' or
+                pr.get('state')!='confirmed' or pr.get('draft') is not True or pr.get('base')!=('main' if j.get('repository')=='pragalbhdwivedi/miniature-octo-doodle' else 'Dev') or
                 pr.get('branch')!=result.get('branch') or not result.get('branch','').startswith('supervisor/') or
-                not pr.get('url','').startswith('https://github.com/pragalbhdwivedi/aadi/pull/')):
+                not pr.get('url','').startswith('https://github.com/'+j.get('repository','pragalbhdwivedi/aadi')+'/pull/')):
             raise ValueError('Publication receipt does not match a draft for this task')
         j.update(state='draft_ready',publication=result)
-        pilot.message(s,'Ready for your later review: '+j['title']+'\n'+result.get('pull_request',{}).get('url','')+'\nTests and review passed. Saved as a draft PR; no project integration was performed.')
+        if s.get('supervision'):
+            import supervisor_runtime
+            supervisor_runtime.notice(s,j,'I’ve finished '+j['title']+'. Tests and independent review passed; the draft is ready for us to review.')
+            for c in s['supervision']['corrections']:
+                if c['key']==j['id'] and c['state']=='running':c.update(state='ready_for_review',finished_at=pilot.stamp())
+        else:pilot.message(s,'Ready for your later review: '+j['title']+'\n'+result.get('pull_request',{}).get('url','')+'\nTests and review passed. Saved as a draft PR; no project integration was performed.')
     else:raise ValueError('Unknown ongoing stage')
     o['lease']=None
     pilot.event(s,'Ongoing '+stage+' finished'+(' for '+j['id'] if j else ''))
@@ -149,20 +162,23 @@ def quota_wait(s,j,result):
     s['ongoing']['calls']-=1
     j.update(state='waiting_quota',retry_at=result['retry_at'])
     display=instant.astimezone(timezone(timedelta(hours=5,minutes=30))).strftime('%d %b, %I:%M %p IST')
-    pilot.message(s,'The available model allowances are used up. '+j['title']+
+    notify(s,j,'The available model allowances are used up. '+j['title']+
         ' is waiting until '+display+'. No generation started. I will recheck automatically; no answer is required.')
 
 
 def repair(s,j,reason):
-    if j['attempt']<s['ongoing']['policy']['repairs']:
+    if j['attempt']-j.get('repair_start',0)<s['ongoing']['policy']['repairs']:
         j.update(state='queued',attempt=j['attempt']+1,repair=reason[:1500])
-        pilot.message(s,'Automatic repair: '+j['title']+'. Returning only this subtask to its owner; one repair is allowed.')
+        notify(s,j,'Automatic repair: '+j['title']+'. Returning only this subtask to its owner; one repair is allowed.')
     else:
         j.update(state='blocked',error=reason[:1500])
-        pilot.message(s,'Repair limit reached: '+j['title']+'. Saved for technical review; no approval or answer is required from you. Other work continues.')
+        notify(s,j,'Repair limit reached: '+j['title']+'. Saved for technical review; no approval or answer is required from you. Other work continues.')
 
 
 def rpc(s,r):
+    if r['action'] in ('ongoing_board_data','ongoing_documents','ongoing_board_snapshot','ongoing_board_action','ongoing_pr_sync','ongoing_consume_corrections'):
+        import supervisor_runtime
+        return supervisor_runtime.rpc(s,r)
     if r['action']=='ongoing_sync':
         catalog=r['catalog'];o=s['ongoing']
         if not isinstance(catalog,list) or len(catalog)>100:raise ValueError('Catalog bound exceeded')
@@ -182,6 +198,9 @@ def rpc(s,r):
     if r['action']=='ongoing_observed':
         j=next(j for j in s['ongoing']['jobs'] if j['id']==r['job_id'])
         if j['state']!='coding' or j['child_id']!=r['child_id']:raise ValueError('Observed task mismatch')
+        if r['result'].get('state')=='human_review_required' and (r['result'].get('task_id')!=j['child_id'] or
+                r['result'].get('source_sha')!=j['source_sha'] or r['result'].get('owner')!=j['owner']):
+            raise ValueError('Observed candidate provenance mismatch')
         if r['result'].get('state')=='human_review_required':j.update(state='ready_test',coding=r['result'])
         elif r['result'].get('state')=='blocked':j.update(state='blocked',error='Coder stopped; claim retained')
         return {'ok':True}

@@ -22,6 +22,7 @@ class OngoingWorkerTests(unittest.TestCase):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
         self.root=Path(temp.name)
         self.w=worker.Worker.__new__(worker.Worker)
+        self.w.repository='pragalbhdwivedi/aadi'
         self.job={'id':'synthetic','title':'Synthetic test','owner':'codex','risk':'reversible',
                   'operation':'test_addition','paths':[PATH],'write_paths':[PATH],
                   'test_files':[PATH],'source_sha':'a'*40,'prompt':'Add meaningful edge coverage',
@@ -31,6 +32,7 @@ class OngoingWorkerTests(unittest.TestCase):
         self.w.config={'test_image':'sha256:'+'b'*64,'ongoing_github':{}}
         self.w.coordinator=SimpleNamespace(root=self.root/'evidence',executable='synthetic-codex',
                                           close=Mock(),run_codex=Mock())
+        self.w.coordinator.source=lambda paths:coordination.source(self.w.base.repo,paths)
         self.w.publisher=object()
         self.w.base=SimpleNamespace(repo=self.root/'source',runner=Mock(return_value=(0,b'Ran 2 tests in 0.01s\nOK\n',b'')))
         self.directory=self.root/'stage';self.directory.mkdir()

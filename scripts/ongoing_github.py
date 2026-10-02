@@ -1,4 +1,4 @@
-"""Operator-only AADI issue and draft PR publisher; never merges or edits Dev.
+"""Operator-only admitted-project draft publisher; never merges or edits bases.
 
 Configuration, admission and test/review evidence belong to the operator worker,
 not to model output. Credentials are obtained from the existing Git helper only
@@ -6,6 +6,7 @@ inside the transport. Durable intent records turn uncertain writes into read-onl
 reconciliation, never an automatic duplicate creation.
 """
 from contextlib import contextmanager
+from datetime import datetime
 import hashlib
 import json
 import os
@@ -21,10 +22,19 @@ REPOSITORY = 'pragalbhdwivedi/aadi'
 BASE = 'Dev'
 API = 'https://api.github.com/repos/' + REPOSITORY
 REMOTE = 'https://github.com/' + REPOSITORY + '.git'
+PROJECTS = {REPOSITORY: BASE, 'pragalbhdwivedi/miniature-octo-doodle': 'main'}
 
 
 class PublishError(RuntimeError):
     pass
+
+
+def project_scope(config):
+    repository = config.get('repository', REPOSITORY)
+    base = config.get('base', PROJECTS.get(repository))
+    if repository not in PROJECTS or base != PROJECTS[repository]:
+        raise PublishError('Repository and base are outside the operator allowlist')
+    return repository, base
 
 
 def digest(value):
@@ -47,7 +57,13 @@ def marker_for(task_id):
 
 
 def artifact_digest(task):
-    return digest({k: task[k] for k in ('id', 'source_sha', 'files')})
+    value = {k: task[k] for k in ('id', 'source_sha', 'files')}
+    repository, base = project_scope(task)
+    # Keep existing AADI receipt hashes usable. New-project hashes explicitly
+    # bind repository/base so identical files cannot transfer review authority.
+    if repository != REPOSITORY or 'repository' in task or 'base' in task:
+        value.update(repository=repository, base=base)
+    return digest(value)
 
 
 def _write(path, value):
@@ -102,24 +118,27 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 class Github:
     def __init__(self, config, transport=None):
-        if config.get('repository', REPOSITORY) != REPOSITORY or config.get('base', BASE) != BASE:
-            raise PublishError('Only the admitted AADI Dev repository is supported')
+        self.repository, self.base = project_scope(config)
+        self.api = 'https://api.github.com/repos/' + self.repository
+        self.remote = REMOTE if self.repository == REPOSITORY else 'https://github.com/' + self.repository + '.git'
         self.config = dict(config)
         self.ledger = Path(config['ledger_path'])
         self.transport = transport or self._transport
 
     def _transport(self, method, path, body=None):
         # Only this fixed repository API receives the helper credential.
-        if not re.fullmatch(r'/(issues|pulls)(/[1-9][0-9]*)?(\?[a-zA-Z0-9_=&:%.-]+)?', path):
+        if not re.fullmatch(r'/(issues|pulls)(/[1-9][0-9]*(/(reviews|comments))?)?(\?[a-zA-Z0-9_=&:%.-]+)?', path):
             raise PublishError('API endpoint is outside publisher scope')
         if method not in ('GET', 'POST', 'PATCH'):
             raise PublishError('API operation is outside publisher scope')
+        if re.search(r'/(reviews|comments)(\?|$)', path) and method != 'GET':
+            raise PublishError('Review and comment endpoints are read-only')
         credential = git(self.config['repo'], 'credential', 'fill',
-            data=('protocol=https\nhost=github.com\npath=' + REPOSITORY + '.git\n\n').encode())
+            data=('protocol=https\nhost=github.com\npath=' + self.repository + '.git\n\n').encode())
         secret = dict(line.split('=', 1) for line in credential.splitlines() if '=' in line).get('password')
         if not secret:
             raise PublishError('Existing GitHub credential helper has no credential')
-        request = urllib.request.Request(API + path,
+        request = urllib.request.Request(self.api + path,
             data=None if body is None else json.dumps(body).encode(), method=method,
             headers={'Authorization': 'Bearer ' + secret, 'Accept': 'application/vnd.github+json',
                      'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json',
@@ -147,6 +166,108 @@ class Github:
     def open_work(self):
         return {'issues': self._rows('issues', 'open'), 'pulls': self._rows('pulls', 'open')}
 
+    def _discussion_rows(self, path):
+        rows = []
+        for page in range(1, 6):
+            part = self.transport('GET', f'{path}?per_page=100&page={page}')
+            if not isinstance(part, list) or len(part) > 100 or any(not isinstance(r, dict) for r in part):
+                raise PublishError('Invalid PR discussion response')
+            rows.extend(part)
+            if len(part) < 100:
+                return rows
+        # Do not silently omit an older/newer blocking review at the bound.
+        raise PublishError('PR discussion exceeds reconciliation bound')
+
+    def reconcile_pr(self, number, task_id=None):
+        """Read one exact PR and its reviews/comments; grants no approval.
+
+        Latest review and latest decisive review are separate: a COMMENTED review
+        must not silently erase an actor's outstanding CHANGES_REQUESTED review.
+        Text and actor roles are returned as evidence for the controller's own
+        policy, never interpreted as instructions or publication authority.
+        """
+        if type(number) is not int or number < 1:
+            raise PublishError('Invalid pull request number')
+
+        def snapshot():
+            row = self.transport('GET', f'/pulls/{number}')
+            if (not isinstance(row, dict) or row.get('number') != number
+                    or row.get('base', {}).get('repo', {}).get('full_name') != self.repository
+                    or row.get('base', {}).get('ref') != self.base
+                    or row.get('state') not in ('open', 'closed')
+                    or type(row.get('draft')) is not bool or type(row.get('merged')) is not bool
+                    or not re.fullmatch('[a-f0-9]{40}', row.get('head', {}).get('sha', ''))):
+                raise PublishError('Exact PR identity or state was not confirmed')
+            if task_id is not None and (marker_for(task_id) not in (row.get('body') or '')
+                    or row.get('head', {}).get('ref') != branch_for(task_id)
+                    or row.get('head', {}).get('repo', {}).get('full_name') != self.repository):
+                raise PublishError('PR does not match the admitted task')
+            return row
+
+        pr = snapshot()
+        raw_reviews = self._discussion_rows(f'/pulls/{number}/reviews')
+        raw_comments = self._discussion_rows(f'/issues/{number}/comments')
+        raw_inline = self._discussion_rows(f'/pulls/{number}/comments')
+        fresh = snapshot()
+        for key in ('head', 'base', 'state', 'draft', 'merged', 'updated_at'):
+            if pr.get(key) != fresh.get(key):
+                raise PublishError('PR changed during reconciliation; refresh the snapshot')
+
+        def normalize(row, kind):
+            actor = row.get('user') or {}
+            body = row.get('body') or ''
+            if (type(row.get('id')) is not int or row['id'] < 1 or not isinstance(body, str)
+                    or not isinstance(actor.get('login'), str) or not 1 <= len(actor['login']) <= 100
+                    or type(actor.get('id')) is not int or actor['id'] < 1):
+                raise PublishError('Invalid review/comment identity')
+            result = {'id': row['id'], 'kind': kind, 'actor': actor['login'], 'actor_id': actor['id'],
+                      'actor_type': actor.get('type'), 'association': row.get('author_association'),
+                      'body': body[:4000], 'body_truncated': len(body) > 4000,
+                      'created_at': row.get('submitted_at') or row.get('created_at'),
+                      'updated_at': row.get('updated_at'), 'url': row.get('html_url'),
+                      'commit_id': row.get('commit_id'),
+                      'at_head': row.get('commit_id') == pr['head']['sha']}
+            if kind == 'review':
+                if row.get('state') not in ('PENDING', 'COMMENTED', 'APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'):
+                    raise PublishError('Unknown GitHub review state')
+                result['state'] = row['state']
+            if kind == 'inline_comment':
+                result.update(path=row.get('path'), line=row.get('line'),
+                              in_reply_to_id=row.get('in_reply_to_id'))
+            return result
+
+        reviews = [normalize(row, 'review') for row in raw_reviews]
+        comments = ([normalize(row, 'issue_comment') for row in raw_comments]
+                    + [normalize(row, 'inline_comment') for row in raw_inline])
+        latest, decisive = {}, {}
+        def order(row):
+            try:
+                stamp = datetime.fromisoformat(row['created_at'].replace('Z', '+00:00'))
+                if stamp.tzinfo is None:
+                    raise ValueError()
+                return stamp.timestamp(), row['id']
+            except (AttributeError, TypeError, ValueError):
+                raise PublishError('Completed review has an invalid submission time') from None
+
+        # A review may be created as a draft before another review but submitted
+        # afterwards. Submission time, with ID as a tie breaker, controls order.
+        for row in sorted((r for r in reviews if r['state'] != 'PENDING'), key=order):
+            actor = row['actor']
+            if actor in latest and latest[actor]['actor_id'] != row['actor_id']:
+                raise PublishError('Review actor identity changed during reconciliation')
+            latest[actor] = row
+            if row['state'] in ('APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'):
+                decisive[actor] = row
+        return {'repository': self.repository, 'base': self.base, 'number': number,
+                'url': pr.get('html_url'), 'state': 'merged' if pr['merged'] else
+                    ('closed' if pr['state'] == 'closed' else ('draft' if pr['draft'] else 'open')),
+                'open': pr['state'] == 'open', 'draft': pr['draft'], 'merged': pr['merged'],
+                'head_sha': pr['head']['sha'], 'head_ref': pr['head']['ref'],
+                'updated_at': pr.get('updated_at'), 'reviews': reviews,
+                'latest_reviews': latest, 'review_decisions': decisive,
+                'requested_changes': [r for r in decisive.values() if r['state'] == 'CHANGES_REQUESTED'],
+                'comments': comments, 'content_trusted': False, 'authority': 'advisory-only'}
+
     def publication_preflight(self, task_id):
         """Reject a closed/ready/foreign draft before changing its source branch."""
         marker = marker_for(task_id)
@@ -159,8 +280,8 @@ class Github:
                     raise PublishError('Existing task has closed; publication is stopped')
                 if kind == 'pulls' and (row.get('draft') is not True or row.get('auto_merge')
                         or row.get('head', {}).get('ref') != branch_for(task_id)
-                        or row.get('head', {}).get('repo', {}).get('full_name') != REPOSITORY
-                        or row.get('base', {}).get('ref') != BASE):
+                        or row.get('head', {}).get('repo', {}).get('full_name') != self.repository
+                        or row.get('base', {}).get('ref') != self.base):
                     raise PublishError('Existing PR is outside admitted draft scope')
 
     def ensure_issue(self, task_id, title, body):
@@ -187,6 +308,10 @@ class Github:
         key = kind + ':' + task_key(task_id)
         with _lock(self.ledger.with_suffix('.lock')):
             ledger = json.loads(self.ledger.read_text()) if self.ledger.exists() else {}
+            scope = {'repository': self.repository, 'base': self.base}
+            if ledger and ledger.get('_scope', {'repository': REPOSITORY, 'base': BASE}) != scope:
+                raise PublishError('Publisher ledger belongs to another project')
+            ledger['_scope'] = scope
             previous = ledger.get(key, {})
             matches = [r for r in self._rows(kind) if marker in (r.get('body') or '')]
             if len(matches) > 1:
@@ -198,8 +323,8 @@ class Github:
                     raise PublishError('Existing task is closed or invalid; no replacement will be created')
                 if kind == 'pulls' and (found.get('draft') is not True
                     or found.get('head', {}).get('ref') != branch
-                    or found.get('head', {}).get('repo', {}).get('full_name') != REPOSITORY
-                    or found.get('base', {}).get('ref') != BASE):
+                    or found.get('head', {}).get('repo', {}).get('full_name') != self.repository
+                    or found.get('base', {}).get('ref') != self.base):
                     raise PublishError('Existing PR is outside the admitted draft scope')
                 if previous.get('number') not in (None, number):
                     raise PublishError('Task marker changed identity')
@@ -217,7 +342,7 @@ class Github:
                     raise PublishError('Uncertain or missing remote task; creation is not replayed')
                 payload = dict(desired)
                 if kind == 'pulls':
-                    payload.update(head=branch, base=BASE, draft=True, maintainer_can_modify=False)
+                    payload.update(head=branch, base=self.base, draft=True, maintainer_can_modify=False)
                 ledger[key] = {'state': 'intent', 'digest': digest(desired)}
                 _write(self.ledger, ledger)
                 created = self.transport('POST', '/' + kind, payload)
@@ -232,13 +357,13 @@ class Github:
             if any(found.get(k) != v for k, v in desired.items()):
                 raise PublishError('Remote update not confirmed')
             if found.get('state') != 'open' or (kind == 'pulls' and (found.get('draft') is not True
-                    or found.get('head', {}).get('ref') != branch or found.get('base', {}).get('ref') != BASE
-                    or found.get('head', {}).get('repo', {}).get('full_name') != REPOSITORY)):
+                    or found.get('head', {}).get('ref') != branch or found.get('base', {}).get('ref') != self.base
+                    or found.get('head', {}).get('repo', {}).get('full_name') != self.repository)):
                 raise PublishError('Remote task is no longer an open admitted draft')
             receipt = {'state': 'confirmed', 'number': found['number'], 'url': found['html_url'],
                        'digest': digest(desired), 'kind': kind}
             if kind == 'pulls':
-                receipt.update(draft=True, branch=branch, base=BASE)
+                receipt.update(draft=True, branch=branch, base=self.base)
             ledger[key] = receipt
             _write(self.ledger, ledger)
             return receipt
@@ -246,6 +371,12 @@ class Github:
 
 def _validate(config, task, evidence):
     task_key(task['id'])
+    repository, base = project_scope(config)
+    if project_scope(task) != (repository, base):
+        raise PublishError('Task project does not match operator configuration')
+    if (repository != REPOSITORY or 'repository' in evidence or 'base' in evidence):
+        if evidence.get('repository') != repository or evidence.get('base') != base:
+            raise PublishError('Test and review evidence belongs to another project')
     if not re.fullmatch('[a-f0-9]{40}', task.get('source_sha', '')):
         raise PublishError('Invalid pinned source SHA')
     if (evidence.get('tests_passed') is not True or evidence.get('review_passed') is not True
@@ -270,8 +401,8 @@ def _validate(config, task, evidence):
         raise PublishError('Replacement content exceeds bound')
 
 
-def _remote_head(repo, branch):
-    result = git(repo, 'ls-remote', '--heads', REMOTE, 'refs/heads/' + branch)
+def _remote_head(repo, branch, remote=None):
+    result = git(repo, 'ls-remote', '--heads', remote or REMOTE, 'refs/heads/' + branch)
     if not result:
         return None
     rows = result.splitlines()
@@ -289,6 +420,9 @@ def publish_candidate(config, task, evidence, github=None):
     """
     client = github or Github(config)
     _validate(config, task, evidence)
+    repository, base = project_scope(config)
+    if (client.repository, client.base) != (repository, base):
+        raise PublishError('GitHub client belongs to another project')
     repo = Path(config['repo']).resolve()
     branch = branch_for(task['id'])
     root = Path(config['worktree_root']).resolve()
@@ -300,14 +434,16 @@ def publish_candidate(config, task, evidence, github=None):
     artifact = artifact_digest(task)
     with _lock(root / (task_key(task['id']) + '.lock')):
         state = json.loads(journal.read_text()) if journal.exists() else {}
+        if state and (state.get('repository', REPOSITORY), state.get('base', BASE)) != (repository, base):
+            raise PublishError('Publication journal belongs to another project')
         client.publication_preflight(task['id'])
         if state.get('source_sha', task['source_sha']) != task['source_sha']:
             raise PublishError('Task source changed; use a new task ID after fresh admission')
         if state.get('paths', sorted(task['files'])) != sorted(task['files']):
             raise PublishError('Task file scope changed; fresh task admission is required')
-        if _remote_head(repo, BASE) != task['source_sha']:
-            raise PublishError('Dev advanced; refresh admission and verification')
-        remote = _remote_head(repo, branch)
+        if _remote_head(repo, base, client.remote) != task['source_sha']:
+            raise PublishError(base + ' advanced; refresh admission and verification')
+        remote = _remote_head(repo, branch, client.remote)
         if state.get('pushing'):
             if remote != state['commit']:
                 raise PublishError('Uncertain push not observed; read-only reconciliation required')
@@ -347,13 +483,13 @@ def publish_candidate(config, task, evidence, github=None):
                 raise PublishError('Staged content does not match admitted files')
             git(folder, '-c', 'user.name=AADI Supervisor', '-c', 'user.email=supervisor@users.noreply.github.com',
                 'commit', '-m', 'Draft task ' + task['id'])
-            state.update(source_sha=task['source_sha'], artifact=artifact,
+            state.update(repository=repository, base=base, source_sha=task['source_sha'], artifact=artifact,
                          paths=sorted(task['files']), commit=git(folder, 'rev-parse', 'HEAD'), pushing=True)
             _write(journal, state)
             # Explicit refspec and fixed HTTPS repository; never updates Dev/main.
             client.publication_preflight(task['id'])
-            git(folder, 'push', '--no-verify', REMOTE, 'HEAD:refs/heads/' + branch)
-            if _remote_head(repo, branch) != state['commit']:
+            git(folder, 'push', '--no-verify', client.remote, 'HEAD:refs/heads/' + branch)
+            if _remote_head(repo, branch, client.remote) != state['commit']:
                 raise PublishError('Remote task branch publication not confirmed')
             state['pushing'] = False
             _write(journal, state)
@@ -362,6 +498,7 @@ def publish_candidate(config, task, evidence, github=None):
                 + '`.\nPinned source: `' + task['source_sha'] + '`.')
         pr = client.ensure_draft(task['id'], branch, task['title'], body, issue['number'])
         receipt = {'task_id': task['id'], 'source_sha': task['source_sha'], 'artifact_sha256': artifact,
+                   'repository': repository, 'base': base,
                    'commit': state['commit'], 'branch': branch, 'issue': issue, 'pull_request': pr,
                    'merged': False, 'deployed': False}
         state['receipt'] = receipt

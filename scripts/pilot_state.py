@@ -243,7 +243,13 @@ def finish(s, request):
         answer=result.get('answer','')
         if not isinstance(answer,str) or not answer: raise ValueError('Missing answer')
         q.update(state='answered',answer=answer[:8000])
-        message(s,'Qwen answer (advisory, based on saved task evidence):\n'+answer[:3200])
+        message(s,'Qwen · Laptop/local · '+result.get('model','model unreported')+'\n'+(q.get('task_id','')+'\n' if q.get('task_id') else '')+answer[:3200])
+        if q.get('task_id'):s['outbox'][-1]['task_id']=q['task_id']
+        if s.get('supervision'):
+            board=s['supervision'];board['revision']+=1
+            board['events'].append({'sequence':len(board['events'])+1,'timestamp':stamp(),
+                'actor':'Qwen · Laptop/local · '+result.get('model','unreported'),
+                'task_id':q.get('task_id'),'action':'answer','detail':answer[:3200]})
     elif stage=='prepare_publication':
         if result.get('passed') is not True: raise ValueError('Combined acceptance did not pass')
         s['publication']=result;s['publication_digest']=digest(result)
@@ -267,6 +273,9 @@ def snapshot(s):
     if s.get('ongoing'):
         import ongoing_state
         value['ongoing']=ongoing_state.public(s)
+    if s.get('supervision'):
+        import supervisor_board
+        value['supervision']=supervisor_board.snapshot(s)
     return value
 
 
@@ -274,7 +283,11 @@ def rpc(s, request):
     action=request.get('action')
     if isinstance(action,str) and action.startswith('ongoing_'):
         import ongoing_state
-        return ongoing_state.rpc(s,request)
+        value=ongoing_state.rpc(s,request)
+        if s.get('supervision'):
+            import supervisor_runtime
+            supervisor_runtime.record(s)
+        return value
     if action=='work':
         s['worker']={'last_seen':stamp()}
         return work(s)

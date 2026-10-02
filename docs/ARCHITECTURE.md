@@ -1,5 +1,13 @@
 # Architecture
 
+[Continuous supervision](SUPERVISOR_CONTROL.md) adds a board over the existing
+VM ledger. A bounded observer reconciles exact GitHub PR evidence and admits
+operator-defined roadmap recipes. Local Qwen derives prompts and answers task
+questions; immutable scope and execution authority remain deterministic. Project
+workers use separate source trees and publication ledgers. The internal no-login
+HTTP surface exposes task controls only through explicit network allowlists and
+same-origin protections. It does not expose worker credentials or a host shell.
+
 New development tasks follow [assigned-subtask coordination](ONGOING_COORDINATION.md).
 The VM owns durable stage leases, task dependencies and budgets. Qwen orders the
 admitted catalog; three separate owner slots support Codex, Antigravity native

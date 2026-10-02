@@ -80,6 +80,9 @@ def handle(s, update, key):
     uid=update['update_id']
     if uid<s['offset']: return 'already handled'
     s['offset']=uid+1
+    if s.get('supervision'):
+        import supervisor_runtime
+        if supervisor_runtime.conversation(s,update):return 'recorded'
     query=update.get('callback_query')
     if query:
         data=query.get('data','')
@@ -107,9 +110,14 @@ def handle(s, update, key):
                 elif view in ('ongoing','ongoing-pause','ongoing-resume'):
                     import ongoing_state
                     if not s.get('ongoing'):raise ValueError('Ongoing work is not configured')
-                    if view!='ongoing':s['ongoing']['enabled']=view=='ongoing-resume'
+                    if view!='ongoing':
+                        if s.get('supervision'):
+                            import supervisor_board
+                            supervisor_board.action(s,{'request_id':'tg-'+str(uid),'revision':s['supervision']['revision'],
+                                'action':'resume' if view=='ongoing-resume' else 'pause','actor':'Owner via Telegram'})
+                        else:s['ongoing']['enabled']=view=='ongoing-resume'
                     state.message(s,ongoing_state.summary(s))
-                elif view=='ask': state.message(s,'Ask anything about this pilot: type your question here. Qwen will answer from saved task evidence. New project work is saved for a separate scope decision.')
+                elif view=='ask': state.message(s,'What would you like to know? Reply to a task message or include its SUP task ID, and Qwen will answer from its saved evidence. You can add work and request corrections from the task controls.')
                 elif view=='defer':
                     if s['batch']['state']!='awaiting_publication':raise ValueError('There is no current publication decision to defer')
                     state.message(s,'Received: keep the result unpublished. Nothing was published. You can review Outputs and return to Decisions later.')
@@ -179,6 +187,8 @@ def deliver(store, config, call=telegram.bot_call):
         if item['report']: result=document(config,views.report(snapshot))
         else:
             payload={'chat_id':config['chat_id'],'text':item['text']}
+            if snapshot.get('supervision') and not payload['text'].startswith(('Observer ·','Qwen ·')):
+                payload['text']='Observer · Control VM\n'+payload['text']
             q=next((q for q in snapshot['questions'] if q['id']==item.get('question_id') and q.get('state')=='pending'),None)
             payload['reply_markup']=answers.keyboard(snapshot,q,config['signing_key_hex']) if q else (item['markup'] or views.keyboard('status','brief'))
             result=call(config,'sendMessage',payload)
@@ -187,6 +197,8 @@ def deliver(store, config, call=telegram.bot_call):
     except Exception: status='uncertain'
     def complete(s):
         row=next(x for x in s['outbox'] if x['id']==item['id']);row['state']=status
+        if status=='sent' and s.get('supervision') and item.get('task_id'):
+            s['supervision'].setdefault('message_tasks',{})[str(result['message_id'])]=item['task_id']
         if status=='uncertain': state.event(s,'Telegram delivery uncertain; not automatically resent. Use Status to recover the current result.')
         # Keep pending/uncertain evidence, and the latest 60 sent messages.
         sent=[x['id'] for x in s['outbox'] if x['state']=='sent'][-60:]

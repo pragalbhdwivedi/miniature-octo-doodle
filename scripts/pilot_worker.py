@@ -481,15 +481,28 @@ class Worker:
         if not isinstance(question, str) or not 1 <= len(question) <= 4000:
             raise WorkerError('Question exceeds pilot limits')
         snapshot = work.get('snapshot', {})
-        evidence = {k: snapshot[k] for k in ('batch', 'totals', 'limits') if k in snapshot}
-        evidence['recent_events'] = snapshot.get('events', [])[-8:]
-        evidence['tasks'] = []
-        for task in snapshot.get('tasks', [])[:3]:
-            compact = {k: task.get(k) for k in ('id', 'title', 'state', 'mutation', 'selected', 'review')}
-            compact['candidates'] = {owner: {k: value.get(k) for k in
-                ('passed', 'summary', 'normal_exit', 'mutation_exit', 'new_test', 'sha256')}
-                for owner, value in task.get('results', {}).get('candidates', {}).items()}
-            evidence['tasks'].append(compact)
+        sid=work['question'].get('task_id')
+        if sid:
+            matched=[t for t in snapshot.get('supervision',{}).get('tasks',[]) if t['id']==sid]
+            if len(matched)!=1:raise WorkerError('Task question has no exact current evidence')
+            task_evidence=dict(matched[0])
+            task_evidence['assigned_coder']=task_evidence.pop('owner', 'unassigned')
+            evidence={'task':task_evidence, 'coordination_policy':snapshot['supervision'].get('policy',{}),
+                'workflow':'Assigned single-coder subtask; draft PR publication is automatic after tests and independent review. The human project owner reviews integration; assigned_coder is a model lane, never the human approver. Owner review is for integration, not permission to publish a draft. No automatic merge or deployment.',
+                'decision_rule':'A published draft needs integration review when the owner is free; it does not require an immediate reply. Do not describe another task or the historical pilot.'}
+        else:
+            evidence = {k: snapshot[k] for k in ('batch', 'totals', 'limits') if k in snapshot}
+            evidence['recent_events'] = snapshot.get('events', [])[-8:]
+            evidence['tasks'] = []
+            if snapshot.get('supervision'):
+                evidence['ongoing_tasks']=snapshot['supervision']['tasks'][:12]
+                evidence['coordination_policy']=snapshot['supervision'].get('policy',{})
+            for task in snapshot.get('tasks', [])[:3]:
+                compact = {k: task.get(k) for k in ('id', 'title', 'state', 'mutation', 'selected', 'review')}
+                compact['candidates'] = {owner: {k: value.get(k) for k in
+                    ('passed', 'summary', 'normal_exit', 'mutation_exit', 'new_test', 'sha256')}
+                    for owner, value in task.get('results', {}).get('candidates', {}).items()}
+                evidence['tasks'].append(compact)
         # The local model has an 8K context. Do not silently truncate a complete
         # source/evidence dump into a misleading answer; use bounded summaries.
         encoded = json.dumps(evidence)

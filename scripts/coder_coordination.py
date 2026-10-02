@@ -32,17 +32,20 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
-def source(repo, paths):
+def source(repo, paths, repository=None, branch='Dev'):
+    repository=REPOSITORY if repository is None else repository
+    if (repository, branch) not in ((REPOSITORY, 'Dev'), ('https://github.com/pragalbhdwivedi/miniature-octo-doodle', 'main')):
+        raise agent.AgentError('Repository/base outside admitted projects')
     repo = Path(repo).resolve(strict=True)
     if Path(os.fsdecode(agent.git(repo, 'rev-parse', '--show-toplevel')).strip()).resolve() != repo:
         raise agent.AgentError('Source root mismatch')
-    if agent.git(repo, 'remote', 'get-url', 'origin').decode().strip().removesuffix('.git') != REPOSITORY:
+    if agent.git(repo, 'remote', 'get-url', 'origin').decode().strip().removesuffix('.git') != repository:
         raise agent.AgentError('Only the configured AADI repository is admitted')
     if agent.git(repo, 'status', '--porcelain'):
         raise agent.AgentError('Source checkout is dirty')
     sha = agent.git(repo, 'rev-parse', 'HEAD').decode().strip()
-    remote = agent.git(repo, 'ls-remote', 'origin', 'refs/heads/Dev').decode().strip()
-    if remote != sha+'\trefs/heads/Dev':
+    remote = agent.git(repo, 'ls-remote', 'origin', 'refs/heads/'+branch).decode().strip()
+    if remote != sha+'\trefs/heads/'+branch:
         raise agent.AgentError('AADI Dev advanced; operator must refresh and readmit')
     return {'sha': sha, 'files': agent.source_files(repo, paths)}
 
@@ -157,6 +160,8 @@ def codex_candidate(executable, prompt, directory, schema=None, *, model=None, e
 
 class Coordinator:
     def __init__(self, config, coder=codex_candidate, chat=agent.ollama_chat):
+        self.repository=config.get('repository',REPOSITORY)
+        self.branch=config.get('branch','Dev')
         self.repo = Path(config['repo']).resolve(strict=True)
         self.root = Path(config['output_root']).resolve()
         local = Path(os.environ['LOCALAPPDATA']).resolve()
@@ -194,8 +199,8 @@ class Coordinator:
                 or any(not isinstance(p, str) or p not in paths for p in write_paths)
                 or len(set(p.casefold() for p in write_paths)) != len(write_paths)):
             raise agent.AgentError('Write paths must be distinct admitted source paths')
-        snapshot = source(self.repo, paths)
-        packet = {'schema': SCHEMA, 'repository': REPOSITORY, 'branch': 'Dev',
+        snapshot = self.source(paths)
+        packet = {'schema': SCHEMA, 'repository': self.repository, 'branch': self.branch,
                   'task': task, 'paths': paths, 'write_paths': write_paths, 'owner': owner, 'source': snapshot,
                   'data_class': 'operator-reviewed-code-only', 'transport': transport}
         with self.connect() as db:
@@ -236,8 +241,15 @@ class Coordinator:
                        ('Operator reconciliation: '+reason, task_id))
         return {'task_id': task_id, 'state': 'closed', 'publication': False}
 
+    def source(self, paths):
+        if self.repository==REPOSITORY and self.branch=='Dev':
+            return source(self.repo,paths)
+        return source(self.repo,paths,self.repository,self.branch)
+
     def fresh(self, packet):
-        if source(self.repo, packet['paths']) != packet['source']:
+        if packet.get('repository') != self.repository or packet.get('branch') != self.branch:
+            raise agent.AgentError('Saved project identity mismatch')
+        if self.source(packet['paths']) != packet['source']:
             raise agent.AgentError('Source changed; operator reconciliation required')
 
     @staticmethod
@@ -312,6 +324,9 @@ class Coordinator:
                   'transport': packet.get('transport', 'sidecar'),
                   owner+'_sha256': digest(value), 'source_writes': False,
                   'tests_executed': [], 'publication': False, 'advisory_status': 'independent_review_pending'}
+        confidence=re.search(r'(?i)confidence:\s*(10|[0-9])/10\b',value['summary'])
+        if confidence:
+            result.update(confidence=int(confidence[1]),confidence_reason=value['summary'][:400])
         with (directory/'result.json').open('x', encoding='utf-8') as stream:
             json.dump(result, stream, indent=2)
         with self.connect() as db:

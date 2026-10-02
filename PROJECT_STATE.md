@@ -1,5 +1,40 @@
 # Project State
 
+## Continuous task supervision, 2 October 2026
+
+IMPLEMENTED and DEPLOYED: a durable, timestamped task board for AADI and
+GatewayAI, monotonic SUP identifiers, five generated Markdown views plus a
+preserved input inbox, bounded roadmap planning, exact-head PR review observation,
+correction queues, task-bound Telegram conversation and a dedicated internal
+control page linked from the dashboard. Routine task controls need no login;
+access is limited to the admitted management/development/VPN networks.
+
+LIVE VERIFIED: the scheduler derived SUP-000005 from an admitted GatewayAI
+roadmap recipe, assigned Gemini Flash Low, passed 17 isolated tests, obtained a
+fresh GPT-6 Luna review (9/10 model-reported confidence), and published draft
+[PR #40](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/40).
+It then derived SUP-000006 for AADI; local Devstral generated its proposal and
+four isolated tests passed without operator correction. Independent cloud review
+is waiting at the existing daily 12-stage cap. No budget was increased.
+
+DNS, strict TLS, rendered controls, real pause/resume, duplicate-request receipt,
+foreign-origin rejection and immediate question acknowledgement passed. The
+first local answer mixed legacy pilot context; exact-task evidence isolation was
+corrected and regression-tested. Historical advice remains in the audit.
+
+VALIDATION: 235 affected tests passed (74 supervisor, 77 ongoing, 62 pilot,
+13 coordinator and nine scheduler), plus repository security/YAML validation
+and frontend syntax/contract checks. Current-stage, budget-wait and task-question
+context isolation have explicit regressions.
+
+BOUNDARIES: executable recipes currently add synthetic tests only. Free-text
+intake is planned until its scope is admitted. PR corrections are tested offline;
+a fresh live correction cycle, full hourly digest delivery interval, phone VPN
+access to the new page and Windows logout/reboot continuity are not yet claimed.
+No automatic merge or production deployment is enabled. Confidence is a model
+self-assessment, not a calibrated success probability. See
+[supervisor control](docs/SUPERVISOR_CONTROL.md) and ADR-0021 for operation and constraints.
+
 ## Assigned cloud and local work, 2 October 2026
 
 IMPLEMENTED and DEPLOYED for the existing running laptop scheduler: distinct

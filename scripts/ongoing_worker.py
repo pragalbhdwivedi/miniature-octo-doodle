@@ -13,8 +13,10 @@ import ongoing_models as models
 import pilot_worker as pilot
 
 REVIEW={'type':'object','properties':{'verdict':{'type':'string','enum':['pass','repair']},
+    'confidence':{'type':'integer','minimum':0,'maximum':10},
+    'confidence_reason':{'type':'string'},
     'findings':{'type':'array','items':{'type':'string'},'maxItems':5}},
-    'required':['verdict','findings'],'additionalProperties':False}
+    'required':['verdict','findings','confidence','confidence_reason'],'additionalProperties':False}
 
 
 def validate_additions(before,after):
@@ -37,7 +39,7 @@ def validate_additions(before,after):
                 ast.keyword,ast.With,ast.withitem,ast.For,ast.Compare,ast.Eq,ast.NotEq,ast.In,
                 ast.NotIn,ast.UnaryOp,ast.USub,ast.BinOp,ast.Add,ast.Sub,ast.Set)
             named={'deepcopy','validate_snapshot','reconcile_extract','summarize_source','dict','list',
-                   'tuple','set','datetime','timedelta','Actor','frozenset'}
+                   'tuple','set','datetime','timedelta','Actor','frozenset','normalize_choice','select_route'}
             methods={'append','reverse','update','to_dict','candidate_json','summarize','reconcile','validate','codes',
                 'assertEqual','assertNotEqual','assertTrue','assertFalse','assertIsNone','assertIsNotNone',
                 'assertIn','assertNotIn','assertRaises','assertLess','assertLessEqual','assertGreater','assertGreaterEqual','subTest','check'}
@@ -65,12 +67,25 @@ class Worker:
         self.remote=self.base.remote;self.coordinator=self.base.coordinator
         self.catalog={x['id']:x for x in pilot.read_json(config['ongoing_catalog'])}
         self.publisher=github.Github(config['ongoing_github'])
+        self.repository=config['ongoing_github'].get('repository','pragalbhdwivedi/aadi')
+        self.project_workers={}
+
+    def for_job(self,j):
+        repository=j.get('repository','pragalbhdwivedi/aadi')
+        if repository==self.repository:return self
+        if repository not in self.config.get('projects',{}):raise ValueError('Unconfigured project')
+        if repository not in self.project_workers:
+            cfg={**self.config,**self.config['projects'][repository]};cfg.pop('projects',None)
+            self.project_workers[repository]=Worker(cfg,remote=self.remote)
+        self.project_workers[repository].catalog=self.catalog
+        return self.project_workers[repository]
 
     def spec(self,j):
         expected=self.catalog.get(j['id'])
         if not expected or any(j.get(k)!=v for k,v in expected.items()):raise ValueError('Task differs from operator catalog')
         if j['operation']!='test_addition' or j['risk']!='reversible':raise ValueError('Operation requires owner review')
-        if coordination.source(self.base.repo,j['paths'])['sha']!=j['source_sha']:raise ValueError('Source advanced; preserve work for review')
+        if j.get('repository','pragalbhdwivedi/aadi')!=self.repository:raise ValueError('Wrong project worker')
+        if self.coordinator.source(j['paths'])['sha']!=j['source_sha']:raise ValueError('Source advanced; preserve work for review')
         return expected
 
     def child(self,j):return 'ongoing-'+j['id']+'-a'+str(j['attempt'])
@@ -108,7 +123,7 @@ class Worker:
         issue=self.publisher.ensure_issue(j['id'],j['title'],j['prompt']+'\n\nRelated backlog: #'+str(j['parent_issue'])+'\nAssigned owner: '+j['owner']+'. Draft PR only; no integration or deployment.')
         prompt=(j['prompt']+' Preserve all existing AST nodes. Add one or two focused test methods only. '
             'Read-only context paths are not editable. Return complete replacement of the writable test file only. '
-            'No imports/helpers/decorators or external calls. No tools beyond coordination MCP. Do not claim tests ran.')
+            'No imports/helpers/decorators or external calls. No tools beyond coordination MCP. Do not claim tests ran. Start summary with Confidence: N/10 and a short evidence-based reason.')
         if j.get('repair'):prompt+=' Repair findings: '+j['repair'][:500]
         prompt=prompt[:1000]
         self.coordinator.admit(self.child(j),prompt,j['paths'],owner=j['owner'],write_paths=j['write_paths'],transport=j.get('transport','sidecar'))
@@ -152,7 +167,8 @@ class Worker:
         def run(j):
             folder=directory/j['id'];folder.mkdir()
             try:
-                result={'gemini':self.antigravity,'codex':self.codex,'local':self.local}[j['owner']]({'job':j},folder)
+                worker=self.for_job(j)
+                result={'gemini':worker.antigravity,'codex':worker.codex,'local':worker.local}[j['owner']]({'job':j},folder)
                 pilot.write_json(folder/'result.json',result)
                 return result
             except Exception as exc:
@@ -171,7 +187,7 @@ class Worker:
             before=coordination.agent.git(self.base.repo,'show',j['source_sha']+':'+path).decode('utf-8')
             compact=('Return JSON with a short summary, a short plain-English proposal, and method_source containing '
                 'one new unittest method, starting with def test_...(self): at column zero. '
-                'Use existing imports/helpers. No tools or execution. Do not return the whole file. '
+                'Use existing imports/helpers. No tools or execution. Do not return the whole file. Start summary with Confidence: N/10 and a short reason. '
                 'Task: '+j['prompt']+(' Repair findings: '+j['repair'][:500] if j.get('repair') else '')+
                 '\nExisting test file:\n'+before)
             result=ongoing_local.run(compact,folder,model=self.config['local_coder_model'])
@@ -239,6 +255,9 @@ class Worker:
               'files':changes}
         evidence={'source_sha':j['source_sha'],'artifact_sha256':github.artifact_digest(task),
                   'tests_passed':True,'review_passed':True}
+        if self.repository!='pragalbhdwivedi/aadi':
+            task.update(repository=self.repository,base=self.publisher.base)
+            evidence.update(repository=self.repository,base=self.publisher.base,artifact_sha256=github.artifact_digest(task))
         receipt=github.publish_candidate(self.config['ongoing_github'],task,evidence,github=self.publisher)
         self.coordinator.close(self.child(j),'Tested and independently reviewed proposal saved as draft PR; no base merge.')
         return receipt
@@ -246,12 +265,16 @@ class Worker:
     def tick(self):
         with pilot.local_lock(self.root) as locked:
             if not locked:return {'state':'worker_busy'}
+            if self.config.get('supervision_enabled'):
+                from supervisor_observer import Observer
+                Observer(self).tick()
+                self.catalog={x['id']:x for x in pilot.read_json(self.config['ongoing_catalog'])}
             self.remote({'action':'ongoing_sync','catalog':list(self.catalog.values())})
             work=self.remote({'action':'ongoing_work'});stage=work['action']
             if stage=='idle':return {'state':'idle','model_calls':0}
             if stage=='observe':
-                rows={r['id']:r for r in self.coordinator.status()['tasks']}
                 for j in work['jobs']:
+                    rows={r['id']:r for r in self.for_job(j).coordinator.status()['tasks']}
                     child=rows.get(j['child_id'])
                     if child and child['state'] in ('human_review_required','blocked'):
                         self.remote({'action':'ongoing_observed','job_id':j['id'],'child_id':j['child_id'],
@@ -264,8 +287,12 @@ class Worker:
                 directory=directory.with_name(stage+'-quota-'+work['token'])
             try:
                 directory.mkdir(parents=True,exist_ok=False);pilot.write_json(directory/'work.json',work)
-                result=getattr(self,stage)(work,directory);pilot.write_json(directory/'result.json',result)
+                worker=self.for_job(j) if j else self
+                result=getattr(worker,stage)(work,directory);pilot.write_json(directory/'result.json',result)
                 self.remote({'action':'ongoing_finish','token':work['token'],'result':result})
+                if self.config.get('supervision_enabled'):
+                    from supervisor_observer import Observer
+                    Observer(self)._mirror({})
                 return {'state':'finished','stage':stage}
             except Exception as exc:
                 if directory.exists():pilot.write_json(directory/'failure.json',{'type':type(exc).__name__,'detail':str(exc)[:500]})
