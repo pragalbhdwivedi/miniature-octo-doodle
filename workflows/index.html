@@ -16,6 +16,7 @@
     <div class="workspace-label">YOUR WORKSPACE</div>
     <nav aria-label="Workspace">
       <a class="nav-item active" href="#board"><span aria-hidden="true">▦</span> Work board <span class="nav-count" id="navCount">—</span></a>
+      <a class="nav-item" href="#future"><span aria-hidden="true">→</span> Future tasks</a>
       <button class="nav-item" id="openGuides"><span aria-hidden="true">▤</span> Task records</button>
       <a class="nav-item" href="http://dash.aadi.dgoi.local/"><span aria-hidden="true">↗</span> All services</a>
     </nav>
@@ -31,6 +32,10 @@
     </section>
 
     <div class="notice error-notice" id="connectionError" role="status" hidden></div>
+    <section class="work-status-panel" aria-label="Supervisor status">
+      <div><strong id="workStatusLabel">Checking work status…</strong><p id="workStatusReason">Waiting for the latest supervisor record.</p></div>
+      <div><button class="button secondary" id="overrideStart" data-write disabled aria-describedby="overrideHelp">Override / start</button><p id="overrideHelp" class="field-help">Resumes scheduling only. Blocked claims stay held; scope checks, tests, reviews and budgets still apply.</p></div>
+    </section>
     <section class="summary" aria-label="Work summary">
       <button class="summary-card" data-summary="working"><span class="metric-label"><span class="metric-symbol blue" aria-hidden="true">↗</span> In progress</span><strong id="metricWorking">—</strong><span class="metric-detail">Coding, testing, and verification</span></button>
       <button class="summary-card" data-summary="review"><span class="metric-label"><span class="metric-symbol violet" aria-hidden="true">◈</span> Ready for review</span><strong id="metricReview">—</strong><span class="metric-detail">Results ready for your attention</span></button>
@@ -49,6 +54,18 @@
       <div class="board-note"><span id="filterCount">Loading your tasks…</span><span class="scroll-hint">Scroll across to see every stage <span aria-hidden="true">→</span></span></div>
       <div class="kanban" id="taskBoard" aria-label="Tasks by stage" tabindex="0"><div class="loading-state"><span class="spinner" aria-hidden="true"></span><p>Getting your latest work…</p></div></div>
       <div class="empty-results" id="emptyResults" hidden><span aria-hidden="true">⌕</span><h3>No matching tasks</h3><p>Try a different search or clear your filters.</p><button class="button secondary" id="emptyClear">Clear filters</button></div>
+    </section>
+
+    <section class="work-area future-section" id="future" aria-labelledby="futureTitle">
+      <div class="section-heading"><div><h2 id="futureTitle">Future tasks <span id="futureCount" class="count-pill">—</span></h2><p id="futureCadence">Preparing the next batch of work.</p></div><button class="button primary" id="generateFuture" data-write disabled>Generate future tasks</button></div>
+      <p id="generationStatus" class="generation-status" role="status" aria-live="polite">Waiting for the supervisor.</p>
+      <p class="field-help">Ready tasks can enter the next batch. Planned tasks still need checks; scheduled tasks wait until their start time. Admission and available capacity determine what starts.</p>
+      <div class="filters">
+        <label class="search-field"><span aria-hidden="true">⌕</span><input id="futureSearch" type="search" placeholder="Find a future task" aria-label="Search future tasks" autocomplete="off"></label>
+        <label class="select-field"><span class="sr-only">Future task status</span><select id="futureFilter"><option value="all">All statuses</option><option value="next">Next batch candidates</option><option value="ready">Ready</option><option value="queued">Queued for admission</option><option value="planned">Planned</option><option value="scheduled">Scheduled</option><option value="admitted">Admitted</option><option value="needs_scope">Needs scope</option><option value="needs_owner">Needs your input</option><option value="blocked">Held for recovery</option><option value="review_ready">PR review ready</option><option value="completed">Completed</option></select></label>
+      </div>
+      <p id="futureSummary" class="board-note">No future-task record loaded.</p>
+      <div id="futureList" class="future-list" role="region" aria-label="Future task backlog" tabindex="0"></div>
     </section>
 
     <section class="activity-section" aria-labelledby="activityTitle"><div class="section-heading"><div><h2 id="activityTitle">Latest activity</h2><p>The latest updates from your supervisor.</p></div><span class="muted small">Updates every 15 seconds</span></div><ol class="activity-list" id="activityList"><li class="muted">Activity will appear here once connected.</li></ol></section>

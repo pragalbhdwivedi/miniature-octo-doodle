@@ -1,5 +1,34 @@
 # Build Status
 
+## Future development backlog, 2 October 2026
+
+IMPLEMENTED: 110 repository-grounded future tasks (52 AADI, 58 GatewayAI),
+rolling ten-candidate scheduling, timestamp/dependency/scope gates, higher-model
+planning requests, immediate button receipts, override start, and a bounded
+searchable future section. Fourteen seed tasks fit currently registered source
+scopes; 96 await additional scope admission, including four owner-evidence gates.
+Dependencies mean fewer than ten tasks may be immediately eligible.
+
+TESTED: final Linux suite ran 583 tests with three opt-in skips. Pure-state,
+verified archive, independent task-review and planner transport tests passed. Real-browser mocked API checks
+passed 14 assertions each at phone and desktop widths. Model recovery reuses
+saved results without another inference. Deployment/live acceptance is tracked
+separately; these tests do not establish production execution of future tasks.
+
+LIVE VERIFIED: 110 seed tasks loaded; strict HTTPS state and both acknowledged
+controls passed. Phone/desktop rendering at 390/1440 pixels has no page overflow.
+Gemini Pro generated five further proposals; operator review held one already-
+implemented suggestion, motivating independent task review before future intake.
+The first new development task passed isolated tests and Claude Sonnet review
+and published AADI draft PR #41. Draft publication is separate from integration.
+
+The existing worker was enabled and idle after all ten admitted PRs were merged;
+the finite recipe list was exhausted. During preparation, an unrelated NAS/CIFS
+interruption temporarily stalled controller access. Filesystem access and ledger
+reads recovered; storage integrity is not inferred from a successful HTTP read.
+See [future scheduling](FUTURE_TASK_SCHEDULING.md) for the operation contract.
+
+
 ## Blocker recovery, 2 October 2026
 
 IMPLEMENTED AND TESTED: retain blocked claims without exhausting independent

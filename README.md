@@ -1,5 +1,9 @@
 # miniature-octo-doodle
 
+[Future task scheduling](docs/FUTURE_TASK_SCHEDULING.md) adds a repository-grounded
+backlog, a rolling ten-task queue, higher-model planning requests and explicit
+idle/paused status on the bounded control board.
+
 [Continuous task supervision](docs/SUPERVISOR_CONTROL.md) now tracks both
 projects with task IDs, audited Markdown queues, roadmap subtasks, PR corrections,
 Telegram conversation and an internal no-login control page linked from dash.

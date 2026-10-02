@@ -153,6 +153,12 @@ class Observer:
                 board=None
             self._mirror(state)
             try:
+                if self.config.get('future_enabled') and board is not None:
+                    from supervisor_future_operator import tick as future_tick
+                    state['future']=future_tick(self,board,state,now)
+                    board=self.remote({'action':'ongoing_board_data'})
+            except Exception as exc:self._error(state,'future',exc)
+            try:
                 from development_admission import admit_intake
                 state['intake']=admit_intake(self,board,state,now) if board is not None else {'state':'unavailable'}
                 board=self.remote({'action':'ongoing_board_data'})
@@ -192,6 +198,15 @@ class Observer:
             try:
                 pr = job.get('publication', {}).get('pull_request', {})
                 if not pr:
+                    continue
+                previous=state.get('pr_sync',{}).get(job['id'],{})
+                correction=any(c.get('key')==job['id'] and c.get('state')=='rerun_waiting'
+                               for c in board['supervision'].get('corrections',[]))
+                archive_due=self.config.get('archive_enabled') is True and (
+                    len(board['jobs'])>=80 or len(json.dumps(board).encode())>=1500000)
+                if previous.get('state')=='merged' and not correction and not archive_due:
+                    # Merged PRs are immutable. This is not fresh review authority
+                    # and deliberately does not enter verified_jobs.
                     continue
                 result = self.worker.for_job(job).publisher.reconcile_pr(pr['number'], job['id'])
                 if (result.get('repository') != job.get('repository', github.REPOSITORY)

@@ -1,5 +1,11 @@
 # Architecture
 
+[Future planning](FUTURE_TASK_SCHEDULING.md) maintains a separate bounded planning
+backlog over the same durable controller ledger. A higher-capability subscription
+model proposes tasks from current code; deterministic scope admission still fixes
+all executable files and commands. Planning and coding share the daily reservation
+cap. Browser buttons enqueue requests; the locked Windows observer executes them.
+
 [Continuous supervision](SUPERVISOR_CONTROL.md) adds a board over the existing
 VM ledger. A bounded observer reconciles exact GitHub PR evidence and admits
 operator-defined roadmap recipes. Local Qwen derives prompts and answers task

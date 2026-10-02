@@ -1,0 +1,2362 @@
+[
+  {
+    "id": "FUT-000001",
+    "project": "AADI",
+    "title": "Validate every ERP requirement clause before comparison",
+    "prompt": "Change satisfies() to validate every clause before returning the conjunction. An early false clause currently hides invalid later syntax; malformed constraints must always raise controlled ValueError. Offline source and regression tests only; preserve existing authority boundaries. Verify: False-first plus invalid-later constraints raise ValueError; valid false/true multi-clause cases retain results; caller manifest remains unchanged",
+    "scope_id": "aadi-erp-validation",
+    "priority": 1,
+    "evidence": [
+      "tools/check_erp_candidate.py",
+      "tests/test_development_erp.py"
+    ],
+    "acceptance": [
+      "False-first plus invalid-later constraints raise ValueError",
+      "valid false/true multi-clause cases retain results",
+      "caller manifest remains unchanged"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000002",
+    "project": "AADI",
+    "title": "Bound ERP version and requirement parsing",
+    "prompt": "Limit version strings to 64 characters and numeric components to 9 digits; limit requirements to 1024 characters and 32 clauses. Reject excess through ValueError before integer conversion or unbounded iteration. Offline source and regression tests only; preserve existing authority boundaries. Verify: Exact boundaries and one-over cases are tested; pinned v15/v16 manifest still passes; oversized digits produce controlled errors",
+    "scope_id": "aadi-erp-validation",
+    "priority": 2,
+    "evidence": [
+      "tools/check_erp_candidate.py",
+      "tests/test_development_erp.py"
+    ],
+    "acceptance": [
+      "Exact boundaries and one-over cases are tested",
+      "pinned v15/v16 manifest still passes",
+      "oversized digits produce controlled errors"
+    ],
+    "dependencies": [
+      "FUT-000001"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000003",
+    "project": "AADI",
+    "title": "Canonicalize ERP preflight result ordering",
+    "prompt": "Return successful preflight results in ascending major order regardless of candidate/proposal list order. Preserve caller inputs and existing PASS/NOT_RUN/production_selection fields. Offline source and regression tests only; preserve existing authority boundaries. Verify: Reversed candidate/proposal order yields identical results; duplicate/missing proposals still fail; input deep equality is retained",
+    "scope_id": "aadi-erp-validation",
+    "priority": 2,
+    "evidence": [
+      "tools/check_erp_candidate.py",
+      "tests/test_development_erp.py"
+    ],
+    "acceptance": [
+      "Reversed candidate/proposal order yields identical results",
+      "duplicate/missing proposals still fail",
+      "input deep equality is retained"
+    ],
+    "dependencies": [
+      "FUT-000002"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000004",
+    "project": "AADI",
+    "title": "Expose mapping-specific diagnostic reasons",
+    "prompt": "Add mapping_reason_codes and max_mapping_age_seconds to read_snapshot. Report mapping_unavailable, mapping_stale or mapping_clock_skew independently of receipt/capture reasons; recent mapping has an empty mapping reason list. Keep absence_ready false. Offline source and regression tests only; preserve existing authority boundaries. Verify: Unavailable/recent/stale/skew projections have stable reasons; old mapping with recent capture retains warning; threshold equality stays recent",
+    "scope_id": "aadi-mapping-freshness",
+    "priority": 2,
+    "evidence": [
+      "src/aadi_console/live_source.py",
+      "tests/test_development_mapping.py"
+    ],
+    "acceptance": [
+      "Unavailable/recent/stale/skew projections have stable reasons",
+      "old mapping with recent capture retains warning",
+      "threshold equality stays recent"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000005",
+    "project": "AADI",
+    "title": "Fingerprint validated aggregate snapshots",
+    "prompt": "Expose snapshot_sha256 as SHA-256 of exact bounded file bytes only after complete validation; null otherwise. This is a change detector, never source authenticity or attendance coverage evidence. Offline source and regression tests only; preserve existing authority boundaries. Verify: Same valid bytes yield same digest; changed valid bytes yield a different digest; invalid/oversized input yields no digest or raw content",
+    "scope_id": "aadi-mapping-freshness",
+    "priority": 2,
+    "evidence": [
+      "src/aadi_console/live_source.py",
+      "tests/test_development_mapping.py"
+    ],
+    "acceptance": [
+      "Same valid bytes yield same digest",
+      "changed valid bytes yield a different digest",
+      "invalid/oversized input yields no digest or raw content"
+    ],
+    "dependencies": [
+      "FUT-000004"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000006",
+    "project": "AADI",
+    "title": "Validate the snapshot evaluation clock explicitly",
+    "prompt": "Validate supplied now before formatting/subtracting: accept only timezone-aware datetime, normalize to UTC, and raise controlled ValueError for invalid caller clocks. Missing now remains current UTC; malformed file handling remains unchanged. Offline source and regression tests only; preserve existing authority boundaries. Verify: Naive/non-datetime clocks raise ValueError; equivalent timezone offsets yield equal ages; UTC reads and unavailable-file output retain compatibility",
+    "scope_id": "aadi-mapping-freshness",
+    "priority": 2,
+    "evidence": [
+      "src/aadi_console/live_source.py",
+      "tests/test_development_mapping.py"
+    ],
+    "acceptance": [
+      "Naive/non-datetime clocks raise ValueError",
+      "equivalent timezone offsets yield equal ages",
+      "UTC reads and unavailable-file output retain compatibility"
+    ],
+    "dependencies": [
+      "FUT-000005"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000007",
+    "project": "GatewayAI",
+    "title": "Validate the allowed route catalogue before selection",
+    "prompt": "Add shared catalogue validation: nonempty list/tuple/set/frozenset of unique nonempty string IDs, at most 64 IDs of at most 128 characters. normalize_choice returns None for invalid catalogues; select_route raises ValueError. Preserve valid behavior. Offline source and regression tests only; preserve existing authority boundaries. Verify: String/generator/duplicate/unhashable catalogues reject deterministically; size boundaries tested; valid routes and authority denial remain unchanged",
+    "scope_id": "gateway-choice-validation",
+    "priority": 1,
+    "evidence": [
+      "gateway/jev.py",
+      "tests/test_development_choice.py"
+    ],
+    "acceptance": [
+      "String/generator/duplicate/unhashable catalogues reject deterministically",
+      "size boundaries tested",
+      "valid routes and authority denial remain unchanged"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000008",
+    "project": "GatewayAI",
+    "title": "Require explicit boolean routing trust flags",
+    "prompt": "Require calibrated is True before evaluating a decision so truthy strings/integers cannot activate calibrated selection. Require evaluator in_domain supplied to normalize_choice to be actual bool, otherwise return None. Jev remains disabled. Offline source and regression tests only; preserve existing authority boundaries. Verify: calibrated string/1 uses deterministic fallback; invalid in_domain yields None; true booleans preserve existing behavior",
+    "scope_id": "gateway-choice-validation",
+    "priority": 1,
+    "evidence": [
+      "gateway/jev.py",
+      "tests/test_development_choice.py"
+    ],
+    "acceptance": [
+      "calibrated string/1 uses deterministic fallback",
+      "invalid in_domain yields None",
+      "true booleans preserve existing behavior"
+    ],
+    "dependencies": [
+      "FUT-000007"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000009",
+    "project": "GatewayAI",
+    "title": "Add a redacted deterministic decision explanation helper",
+    "prompt": "Add pure explain_selection wrapping select_route, returning only selected route, reason, calibration-enabled bool and threshold status. Exclude raw response/probabilities/prompts; preserve select_route signature and disabled live Jev. Offline source and regression tests only; preserve existing authority boundaries. Verify: Explanation agrees with selection for success and every fallback; extra decision fields never leak; invalid catalogue behavior matches validator",
+    "scope_id": "gateway-choice-validation",
+    "priority": 3,
+    "evidence": [
+      "gateway/jev.py",
+      "tests/test_development_choice.py"
+    ],
+    "acceptance": [
+      "Explanation agrees with selection for success and every fallback",
+      "extra decision fields never leak",
+      "invalid catalogue behavior matches validator"
+    ],
+    "dependencies": [
+      "FUT-000008"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000010",
+    "project": "GatewayAI",
+    "title": "Reject non-object policy metadata consistently",
+    "prompt": "Only missing/None metadata defaults to empty; reject falsey/truthy non-dict request metadata and key_metadata with stable Denied reasons before reservation. Preserve unknown administrator metadata keys for LiteLLM compatibility. Offline source and regression tests only; preserve existing authority boundaries. Verify: Lists/bool/zero/strings reject for both metadata sources; None/empty dict retain defaults; denial creates no debit",
+    "scope_id": "gateway-provider-restrictions",
+    "priority": 1,
+    "evidence": [
+      "gateway/policy.py",
+      "tests/test_development_providers.py"
+    ],
+    "acceptance": [
+      "Lists/bool/zero/strings reject for both metadata sources",
+      "None/empty dict retain defaults",
+      "denial creates no debit"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000011",
+    "project": "GatewayAI",
+    "title": "Validate route candidate shapes before provider filtering",
+    "prompt": "Validate selected resolved_routes entry as nonempty list of dicts with model a nonempty provider/model string and configured supported provider. Deny malformed configuration before indexing/filtering; retain provider intersection rules. Offline source and regression tests only; preserve existing authority boundaries. Verify: Missing/non-string models and unknown providers fail before debit; fallback order is preserved; metadata restrictions cannot widen",
+    "scope_id": "gateway-provider-restrictions",
+    "priority": 1,
+    "evidence": [
+      "gateway/policy.py",
+      "tests/test_development_providers.py"
+    ],
+    "acceptance": [
+      "Missing/non-string models and unknown providers fail before debit",
+      "fallback order is preserved",
+      "metadata restrictions cannot widen"
+    ],
+    "dependencies": [
+      "FUT-000010"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000012",
+    "project": "GatewayAI",
+    "title": "Validate model price units before budget arithmetic",
+    "prompt": "Require each selected price input_micro_usd/output_micro_usd to be a nonnegative exact integer, excluding bool/floats/strings. Deny malformed configuration before reservation; retain zero debit only for all-local routes. Offline source and regression tests only; preserve existing authority boundaries. Verify: Malformed/negative prices deny without ledger writes; valid integer prices retain debit; cloud zero stays denied and all-local zero remains allowed",
+    "scope_id": "gateway-provider-restrictions",
+    "priority": 1,
+    "evidence": [
+      "gateway/policy.py",
+      "tests/test_development_providers.py"
+    ],
+    "acceptance": [
+      "Malformed/negative prices deny without ledger writes",
+      "valid integer prices retain debit",
+      "cloud zero stays denied and all-local zero remains allowed"
+    ],
+    "dependencies": [
+      "FUT-000011"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000013",
+    "project": "GatewayAI",
+    "title": "Validate ledger concurrency and lease settings",
+    "prompt": "Reject bool/non-integer/nonpositive concurrency and non-finite/nonpositive lease_seconds in Ledger construction before creating directories or SQLite state. Accept positive integer concurrency and finite positive numeric lease durations. Offline source and regression tests only; preserve existing authority boundaries. Verify: Invalid config leaves nonexistent ledger path absent; valid lease expiry boundaries retained; policy suite passes",
+    "scope_id": "gateway-provider-restrictions",
+    "priority": 2,
+    "evidence": [
+      "gateway/policy.py",
+      "tests/test_development_providers.py"
+    ],
+    "acceptance": [
+      "Invalid config leaves nonexistent ledger path absent",
+      "valid lease expiry boundaries retained",
+      "policy suite passes"
+    ],
+    "dependencies": [
+      "FUT-000012"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000014",
+    "project": "GatewayAI",
+    "title": "Reject malformed direct reservation debits",
+    "prompt": "Guard Ledger.reserve debit as exact nonnegative integer and allow_zero as actual bool before transaction. Reject malformed inputs through controlled Denied while retaining conservative no-refund behavior. Offline source and regression tests only; preserve existing authority boundaries. Verify: Fractional/string/bool debit cannot enter accounting; zero requires explicit True and respects concurrency; denial leaves monthly debit unchanged",
+    "scope_id": "gateway-provider-restrictions",
+    "priority": 2,
+    "evidence": [
+      "gateway/policy.py",
+      "tests/test_development_providers.py"
+    ],
+    "acceptance": [
+      "Fractional/string/bool debit cannot enter accounting",
+      "zero requires explicit True and respects concurrency",
+      "denial leaves monthly debit unchanged"
+    ],
+    "dependencies": [
+      "FUT-000013"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000015",
+    "project": "AADI",
+    "title": "Add a staff OIDC account-link verification adapter",
+    "prompt": "Implement a disabled OIDC adapter validating issuer, audience, nonce and immutable tenant/object binding before mapping an existing staff account; never link by email. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Fake token fixtures reject issuer/audience/nonce mismatch; unknown subject stays unlinked; student/guardian activation denied",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Fake token fixtures reject issuer/audience/nonce mismatch",
+      "unknown subject stays unlinked",
+      "student/guardian activation denied"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000016",
+    "project": "AADI",
+    "title": "Implement activation invitation state transitions",
+    "prompt": "Add persisted staff invitations with hashed one-use token, expiry, issuing actor and immutable person binding; delivery stays fake. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Expired/replayed tokens fail without mutation; token cannot target another person; plaintext token is not stored",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Expired/replayed tokens fail without mutation",
+      "token cannot target another person",
+      "plaintext token is not stored"
+    ],
+    "dependencies": [
+      "FUT-000015"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000017",
+    "project": "AADI",
+    "title": "Add owner-scoped MFA recovery requests",
+    "prompt": "Implement request/verification/approval states with distinct immutable verifier/approver and institution scope; provider reset remains disabled. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Same-person approval/wrong institution denied; expired requests cannot reset MFA; transitions retain audit events",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Same-person approval/wrong institution denied",
+      "expired requests cannot reset MFA",
+      "transitions retain audit events"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000018",
+    "project": "AADI",
+    "title": "Add grant-change proposals with separate approval",
+    "prompt": "Implement pending grants bound to target, institution, capability set and revision; apply through a different authorized approver after role-grant governance is admitted. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Self-approval and stale revision fail atomically; omitted institutions never become global; old/new grants are audited",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Self-approval and stale revision fail atomically",
+      "omitted institutions never become global",
+      "old/new grants are audited"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000019",
+    "project": "AADI",
+    "title": "Reauthorize identity exports at delivery time",
+    "prompt": "Implement bounded synthetic export jobs rechecking current institution capabilities both while building and while downloading. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Revocation after enqueue prevents delivery; other institution rows never appear; expired handles deny download",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Revocation after enqueue prevents delivery",
+      "other institution rows never appear",
+      "expired handles deny download"
+    ],
+    "dependencies": [
+      "FUT-000018"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000020",
+    "project": "AADI",
+    "title": "Separate restricted identity field projections",
+    "prompt": "Add explicit server-owned HR restricted, principal masked and general identity projections instead of browser-only hiding. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unauthorized raw fields are absent; cross-institution access denied; audit stores field categories rather than values",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Unauthorized raw fields are absent",
+      "cross-institution access denied",
+      "audit stores field categories rather than values"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000021",
+    "project": "AADI",
+    "title": "Implement two-scope transfer proposals",
+    "prompt": "Add dated transfer proposals requiring source and destination authority and immutable prior-membership references. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Single-institution actor cannot transfer; accepted transfer preserves history; overlapping/stale transfer fails atomically",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Single-institution actor cannot transfer",
+      "accepted transfer preserves history",
+      "overlapping/stale transfer fails atomically"
+    ],
+    "dependencies": [
+      "FUT-000018"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000022",
+    "project": "AADI",
+    "title": "Implement immutable maker-checker identity comparison",
+    "prompt": "Create a shared approval guard comparing canonical person IDs across accounts/roles for newly admitted approval workflows. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Two accounts for one person cannot self-approve; distinct authorized identities succeed; missing identity binding fails closed",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Two accounts for one person cannot self-approve",
+      "distinct authorized identities succeed",
+      "missing identity binding fails closed"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000023",
+    "project": "AADI",
+    "title": "Implement immediate local offboarding denial",
+    "prompt": "Add offboarding state blocking local access immediately plus remote-block/session-revocation outbox; no account deletion or licence removal. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Remote failure leaves local access blocked; duplicate request idempotent; history/account links preserved",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Remote failure leaves local access blocked",
+      "duplicate request idempotent",
+      "history/account links preserved"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000024",
+    "project": "AADI",
+    "title": "Add replay-safe provider lifecycle outbox",
+    "prompt": "Implement durable provider-neutral outbox with operation ID, expected identity revision, bounded retry and unknown-outcome state. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Duplicate delivery cannot create another logical operation; timeout remains unknown; stale revision prevents execution",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Duplicate delivery cannot create another logical operation",
+      "timeout remains unknown",
+      "stale revision prevents execution"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000025",
+    "project": "AADI",
+    "title": "Require owned-block evidence for reenabling accounts",
+    "prompt": "Implement reenable proposals requiring distinct group approver and evidence AADI caused the block; external/unknown blocks remain held. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unrelated provider block cannot be cleared; missing/stale receipt denies action; fake-provider transitions audited",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Unrelated provider block cannot be cleared",
+      "missing/stale receipt denies action",
+      "fake-provider transitions audited"
+    ],
+    "dependencies": [
+      "FUT-000023",
+      "FUT-000024"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000026",
+    "project": "AADI",
+    "title": "Build alias collision classification",
+    "prompt": "Implement read-only immutable-person alias collision classification against synthetic user/shared-mailbox/group/contact inventory; no provider writes. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Collisions across recipient types are held; existing correct alias idempotent; email similarity cannot link people",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Collisions across recipient types are held",
+      "existing correct alias idempotent",
+      "email similarity cannot link people"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000027",
+    "project": "AADI",
+    "title": "Add directory reconciliation proposal export",
+    "prompt": "Generate deterministic account-link proposals from synthetic directory/HR snapshots with fingerprints and unresolved conflict categories. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Ambiguous matches stay unresolved; row order does not change proposals; no automatic account write",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Ambiguous matches stay unresolved",
+      "row order does not change proposals",
+      "no automatic account write"
+    ],
+    "dependencies": [
+      "FUT-000026"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000028",
+    "project": "AADI",
+    "title": "Implement day-90 retention review scheduling",
+    "prompt": "Add clock-injected review scheduler from separation date/current policy revision, creating review requests rather than deleting data. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Day89/90 boundary deterministic; revised policy invalidates stale proposal; no provider deletion is emitted",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Day89/90 boundary deterministic",
+      "revised policy invalidates stale proposal",
+      "no provider deletion is emitted"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000029",
+    "project": "AADI",
+    "title": "Implement former-mailbox access requests",
+    "prompt": "Add institution-scoped HR request and distinct principal approval for exact former mailbox with reason/expiry; grant adapter stays fake. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Wrong institution/self-approval denied; expiry removes eligibility; request cannot authorize organization-wide search",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Wrong institution/self-approval denied",
+      "expiry removes eligibility",
+      "request cannot authorize organization-wide search"
+    ],
+    "dependencies": [
+      "FUT-000022"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000030",
+    "project": "AADI",
+    "title": "Add controlled file-release manifests",
+    "prompt": "Implement exact-file-hash recipient/expiry manifest with HR/principal approvals; external delivery stays disabled. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Changed manifest invalidates approvals; wrong recipient/expired link denied; unrelated files excluded",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Changed manifest invalidates approvals",
+      "wrong recipient/expired link denied",
+      "unrelated files excluded"
+    ],
+    "dependencies": [
+      "FUT-000022"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000031",
+    "project": "AADI",
+    "title": "Add emergency custody audit workflow",
+    "prompt": "Add individually attributable emergency custody requests with reason, bounded expiry and notification outbox to other custodian; ordinary approval rules unchanged. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Missing reason/identity denies; emergency never creates permanent role; failed notification remains visibly pending",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Missing reason/identity denies",
+      "emergency never creates permanent role",
+      "failed notification remains visibly pending"
+    ],
+    "dependencies": [
+      "FUT-000022"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000032",
+    "project": "AADI",
+    "title": "Implement admission denies for deferred student identities",
+    "prompt": "Add explicit staff-versus-deferred-student/guardian activation policy and safe Identity UI reason codes. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Student/guardian provider activation rejected; staff still requires ordinary gates; no hidden autoactivation",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/m1/AADI_M1_IDENTITY_CONTRACT.md",
+      "docs/m1/AADI_M1_ACCESS_MATRIX.md",
+      "src/aadi_identity/access.py"
+    ],
+    "acceptance": [
+      "Student/guardian provider activation rejected",
+      "staff still requires ordinary gates",
+      "no hidden autoactivation"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000033",
+    "project": "AADI",
+    "title": "Build admission lifecycle fit-gap runner",
+    "prompt": "Add synthetic candidate adapter scenarios for enquiry/offer/admission/rejection/document requirements, retaining transition evidence. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Both acceptance/rejection retain history; missing document prevents admission; no runtime receipt means NOT_RUN",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Both acceptance/rejection retain history",
+      "missing document prevents admission",
+      "no runtime receipt means NOT_RUN"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000034",
+    "project": "AADI",
+    "title": "Build student rollover and transfer fit-gap runner",
+    "prompt": "Implement dated-enrolment rollover/transfer scenarios with stable source IDs and prior-class history through candidate adapter. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Rollover retains prior session; transfer keeps origin history; replay cannot duplicate enrolment",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Rollover retains prior session",
+      "transfer keeps origin history",
+      "replay cannot duplicate enrolment"
+    ],
+    "dependencies": [
+      "FUT-000033"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000035",
+    "project": "AADI",
+    "title": "Build decimal fee receipt and reversal scenarios",
+    "prompt": "Implement decimal charge/partial-payment/reversal/reconciliation candidate scenarios, never binary-float money. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Receipt/reversal totals balance exactly; duplicate reference cannot double-charge; period lock rejects amendment",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Receipt/reversal totals balance exactly",
+      "duplicate reference cannot double-charge",
+      "period lock rejects amendment"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000036",
+    "project": "AADI",
+    "title": "Build HR contract and restricted-field fit-gap cases",
+    "prompt": "Add candidate scenarios for dated contract/institution transfer and restricted bank/identity fields with distinct actor roles. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Prior contract survives transfer; non-HR sees no bank detail; wrong-institution update denied",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Prior contract survives transfer",
+      "non-HR sees no bank detail",
+      "wrong-institution update denied"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000037",
+    "project": "AADI",
+    "title": "Implement payroll golden-case comparison engine",
+    "prompt": "Build versioned owner-fixture payroll comparator for split periods/join-leave dates/rounding without inventing policy values. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unspecified rules report evidence_missing; approved totals compare exactly; discrepancies identify rule and period",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Unspecified rules report evidence_missing",
+      "approved totals compare exactly",
+      "discrepancies identify rule and period"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000038",
+    "project": "AADI",
+    "title": "Build exam moderation and publication fit-gap runner",
+    "prompt": "Add marks-entry/moderation/correction/controlled-publication scenarios to candidate adapter. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unmoderated result cannot publish; correction keeps old value/actor; other institution cannot read unpublished results",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Unmoderated result cannot publish",
+      "correction keeps old value/actor",
+      "other institution cannot read unpublished results"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000039",
+    "project": "AADI",
+    "title": "Add report-catalogue acceptance runner",
+    "prompt": "Implement machine-readable mandatory-report catalogue with owner/scope/fields/evidence and synthetic scoped export checks. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Missing mandatory field fails; absent owner choice remains pending; cross-institution export denied",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Missing mandatory field fails",
+      "absent owner choice remains pending",
+      "cross-institution export denied"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000040",
+    "project": "AADI",
+    "title": "Build shared-site student isolation adversarial runner",
+    "prompt": "Add candidate tests for student list/detail/search/export/file/background-job boundaries across synthetic institutions. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Every channel records evidence; absent ownership fails gate; Employee Company checks cannot prove student isolation",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Every channel records evidence",
+      "absent ownership fails gate",
+      "Employee Company checks cannot prove student isolation"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000041",
+    "project": "AADI",
+    "title": "Build separate-site tenancy comparison adapter",
+    "prompt": "Run equivalent student-isolation scenarios against two configured disposable sites; compare recovery/operator evidence with shared-site results. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Same endpoint reused twice is rejected; per-site export/files remain isolated; no automatic tenancy selection",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Same endpoint reused twice is rejected",
+      "per-site export/files remain isolated",
+      "no automatic tenancy selection"
+    ],
+    "dependencies": [
+      "FUT-000040"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000042",
+    "project": "AADI",
+    "title": "Add ERP rejected-row reconciliation queue",
+    "prompt": "Implement staged synthetic rows with stable hashes/reject reasons/correction versions/replay receipts in candidate adapter. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Replay produces no duplicate; correction retains original rejection; accepted+rejected+pending totals reconcile",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Replay produces no duplicate",
+      "correction retains original rejection",
+      "accepted+rejected+pending totals reconcile"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000043",
+    "project": "AADI",
+    "title": "Add extension upgrade-compatibility harness",
+    "prompt": "Inventory custom extension hooks and replay synthetic business workflows before/after candidate upgrade in disposable environments. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Upstream source modifications flagged; missing hook fails; exact pre/post versions retained",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Upstream source modifications flagged",
+      "missing hook fails",
+      "exact pre/post versions retained"
+    ],
+    "dependencies": [
+      "FUT-000033",
+      "FUT-000034",
+      "FUT-000035",
+      "FUT-000036",
+      "FUT-000038"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000044",
+    "project": "AADI",
+    "title": "Add ERP restore acceptance receipt validator",
+    "prompt": "Require matching DB/files/config restore receipts, disabled sends, measured RPO/RTO and exact restored versions. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Missing file/send-disable evidence blocks acceptance; backup creation cannot pass restore; receipts share rehearsal ID",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/migration/erp-fit-gap-evaluation.md",
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "tools/test_erp_v16.py"
+    ],
+    "acceptance": [
+      "Missing file/send-disable evidence blocks acceptance",
+      "backup creation cannot pass restore",
+      "receipts share rehearsal ID"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000045",
+    "project": "AADI",
+    "title": "Implement device coverage reconciliation contract",
+    "prompt": "Add separate evaluator comparing approved inventory, expected reporting devices and observation window using aggregates. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unknown/missing readers leave coverage unverified; duplicates cannot inflate coverage; no absence decision emitted",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/LIVE_RECEIVER_DASHBOARD.md",
+      "docs/development/SOURCE_HEALTH_DASHBOARD.md",
+      "src/aadi_console/source_health.py",
+      "src/aadi_contracts/feed_status.py"
+    ],
+    "acceptance": [
+      "Unknown/missing readers leave coverage unverified",
+      "duplicates cannot inflate coverage",
+      "no absence decision emitted"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000046",
+    "project": "AADI",
+    "title": "Implement approved reader-rule revisions",
+    "prompt": "Add versioned institution/direction mapping proposals with effective dates/reviewer, separate from observed hardware inventory. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Conflicting overlapping rules fail; stale proposal cannot overwrite approval; unapproved mapping grants no coverage",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/LIVE_RECEIVER_DASHBOARD.md",
+      "docs/development/SOURCE_HEALTH_DASHBOARD.md",
+      "src/aadi_console/source_health.py",
+      "src/aadi_contracts/feed_status.py"
+    ],
+    "acceptance": [
+      "Conflicting overlapping rules fail",
+      "stale proposal cannot overwrite approval",
+      "unapproved mapping grants no coverage"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000047",
+    "project": "AADI",
+    "title": "Add attendance absence eligibility explanation",
+    "prompt": "Implement pure unmet-gate evaluator for freshness/timezone/reader mapping/coverage/approved calendar; eligible only with every required evidence item. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Recent receipt alone stays ineligible; missing calendar/timezone fails closed; all-gates fixture emits complete trace without messages",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/LIVE_RECEIVER_DASHBOARD.md",
+      "docs/development/SOURCE_HEALTH_DASHBOARD.md",
+      "src/aadi_console/source_health.py",
+      "src/aadi_contracts/feed_status.py"
+    ],
+    "acceptance": [
+      "Recent receipt alone stays ineligible",
+      "missing calendar/timezone fails closed",
+      "all-gates fixture emits complete trace without messages"
+    ],
+    "dependencies": [
+      "FUT-000045",
+      "FUT-000046",
+      "FUT-000048"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000048",
+    "project": "AADI",
+    "title": "Add source-clock offset evidence projection",
+    "prompt": "Expose per-source clock-offset confidence/missing-offset warnings without substituting receipt time for event time. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unknown offset remains unknown; skew and stale warnings coexist; no raw person/event IDs exposed",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/LIVE_RECEIVER_DASHBOARD.md",
+      "docs/development/SOURCE_HEALTH_DASHBOARD.md",
+      "src/aadi_console/source_health.py",
+      "src/aadi_contracts/feed_status.py"
+    ],
+    "acceptance": [
+      "Unknown offset remains unknown",
+      "skew and stale warnings coexist",
+      "no raw person/event IDs exposed"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000049",
+    "project": "AADI",
+    "title": "Add capture-to-display provenance receipts",
+    "prompt": "Link aggregate publisher version/capture time/content digest/UI read version in bounded receipt, without asserting source authenticity. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Content changes alter receipt; missing publisher evidence stays unverified; no database connection material exposed",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/LIVE_RECEIVER_DASHBOARD.md",
+      "docs/development/SOURCE_HEALTH_DASHBOARD.md",
+      "src/aadi_console/source_health.py",
+      "src/aadi_contracts/feed_status.py"
+    ],
+    "acceptance": [
+      "Content changes alter receipt",
+      "missing publisher evidence stays unverified",
+      "no database connection material exposed"
+    ],
+    "dependencies": [
+      "FUT-000005"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000050",
+    "project": "AADI",
+    "title": "Implement recovery-safe attendance notification proposals",
+    "prompt": "Build dry-run queue freezing recipient/content hashes and rechecking absence eligibility before send-adapter handoff; real sends disabled. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Recovery/replay cannot duplicate proposals; revoked eligibility holds queued work; no test calls external messaging",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/LIVE_RECEIVER_DASHBOARD.md",
+      "docs/development/SOURCE_HEALTH_DASHBOARD.md",
+      "src/aadi_console/source_health.py",
+      "src/aadi_contracts/feed_status.py"
+    ],
+    "acceptance": [
+      "Recovery/replay cannot duplicate proposals",
+      "revoked eligibility holds queued work",
+      "no test calls external messaging"
+    ],
+    "dependencies": [
+      "FUT-000047"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000051",
+    "project": "AADI",
+    "title": "Add Identity reconciliation evidence packages",
+    "prompt": "Generate bounded synthetic-import evidence packages of fingerprints/compatibility IDs/aggregate counts/rejected-row summaries. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Mismatched hash blocks completion; public summary excludes private rows; replay links original receipt",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/IDENTITY_DATABASE_FOUNDATION.md",
+      "docs/m1/AADI_M1_ACCEPTANCE_GATES.md",
+      "src/aadi_identity/services.py"
+    ],
+    "acceptance": [
+      "Mismatched hash blocks completion",
+      "public summary excludes private rows",
+      "replay links original receipt"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000052",
+    "project": "AADI",
+    "title": "Add import conflict resolution proposals",
+    "prompt": "Add proposal layer recording desired correction and immutable prior evidence for conflicting Identity imports; keep apply_snapshot non-overwriting. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unapproved conflict cannot mutate canonical rows; resolution bound to revision; approved replay idempotent",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/IDENTITY_DATABASE_FOUNDATION.md",
+      "docs/m1/AADI_M1_ACCEPTANCE_GATES.md",
+      "src/aadi_identity/services.py"
+    ],
+    "acceptance": [
+      "Unapproved conflict cannot mutate canonical rows",
+      "resolution bound to revision",
+      "approved replay idempotent"
+    ],
+    "dependencies": [
+      "FUT-000051"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000053",
+    "project": "AADI",
+    "title": "Add restore reconciliation verification",
+    "prompt": "Extend restore checks to constraints/history guards/reconciliation fingerprints rather than only table counts. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Missing trigger or changed fingerprint fails; valid isolated restore emits receipt; original database untouched",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/IDENTITY_DATABASE_FOUNDATION.md",
+      "docs/m1/AADI_M1_ACCEPTANCE_GATES.md",
+      "src/aadi_identity/services.py"
+    ],
+    "acceptance": [
+      "Missing trigger or changed fingerprint fails",
+      "valid isolated restore emits receipt",
+      "original database untouched"
+    ],
+    "dependencies": [
+      "FUT-000051"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000054",
+    "project": "AADI",
+    "title": "Implement M1 gate evidence freshness tracking",
+    "prompt": "Add structured registry binding receipts to source/scenario/reviewer/expiry with separate implemented/tested/accepted states. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Changed source or expiry marks stale; missing named acceptance never passes; synthetic proof cannot satisfy live gate",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/IDENTITY_DATABASE_FOUNDATION.md",
+      "docs/m1/AADI_M1_ACCEPTANCE_GATES.md",
+      "src/aadi_identity/services.py"
+    ],
+    "acceptance": [
+      "Changed source or expiry marks stale",
+      "missing named acceptance never passes",
+      "synthetic proof cannot satisfy live gate"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000055",
+    "project": "AADI",
+    "title": "Add AADI OS signed release manifest verification",
+    "prompt": "Implement offline signed-manifest verification interface with trusted-key ID and image digest; no key provisioning or boot-media changes. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Tampered manifest/image fails; unknown key rejected; unsigned prototype remains unverified",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/AADI_OS_MANIFEST.md",
+      "docs/development/AADI_OS_RAM_BOOT.md",
+      "src/aadi_os/manifest.py"
+    ],
+    "acceptance": [
+      "Tampered manifest/image fails",
+      "unknown key rejected",
+      "unsigned prototype remains unverified"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000056",
+    "project": "AADI",
+    "title": "Implement node enrollment proposal records",
+    "prompt": "Add enrollment contract binding node identity/architecture/image digest/intended institution and VLAN; acceptance operator-gated. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Duplicate hardware conflicts; missing image proof holds enrollment; proposal cannot grant cluster-admin",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/AADI_OS_MANIFEST.md",
+      "docs/development/AADI_OS_RAM_BOOT.md",
+      "src/aadi_os/manifest.py"
+    ],
+    "acceptance": [
+      "Duplicate hardware conflicts",
+      "missing image proof holds enrollment",
+      "proposal cannot grant cluster-admin"
+    ],
+    "dependencies": [
+      "FUT-000055"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000057",
+    "project": "AADI",
+    "title": "Add node update rollback eligibility evaluator",
+    "prompt": "Implement pure evaluator using image receipt/retained prior image/health deadline/storage bounds. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Missing previous image blocks rollback claim; timeout creates proposal only; no disk writes/reboots",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/AADI_OS_MANIFEST.md",
+      "docs/development/AADI_OS_RAM_BOOT.md",
+      "src/aadi_os/manifest.py"
+    ],
+    "acceptance": [
+      "Missing previous image blocks rollback claim",
+      "timeout creates proposal only",
+      "no disk writes/reboots"
+    ],
+    "dependencies": [
+      "FUT-000055"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000058",
+    "project": "AADI",
+    "title": "Implement sandbox network readiness evidence parser",
+    "prompt": "Parse independent carrier/VLAN forwarding/reachability/address evidence against approved sandbox plan. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: NO-CARRIER cannot pass via config rendering; stale reachability unverified; unknown evidence initiates no network change",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/development/AADI_OS_MANIFEST.md",
+      "docs/development/AADI_OS_RAM_BOOT.md",
+      "src/aadi_os/manifest.py"
+    ],
+    "acceptance": [
+      "NO-CARRIER cannot pass via config rendering",
+      "stale reachability unverified",
+      "unknown evidence initiates no network change"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000059",
+    "project": "AADI",
+    "title": "Record signed ERP foundation selection evidence",
+    "prompt": "Collect named Sponsor/HR/Accounts review of completed FG cases and publish ADR outcome bound to exact candidate evidence and tenancy choice. Keep planned until the named owner supplies target authorization/acceptance. No approval is inferred from this catalogue. Verify: All reviewers attributable; missing FG proof stays open; production migration is separate",
+    "scope_id": "",
+    "priority": 4,
+    "evidence": [
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "docs/migration/erp-fit-gap-evaluation.md"
+    ],
+    "acceptance": [
+      "All reviewers attributable",
+      "missing FG proof stays open",
+      "production migration is separate"
+    ],
+    "dependencies": [
+      "FUT-000033",
+      "FUT-000034",
+      "FUT-000035",
+      "FUT-000036",
+      "FUT-000037",
+      "FUT-000038",
+      "FUT-000039",
+      "FUT-000040",
+      "FUT-000041",
+      "FUT-000042",
+      "FUT-000043",
+      "FUT-000044"
+    ],
+    "risk": "needs_owner"
+  },
+  {
+    "id": "FUT-000060",
+    "project": "AADI",
+    "title": "Record two accepted payroll shadow cycles",
+    "prompt": "Obtain two authorized shadow-cycle reconciliations and named HR/Accounts acceptance after policy fixtures/runners exist, preserving current payroll. Keep planned until the named owner supplies target authorization/acceptance. No approval is inferred from this catalogue. Verify: Two distinct periods have accepted reconciliations; missing policy blocks acceptance; no production activation",
+    "scope_id": "",
+    "priority": 4,
+    "evidence": [
+      "docs/m1/AADI_M1_FOUNDATION.md",
+      "docs/migration/erp-fit-gap-evaluation.md"
+    ],
+    "acceptance": [
+      "Two distinct periods have accepted reconciliations",
+      "missing policy blocks acceptance",
+      "no production activation"
+    ],
+    "dependencies": [
+      "FUT-000037"
+    ],
+    "risk": "needs_owner"
+  },
+  {
+    "id": "FUT-000061",
+    "project": "GatewayAI",
+    "title": "Implement verified global audit-segment archival",
+    "prompt": "Extend closed-task archival with immutable audit segments, sequence ranges and previous-segment hash; verify durable write before hot compaction. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Corrupt/missing segment blocks compaction; global sequence monotonic; active approval authority remains hot",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_ARCHIVES.md",
+      "scripts/supervisor_archive.py",
+      "scripts/supervisor_archive_operator.py"
+    ],
+    "acceptance": [
+      "Corrupt/missing segment blocks compaction",
+      "global sequence monotonic",
+      "active approval authority remains hot"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000062",
+    "project": "GatewayAI",
+    "title": "Implement idempotency receipt archival lookup",
+    "prompt": "Add bounded lookup for archived old request receipts so compaction retains replay prevention without indefinitely growing hot receipts. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Archived replay returns prior result; changed payload under same key rejects; archive outage fails closed",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_ARCHIVES.md",
+      "scripts/supervisor_archive.py",
+      "scripts/supervisor_archive_operator.py"
+    ],
+    "acceptance": [
+      "Archived replay returns prior result",
+      "changed payload under same key rejects",
+      "archive outage fails closed"
+    ],
+    "dependencies": [
+      "FUT-000061"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000063",
+    "project": "GatewayAI",
+    "title": "Add complete ledger-and-archive backup manifests",
+    "prompt": "Bind PostgreSQL snapshot identity to every referenced archive/audit segment in a completeness-checked backup manifest. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: One missing archive fails; unrelated files excluded; validation exposes no full state publicly",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_ARCHIVES.md",
+      "scripts/supervisor_archive.py",
+      "scripts/supervisor_archive_operator.py"
+    ],
+    "acceptance": [
+      "One missing archive fails",
+      "unrelated files excluded",
+      "validation exposes no full state publicly"
+    ],
+    "dependencies": [
+      "FUT-000061",
+      "FUT-000062"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000064",
+    "project": "GatewayAI",
+    "title": "Add paginated archived task detail projection",
+    "prompt": "Expose allowlisted read-only archived task/model/test/PR facts, excluding unrelated full-snapshot state and secrets. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Only requested task appears; corrupt digest gives controlled unavailable; pagination cannot select paths",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_ARCHIVES.md",
+      "scripts/supervisor_archive.py",
+      "scripts/supervisor_archive_operator.py"
+    ],
+    "acceptance": [
+      "Only requested task appears",
+      "corrupt digest gives controlled unavailable",
+      "pagination cannot select paths"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000065",
+    "project": "GatewayAI",
+    "title": "Add archived-task correction linkage",
+    "prompt": "Create new correction tasks linked to verified archived task/PR/head/evidence; never rewrite archived bodies. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Original digest unchanged; duplicate correction idempotent; unresolved identity blocks link",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_ARCHIVES.md",
+      "scripts/supervisor_archive.py",
+      "scripts/supervisor_archive_operator.py"
+    ],
+    "acceptance": [
+      "Original digest unchanged",
+      "duplicate correction idempotent",
+      "unresolved identity blocks link"
+    ],
+    "dependencies": [
+      "FUT-000064"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000066",
+    "project": "GatewayAI",
+    "title": "Add supervisor retention capacity forecasting",
+    "prompt": "Estimate hot task/audit/receipt growth and archive completeness against each configured store ceiling. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Audit growth visible after task compaction; no unlimited-capacity claim; warnings deduplicated until state changes",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_ARCHIVES.md",
+      "scripts/supervisor_archive.py",
+      "scripts/supervisor_archive_operator.py"
+    ],
+    "acceptance": [
+      "Audit growth visible after task compaction",
+      "no unlimited-capacity claim",
+      "warnings deduplicated until state changes"
+    ],
+    "dependencies": [
+      "FUT-000061",
+      "FUT-000062"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000067",
+    "project": "GatewayAI",
+    "title": "Add workflow dependency graph projection",
+    "prompt": "Expose bounded task dependency graph with state labels and explicit blocked predecessor IDs in workflows. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Cycles/unknown IDs shown as errors; archived predecessors retain links; rendering cannot mutate state",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_CONTROL.md",
+      "scripts/supervisor_board.py",
+      "scripts/supervisor_http.py"
+    ],
+    "acceptance": [
+      "Cycles/unknown IDs shown as errors",
+      "archived predecessors retain links",
+      "rendering cannot mutate state"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000068",
+    "project": "GatewayAI",
+    "title": "Add PR review evidence comparison view",
+    "prompt": "Present source SHA/artifact hash/test receipt/reviewer/current PR head together and mark reviews stale after head change. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Old-head review marked stale; missing test proof unknown; confidence never equated with correctness",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_CONTROL.md",
+      "scripts/supervisor_board.py",
+      "scripts/supervisor_http.py"
+    ],
+    "acceptance": [
+      "Old-head review marked stale",
+      "missing test proof unknown",
+      "confidence never equated with correctness"
+    ],
+    "dependencies": [
+      "FUT-000087"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000069",
+    "project": "GatewayAI",
+    "title": "Add task attempt timeline view",
+    "prompt": "Render coding/repair/testing/review/publication as timestamped conversation with host/model attribution and safe links. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Failed repair retained after success; private payload not rendered; sequence breaks timestamp ties",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_CONTROL.md",
+      "scripts/supervisor_board.py",
+      "scripts/supervisor_http.py"
+    ],
+    "acceptance": [
+      "Failed repair retained after success",
+      "private payload not rendered",
+      "sequence breaks timestamp ties"
+    ],
+    "dependencies": [
+      "FUT-000064"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000070",
+    "project": "GatewayAI",
+    "title": "Add workflow filters with stable pagination",
+    "prompt": "Add project/status/scope/PR filters with cursors bound to board revision and explicit refresh after mutation. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Stale cursor requests refresh; empty distinct from unavailable; filters cannot change state",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_CONTROL.md",
+      "scripts/supervisor_board.py",
+      "scripts/supervisor_http.py"
+    ],
+    "acceptance": [
+      "Stale cursor requests refresh",
+      "empty distinct from unavailable",
+      "filters cannot change state"
+    ],
+    "dependencies": [
+      "FUT-000064"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000071",
+    "project": "GatewayAI",
+    "title": "Bind confidence observations to artifact revisions",
+    "prompt": "Extend existing uncalibrated score display with explicit artifact/head binding and stale-status projection; retain historical scores instead of carrying them to repaired code. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Changed artifact marks old score stale; unknown binding is unverified; model score cannot replace test/review evidence",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_CONTROL.md",
+      "scripts/supervisor_board.py",
+      "scripts/supervisor_http.py"
+    ],
+    "acceptance": [
+      "Changed artifact marks old score stale",
+      "unknown binding is unverified",
+      "model score cannot replace test/review evidence"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000072",
+    "project": "GatewayAI",
+    "title": "Add safe machine-readable task evidence exports",
+    "prompt": "Export allowlisted per-task public-source/stage/acceptance/PR JSON for morning review. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: No Telegram identity/private prompt/credential leakage; source/artifact hashes retained; oversized output explicitly bounded",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/SUPERVISOR_CONTROL.md",
+      "scripts/supervisor_board.py",
+      "scripts/supervisor_http.py"
+    ],
+    "acceptance": [
+      "No Telegram identity/private prompt/credential leakage",
+      "source/artifact hashes retained",
+      "oversized output explicitly bounded"
+    ],
+    "dependencies": [
+      "FUT-000064"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000073",
+    "project": "GatewayAI",
+    "title": "Persist Telegram reply-message task bindings",
+    "prompt": "Extend existing task-ID/callback conversations with durable Telegram message-ID reply bindings and a bounded resolution policy after restart. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Reply to older message resolves original task; expired/unknown binding asks selection; callback and reply bindings cannot disagree silently",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/TELEGRAM_PILOT.md",
+      "docs/ONGOING_COORDINATION.md",
+      "scripts/supervisor_runtime.py",
+      "scripts/pilot_views.py"
+    ],
+    "acceptance": [
+      "Reply to older message resolves original task",
+      "expired/unknown binding asks selection",
+      "callback and reply bindings cannot disagree silently"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000074",
+    "project": "GatewayAI",
+    "title": "Add delayed-action acknowledgement receipts",
+    "prompt": "Extend button acknowledgement with durable action receipt and later success/failure follow-up using the same receipt, surviving transport timeout. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Queued click gets receipt; ambiguous send cannot repeat action; completion links original receipt",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/TELEGRAM_PILOT.md",
+      "docs/ONGOING_COORDINATION.md",
+      "scripts/supervisor_runtime.py",
+      "scripts/pilot_views.py"
+    ],
+    "acceptance": [
+      "Queued click gets receipt",
+      "ambiguous send cannot repeat action",
+      "completion links original receipt"
+    ],
+    "dependencies": [
+      "FUT-000073"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000075",
+    "project": "GatewayAI",
+    "title": "Add user-controlled digest quiet windows",
+    "prompt": "Implement timezone-aware digest quiet windows while preserving immediate blockers/questions and explicit user exceptions. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Overnight/timezone boundaries tested; urgent questions immediate; suppressed digests coalesce without lost counts",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/TELEGRAM_PILOT.md",
+      "docs/ONGOING_COORDINATION.md",
+      "scripts/supervisor_runtime.py",
+      "scripts/pilot_views.py"
+    ],
+    "acceptance": [
+      "Overnight/timezone boundaries tested",
+      "urgent questions immediate",
+      "suppressed digests coalesce without lost counts"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000076",
+    "project": "GatewayAI",
+    "title": "Add dependent multi-question clarification flows",
+    "prompt": "Extend existing fixed/Custom answers with versioned multi-question sessions whose later choices depend on earlier answers; bind whole session to task revision. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Editing an earlier answer invalidates dependent choices; restart retains pending step; stale buttons cannot answer a revised session",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/TELEGRAM_PILOT.md",
+      "docs/ONGOING_COORDINATION.md",
+      "scripts/supervisor_runtime.py",
+      "scripts/pilot_views.py"
+    ],
+    "acceptance": [
+      "Editing an earlier answer invalidates dependent choices",
+      "restart retains pending step",
+      "stale buttons cannot answer a revised session"
+    ],
+    "dependencies": [
+      "FUT-000073"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000077",
+    "project": "GatewayAI",
+    "title": "Add conversational correction confirmation",
+    "prompt": "Summarize free-text corrections into pending task-linked proposal with exact PR/head and acknowledgement before scope admission. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unclear target requests choices; admitted routine correction uses existing authority; destructive wording cannot autoapprove",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/TELEGRAM_PILOT.md",
+      "docs/ONGOING_COORDINATION.md",
+      "scripts/supervisor_runtime.py",
+      "scripts/pilot_views.py"
+    ],
+    "acceptance": [
+      "Unclear target requests choices",
+      "admitted routine correction uses existing authority",
+      "destructive wording cannot autoapprove"
+    ],
+    "dependencies": [
+      "FUT-000073"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000078",
+    "project": "GatewayAI",
+    "title": "Add task-specific notification deep links and next actor",
+    "prompt": "Extend existing host/model/PR notices with an exact-task safe evidence deep link, structured next-actor field and mapped plain-language blocker cause. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Deep link resolves the notified task after newer completions; absence of owner decision is explicit; raw command/private output is excluded",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/TELEGRAM_PILOT.md",
+      "docs/ONGOING_COORDINATION.md",
+      "scripts/supervisor_runtime.py",
+      "scripts/pilot_views.py"
+    ],
+    "acceptance": [
+      "Deep link resolves the notified task after newer completions",
+      "absence of owner decision is explicit",
+      "raw command/private output is excluded"
+    ],
+    "dependencies": [
+      "FUT-000068"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000079",
+    "project": "GatewayAI",
+    "title": "Persist quota observations with provenance and expiry",
+    "prompt": "Store quota group/model/observation time/source/reset, distinguishing confirmed exhaustion from estimates/unknown. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Expired observation cannot block forever; unknown reset cannot invent five-hour timestamp; provider error is not quota proof",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CODER_SCHEDULING.md",
+      "docs/LOCAL_MODEL.md",
+      "scripts/ongoing_models.py",
+      "scripts/ongoing_local.py"
+    ],
+    "acceptance": [
+      "Expired observation cannot block forever",
+      "unknown reset cannot invent five-hour timestamp",
+      "provider error is not quota proof"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000080",
+    "project": "GatewayAI",
+    "title": "Add capability-compatible quota fallback plans",
+    "prompt": "Compile ordered alternatives from capability/privacy/cost declarations and quota state, retaining skip reasons. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Fallback cannot widen trust/provider authority; shared exhausted group skipped together; no candidate means wait not call loop",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CODER_SCHEDULING.md",
+      "docs/LOCAL_MODEL.md",
+      "scripts/ongoing_models.py",
+      "scripts/ongoing_local.py"
+    ],
+    "acceptance": [
+      "Fallback cannot widen trust/provider authority",
+      "shared exhausted group skipped together",
+      "no candidate means wait not call loop"
+    ],
+    "dependencies": [
+      "FUT-000079",
+      "FUT-000107"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000081",
+    "project": "GatewayAI",
+    "title": "Add work-preserving coder handoff receipts",
+    "prompt": "Package source/scope/artifact/test status/compact remaining work on quota interruption without copying private session history. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Stale source/artifact mismatch rejects; partial code labelled incomplete; handoff consumes existing attempt budget",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CODER_SCHEDULING.md",
+      "docs/LOCAL_MODEL.md",
+      "scripts/ongoing_models.py",
+      "scripts/ongoing_local.py"
+    ],
+    "acceptance": [
+      "Stale source/artifact mismatch rejects",
+      "partial code labelled incomplete",
+      "handoff consumes existing attempt budget"
+    ],
+    "dependencies": [
+      "FUT-000080"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000082",
+    "project": "GatewayAI",
+    "title": "Add local-model acceptance profiling",
+    "prompt": "Run versioned offline task corpus for already installed coder/supervisor roles, recording correctness/latency/context bounds; no downloads. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Model/endpoint identity recorded; failed samples retained; private cloud fallback cannot autoenable",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CODER_SCHEDULING.md",
+      "docs/LOCAL_MODEL.md",
+      "scripts/ongoing_models.py",
+      "scripts/ongoing_local.py"
+    ],
+    "acceptance": [
+      "Model/endpoint identity recorded",
+      "failed samples retained",
+      "private cloud fallback cannot autoenable"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000083",
+    "project": "GatewayAI",
+    "title": "Add empirical model selection reports",
+    "prompt": "Aggregate run receipts into task-class success/repair/test/latency/observed-token reports; unknown cost remains unknown. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Incomplete usage not zero; repairs count against efficiency; report cannot change routing policy",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CODER_SCHEDULING.md",
+      "docs/LOCAL_MODEL.md",
+      "scripts/ongoing_models.py",
+      "scripts/ongoing_local.py"
+    ],
+    "acceptance": [
+      "Incomplete usage not zero",
+      "repairs count against efficiency",
+      "report cannot change routing policy"
+    ],
+    "dependencies": [
+      "FUT-000082"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000084",
+    "project": "GatewayAI",
+    "title": "Add executor heartbeat grace diagnostics",
+    "prompt": "Expose heartbeat age/stage/model-call deadline/recovery eligibility separately so RDP inactivity is not conflated with task lease loss. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Healthy long inference not reclaimed early; expired worker cannot publish; RDP status only advisory",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CODER_SCHEDULING.md",
+      "docs/LOCAL_MODEL.md",
+      "scripts/ongoing_models.py",
+      "scripts/ongoing_local.py"
+    ],
+    "acceptance": [
+      "Healthy long inference not reclaimed early",
+      "expired worker cannot publish",
+      "RDP status only advisory"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000085",
+    "project": "GatewayAI",
+    "title": "Add reviewer finding evidence anchors",
+    "prompt": "Require actionable findings to cite changed file/bounded function-or-line anchor/violated acceptance, keeping advisory concerns distinct from verified failures. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Nonexistent anchor rejected; disproven finding history retained; reviewer cannot expand scope",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CONTROLLER_REVIEW.md",
+      "docs/DEVELOPMENT_TASK_CONTRACT.md",
+      "scripts/ongoing_api_review.py",
+      "scripts/development_tasks.py"
+    ],
+    "acceptance": [
+      "Nonexistent anchor rejected",
+      "disproven finding history retained",
+      "reviewer cannot expand scope"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000086",
+    "project": "GatewayAI",
+    "title": "Classify baseline and candidate command failures",
+    "prompt": "Extend existing two-suite receipts with per-command introduced/pre-existing/environment/unexecuted classification; do not rerun a failed baseline candidate merely to populate a report. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Pre-existing failure is not attributed to patch; differing command identity invalidates comparison; skipped candidate is unexecuted not failed",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CONTROLLER_REVIEW.md",
+      "docs/DEVELOPMENT_TASK_CONTRACT.md",
+      "scripts/ongoing_api_review.py",
+      "scripts/development_tasks.py"
+    ],
+    "acceptance": [
+      "Pre-existing failure is not attributed to patch",
+      "differing command identity invalidates comparison",
+      "skipped candidate is unexecuted not failed"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000087",
+    "project": "GatewayAI",
+    "title": "Add per-file review-context completeness manifests",
+    "prompt": "Extend existing full-source review prompts with per-file hashes, byte counts and inclusion/truncation reasons, binding the manifest digest to review receipt. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Truncated or omitted required changed file blocks acceptance; prompt content hashes match manifest; existing candidate/source hashes remain enforced",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CONTROLLER_REVIEW.md",
+      "docs/DEVELOPMENT_TASK_CONTRACT.md",
+      "scripts/ongoing_api_review.py",
+      "scripts/development_tasks.py"
+    ],
+    "acceptance": [
+      "Truncated or omitted required changed file blocks acceptance",
+      "prompt content hashes match manifest",
+      "existing candidate/source hashes remain enforced"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000088",
+    "project": "GatewayAI",
+    "title": "Add bounded independent-review disagreement workflow",
+    "prompt": "Record finding/source evidence/deterministic reproduction/operator disposition without autoaccepting either model. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Advisory claim cannot overwrite test proof; exception bound to exact head; repair budgets cannot loop",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CONTROLLER_REVIEW.md",
+      "docs/DEVELOPMENT_TASK_CONTRACT.md",
+      "scripts/ongoing_api_review.py",
+      "scripts/development_tasks.py"
+    ],
+    "acceptance": [
+      "Advisory claim cannot overwrite test proof",
+      "exception bound to exact head",
+      "repair budgets cannot loop"
+    ],
+    "dependencies": [
+      "FUT-000085",
+      "FUT-000086",
+      "FUT-000087"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000089",
+    "project": "GatewayAI",
+    "title": "Add per-file protected-test attestation manifests",
+    "prompt": "Extend existing snapshot/profile digests with a per-file protected-test manifest and verifier for reconstructed workspaces, explicitly distinguishing candidate-added tests. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Single protected test mismatch identifies exact path and rejects; added candidate tests cannot impersonate protected tests; aggregate snapshot digest remains checked",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CONTROLLER_REVIEW.md",
+      "docs/DEVELOPMENT_TASK_CONTRACT.md",
+      "scripts/ongoing_api_review.py",
+      "scripts/development_tasks.py"
+    ],
+    "acceptance": [
+      "Single protected test mismatch identifies exact path and rejects",
+      "added candidate tests cannot impersonate protected tests",
+      "aggregate snapshot digest remains checked"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000090",
+    "project": "GatewayAI",
+    "title": "Add dependency-aware publication stale checks",
+    "prompt": "Recheck prerequisite PR merge state/accepted revisions just before dependent publication and retain conflict explanation. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Closed-unmerged predecessor holds; changed dependency invalidates review; independent tasks stay publishable",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/CONTROLLER_REVIEW.md",
+      "docs/DEVELOPMENT_TASK_CONTRACT.md",
+      "scripts/ongoing_api_review.py",
+      "scripts/development_tasks.py"
+    ],
+    "acceptance": [
+      "Closed-unmerged predecessor holds",
+      "changed dependency invalidates review",
+      "independent tasks stay publishable"
+    ],
+    "dependencies": [
+      "FUT-000068"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000091",
+    "project": "GatewayAI",
+    "title": "Add incremental code-graph reindex planning",
+    "prompt": "Plan incremental refresh from Git changes/dependency edges, falling back to full rebuild for unsupported changes while preserving fresh-SHA authority. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Deleted/renamed modules remove stale nodes; failed build cannot replace valid index; SHA mismatch denies query",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/GRAPHIFY.md",
+      "docs/OPENVIKING.md",
+      "scripts/graphify_context.py",
+      "scripts/openviking_public.py"
+    ],
+    "acceptance": [
+      "Deleted/renamed modules remove stale nodes",
+      "failed build cannot replace valid index",
+      "SHA mismatch denies query"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000092",
+    "project": "GatewayAI",
+    "title": "Implement graph parser coverage reporting",
+    "prompt": "Report per-language/file parser coverage and unsupported-file counts so missing edges are not assumed absent dependencies. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unsupported syntax explicit; ignored files not counted parsed; report code-only",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/GRAPHIFY.md",
+      "docs/OPENVIKING.md",
+      "scripts/graphify_context.py",
+      "scripts/openviking_public.py"
+    ],
+    "acceptance": [
+      "Unsupported syntax explicit",
+      "ignored files not counted parsed",
+      "report code-only"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000093",
+    "project": "GatewayAI",
+    "title": "Add retrieval quality evaluation corpus",
+    "prompt": "Create versioned public-code question/expected-evidence cases comparing Git-only/graph/memory relevance and freshness. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Expected evidence path/revision bound; stale context fails; evaluation cannot grant execution authority",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/GRAPHIFY.md",
+      "docs/OPENVIKING.md",
+      "scripts/graphify_context.py",
+      "scripts/openviking_public.py"
+    ],
+    "acceptance": [
+      "Expected evidence path/revision bound",
+      "stale context fails",
+      "evaluation cannot grant execution authority"
+    ],
+    "dependencies": [
+      "FUT-000092"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000094",
+    "project": "GatewayAI",
+    "title": "Add context deduplication with source citations",
+    "prompt": "Deduplicate overlapping Git/graph/memory snippets within fixed budget retaining exact citations/freshness. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Duplicate content consumes budget once; conflicting revisions use fresh Git; truncation retains citation",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/GRAPHIFY.md",
+      "docs/OPENVIKING.md",
+      "scripts/graphify_context.py",
+      "scripts/openviking_public.py"
+    ],
+    "acceptance": [
+      "Duplicate content consumes budget once",
+      "conflicting revisions use fresh Git",
+      "truncation retains citation"
+    ],
+    "dependencies": [
+      "FUT-000093"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000095",
+    "project": "GatewayAI",
+    "title": "Add public-memory deletion reconciliation",
+    "prompt": "Plan deletion/tombstones for removed/ineligible source files and verify remote removal before claiming complete sync. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Deleted source not current-retrievable; failed delete remains pending; only configured public namespace touched",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/GRAPHIFY.md",
+      "docs/OPENVIKING.md",
+      "scripts/graphify_context.py",
+      "scripts/openviking_public.py"
+    ],
+    "acceptance": [
+      "Deleted source not current-retrievable",
+      "failed delete remains pending",
+      "only configured public namespace touched"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000096",
+    "project": "GatewayAI",
+    "title": "Add private-memory export and deletion proof harness",
+    "prompt": "Build protected per-account raw-WebUI-mirror export/deletion harness; extraction/search/prompt injection remain disabled until isolation proof. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Account A cannot export/delete B; deletion survives restart; artifacts outside Git/public contexts",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/OPENVIKING.md",
+      "docs/SECURITY.md",
+      "scripts/openviking_public.py"
+    ],
+    "acceptance": [
+      "Account A cannot export/delete B",
+      "deletion survives restart",
+      "artifacts outside Git/public contexts"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000097",
+    "project": "GatewayAI",
+    "title": "Add recovery evidence bundle validator",
+    "prompt": "Tie encrypted manifest/authenticated readback/restore transcript/service checks to one run/target identity. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Backup alone cannot pass restore; mismatched run IDs fail; production target cannot pass isolation",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/DISASTER_RECOVERY.md",
+      "docs/BACKUP_RESTORE.md",
+      "docs/LINUX_CORE.md",
+      "scripts/linux-recovery.py"
+    ],
+    "acceptance": [
+      "Backup alone cannot pass restore",
+      "mismatched run IDs fail",
+      "production target cannot pass isolation"
+    ],
+    "dependencies": [
+      "FUT-000063"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000098",
+    "project": "GatewayAI",
+    "title": "Add recovery send-disable configuration checks",
+    "prompt": "Require restored controller schedulers/publication/Telegram/provider sends held until identity and duplicate-work reconciliation completes. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Pending restored message cannot send early; stale leases cannot resume; explicit release audited",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/DISASTER_RECOVERY.md",
+      "docs/BACKUP_RESTORE.md",
+      "docs/LINUX_CORE.md",
+      "scripts/linux-recovery.py"
+    ],
+    "acceptance": [
+      "Pending restored message cannot send early",
+      "stale leases cannot resume",
+      "explicit release audited"
+    ],
+    "dependencies": [
+      "FUT-000097"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000099",
+    "project": "GatewayAI",
+    "title": "Add reverse-cutover preflight evidence checks",
+    "prompt": "Dry-run Linux-to-Windows reverse-cutover planner checks schema/version/storage/protected credential availability/rollback evidence. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Missing archive blocks readiness; planner changes no data; incompatible ledgers explicit failures",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/DISASTER_RECOVERY.md",
+      "docs/BACKUP_RESTORE.md",
+      "docs/LINUX_CORE.md",
+      "scripts/linux-recovery.py"
+    ],
+    "acceptance": [
+      "Missing archive blocks readiness",
+      "planner changes no data",
+      "incompatible ledgers explicit failures"
+    ],
+    "dependencies": [
+      "FUT-000097"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000100",
+    "project": "GatewayAI",
+    "title": "Add backup retention integrity inventory",
+    "prompt": "Read-only inventory validates backup hashes/decryptability receipts/referenced archives and summarizes age/coverage. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Missing archive marks incomplete; unreadable backup not counted recoverable; inventory never deletes",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/DISASTER_RECOVERY.md",
+      "docs/BACKUP_RESTORE.md",
+      "docs/LINUX_CORE.md",
+      "scripts/linux-recovery.py"
+    ],
+    "acceptance": [
+      "Missing archive marks incomplete",
+      "unreadable backup not counted recoverable",
+      "inventory never deletes"
+    ],
+    "dependencies": [
+      "FUT-000063"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000101",
+    "project": "GatewayAI",
+    "title": "Implement isolated Kubernetes worker Job renderer",
+    "prompt": "Render optional Job with non-root/read-only root/dropped capabilities/bounded emptyDir/no service-account token and approved image digest. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: No hostPath/Docker socket/production secret; missing digest rejects; rendering creates no cluster",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/KUBERNETES.md",
+      "docs/WORKER.md",
+      "docs/SECURITY.md",
+      "scripts/worker.py"
+    ],
+    "acceptance": [
+      "No hostPath/Docker socket/production secret",
+      "missing digest rejects",
+      "rendering creates no cluster"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000102",
+    "project": "GatewayAI",
+    "title": "Add worker network-policy fixture verification",
+    "prompt": "Validate default-deny worker egress fixtures for explicitly approved Git/model/artifact services, excluding production DB/admin networks. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Default deny required; exact namespace/pod labels tested; fixtures do not prove live CNI enforcement",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/KUBERNETES.md",
+      "docs/WORKER.md",
+      "docs/SECURITY.md",
+      "scripts/worker.py"
+    ],
+    "acceptance": [
+      "Default deny required",
+      "exact namespace/pod labels tested",
+      "fixtures do not prove live CNI enforcement"
+    ],
+    "dependencies": [
+      "FUT-000101"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000103",
+    "project": "GatewayAI",
+    "title": "Implement component installation plan preflight",
+    "prompt": "Add non-executing component plan builder validating dependency closure, configured ports, secret references and disk estimates before optional install. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Cycles/missing dependency block plan; below storage threshold denied; no images/models downloaded",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/COMPONENT_LIFECYCLE.md",
+      "docs/OPERATIONS.md",
+      "config/components.yaml"
+    ],
+    "acceptance": [
+      "Cycles/missing dependency block plan",
+      "below storage threshold denied",
+      "no images/models downloaded"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000104",
+    "project": "GatewayAI",
+    "title": "Implement component removal impact analysis",
+    "prompt": "Compute reverse dependencies and retained state/backup obligations before any component uninstall proposal; no automatic data deletion. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Active dependent blocks removal; volumes/credentials never default to delete; proposed impact lists exact components",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/COMPONENT_LIFECYCLE.md",
+      "docs/OPERATIONS.md",
+      "config/components.yaml"
+    ],
+    "acceptance": [
+      "Active dependent blocks removal",
+      "volumes/credentials never default to delete",
+      "proposed impact lists exact components"
+    ],
+    "dependencies": [
+      "FUT-000103"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000105",
+    "project": "GatewayAI",
+    "title": "Add component configuration drift reports",
+    "prompt": "Compare declared component registry, rendered configuration and bounded observed service facts without treating rendering as running state. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Missing service differs from config mismatch; secrets redacted; report never rewrites live settings",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/COMPONENT_LIFECYCLE.md",
+      "docs/OPERATIONS.md",
+      "config/components.yaml"
+    ],
+    "acceptance": [
+      "Missing service differs from config mismatch",
+      "secrets redacted",
+      "report never rewrites live settings"
+    ],
+    "dependencies": [
+      "FUT-000103"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000106",
+    "project": "GatewayAI",
+    "title": "Add storage growth guard projections",
+    "prompt": "Combine measured workspace/artifact/context/backup growth with configured critical free-space threshold and planned job estimates. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unknown capacity remains unknown; critical threshold holds optional work; projection does not delete retained evidence",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/COMPONENT_LIFECYCLE.md",
+      "docs/OPERATIONS.md",
+      "config/components.yaml"
+    ],
+    "acceptance": [
+      "Unknown capacity remains unknown",
+      "critical threshold holds optional work",
+      "projection does not delete retained evidence"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000107",
+    "project": "GatewayAI",
+    "title": "Add provider capability catalogue validation",
+    "prompt": "Define operator-reviewed capability metadata for context/output/tool support/data classes behind LiteLLM aliases; validate task needs before scheduling. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Unknown capability cannot be assumed; request cannot expand provider rights; provider model names are metadata not hardcoded authority",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/PROVIDERS.md",
+      "docs/PHASE2_POLICY.md",
+      "gateway/policy.py"
+    ],
+    "acceptance": [
+      "Unknown capability cannot be assumed",
+      "request cannot expand provider rights",
+      "provider model names are metadata not hardcoded authority"
+    ],
+    "dependencies": [],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000108",
+    "project": "GatewayAI",
+    "title": "Add conservative price-review expiry policy",
+    "prompt": "Add reviewed-at/source/expiry metadata for configured price ceilings and hold new cloud admissions when review is expired; use fake clocks/provider facts. Planned until a deterministic writable-file scope is admitted; synthetic fixtures only, no live activation. Verify: Expired price prevents new debit/call; local route unaffected by cloud expiry; new review never refunds old conservative debit",
+    "scope_id": "",
+    "priority": 3,
+    "evidence": [
+      "docs/PROVIDERS.md",
+      "docs/PHASE2_POLICY.md",
+      "gateway/policy.py"
+    ],
+    "acceptance": [
+      "Expired price prevents new debit/call",
+      "local route unaffected by cloud expiry",
+      "new review never refunds old conservative debit"
+    ],
+    "dependencies": [
+      "FUT-000012"
+    ],
+    "risk": "routine"
+  },
+  {
+    "id": "FUT-000109",
+    "project": "GatewayAI",
+    "title": "Record separate-host recovery acceptance",
+    "prompt": "On an explicitly approved clean target, rehearse authenticated backup recovery with archive completeness and isolated service checks; preserve source system. Keep planned until the named owner supplies target authorization/acceptance. No approval is inferred from this catalogue. Verify: Target identity and authorization recorded; same-host test cannot satisfy gate; RPO/RTO and unsent restored queues verified",
+    "scope_id": "",
+    "priority": 4,
+    "evidence": [
+      "docs/DISASTER_RECOVERY.md",
+      "docs/DEBIAN_CONTROL_PLANE.md",
+      "docs/INGRESS.md"
+    ],
+    "acceptance": [
+      "Target identity and authorization recorded",
+      "same-host test cannot satisfy gate",
+      "RPO/RTO and unsent restored queues verified"
+    ],
+    "dependencies": [
+      "FUT-000097",
+      "FUT-000098",
+      "FUT-000100"
+    ],
+    "risk": "needs_owner"
+  },
+  {
+    "id": "FUT-000110",
+    "project": "GatewayAI",
+    "title": "Record remote-client internal TLS acceptance",
+    "prompt": "With approved remote clients, verify configured internal hostnames, chain trust, VPN routing and per-app authentication without publishing admin/database services. Keep planned until the named owner supplies target authorization/acceptance. No approval is inferred from this catalogue. Verify: Phone and desktop evidence distinguished; no certificate warning bypass inferred; each application retains its authentication",
+    "scope_id": "",
+    "priority": 4,
+    "evidence": [
+      "docs/DISASTER_RECOVERY.md",
+      "docs/DEBIAN_CONTROL_PLANE.md",
+      "docs/INGRESS.md"
+    ],
+    "acceptance": [
+      "Phone and desktop evidence distinguished",
+      "no certificate warning bypass inferred",
+      "each application retains its authentication"
+    ],
+    "dependencies": [],
+    "risk": "needs_owner"
+  }
+]
