@@ -190,7 +190,10 @@ spending outside approved limits and other consequential actions.
 Status: STARTED / PARTIAL. The public code-only Graphify index and a read-only,
 fresh-Git query gate passed on VM9125. OpenViking public-main sync is timed and
 the operator controller's advisory read path is enabled and live smoke-tested;
-an actual reviewed model run and memory quality evaluation remain open. See
+one paid reviewer call with retrieved public context passed. Private WebUI admin
+text chats are now mirrored into isolated raw sessions; encrypted clean-guest
+restore passed on VM9127. Memory quality, derived-memory deletion and NAS/site
+loss recovery remain open. See
 BUILD_STATUS, GRAPHIFY and OPENVIKING for measured scope.
 
 Add context systems only after the controller can work correctly from Git alone.

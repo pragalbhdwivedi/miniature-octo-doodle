@@ -88,10 +88,8 @@ All three public-main tasks completed at SHA
 in-scope excerpts, and a controller adapter smoke test returned three hits and
 denied a mismatched SHA. Unit tests cover incomplete/stale tasks, failed tasks,
 out-of-scope results, controller prompt inclusion and Git-only fallback. An
-actual paid reviewer run with retrieved context has **not** been executed;
-this is activation and read-path evidence, not a quality claim. Open WebUI chats
-are not sent to OpenViking: freeform-chat data classification, separate account
-permissions and retention/deletion behavior require their own acceptance.
+actual paid reviewer run or WebUI chat capture was included in that first
+activation. The subsequent bounded acceptances are recorded below.
 
 The live script is `/opt/gatewayai-openviking/public.py`; the systemd units
 are copied from `deploy/openviking/`. Protected state stays in
@@ -100,9 +98,68 @@ are copied from `deploy/openviking/`. Protected state stays in
 needed. Controller source and config rollback copies are in the root-only
 `/var/lib/gatewayai-openviking/controller-rollback-20261001` directory.
 
-Never copy the workspace or credentials into Git or OneDrive. A recovery plan
-must capture the workspace, config, key/account receipts and the pinned model
-with an encrypted off-VM backup, then prove a separate clean-host restore before
-calling memory durable. Keep sensitive institutional content out until account
-isolation, retention and deletion behavior have been tested. A laptop outage
+Never copy the workspace or credentials into Git or OneDrive. The encrypted
+backup and clean-guest restore acceptance are recorded below. Keep sensitive
+institutional content out until derived-memory retention/deletion behavior has
+been tested. A laptop outage
 removes the VLM route; treat semantic processing as unavailable then.
+
+## Private WebUI capture and bounded review acceptance, 1 October 2026
+
+The owner selected automatic capture for all chats belonging to the existing
+Open WebUI administrator account. A dedicated OpenViking account
+`gatewayai-webui-admin` holds its own user key in the root-only VM file
+`/var/lib/gatewayai-openviking/webui-private.json`. This key is separate from
+the public `gatewayai/operator` key. No key or chat content is in Git.
+
+`scripts/openviking_webui_private.py` reads the existing WebUI SQLite volume
+**read-only** and mirrors the active text branch of every saved chat owned by
+that exact WebUI user into one OpenViking session per chat. It ignores other
+WebUI accounts and incomplete trailing user turns. A content digest makes
+repeat runs a no-op. Edits replace the mirrored session; deletion of a WebUI
+chat deletes its OpenViking session on the next successful sync. Oversized,
+non-text or malformed chats stop the sync visibly rather than silently dropping
+content. The VM-local systemd timer runs every two minutes; a root-only manifest
+tracks mirrored session IDs. This is **raw session capture**: auto-commit and
+long-term extraction are intentionally disabled because deletion of derived
+memories has not been proven. It does not inject private chats into cloud
+prompts or the coding reviewer. Archived WebUI branches, attachments and
+temporary unsaved chats are outside this tested text scope.
+
+The first live run mirrored five existing admin chats (60 messages). A second
+run reported no changes. All five sessions reported zero commits and zero
+extracted memories. A real mirror's read statuses were owner 200, public operator 404,
+root data key 403 and anonymous 401. A separate synthetic account test passed
+owner scoping, repeat no-op, changed-chat replacement and deleted-session 404.
+The private timer and oneshot service reported active/success. These tests
+establish account isolation for session reads and deletion of raw sessions;
+they do not establish isolation of extracted memories or private search.
+
+`scripts/openviking_review_acceptance.py` made one real, bounded LiteLLM
+reviewer request with three public exact-main OpenViking excerpts. A root-only
+reservation preceded HTTP; the conservative debit was $0.453800 under a $1
+one-shot limit. At source SHA `3e8672b8412d2084fbd145bf6f42cb842ad90ffd`,
+the synthetic correct candidate received `approve` with zero findings and
+3,662 total tokens. Receipt and advisory digest are root-only under
+`/var/lib/gatewayai-openviking/review-acceptance-20261001`. This validated the
+retrieved-context reviewer call, not the full worker or PR publication path.
+
+## Recovery boundary
+
+An encrypted, consistent 243 MiB archive of the OpenViking workspace, keys,
+configuration, public index, private sessions and embedding model is
+stored outside Git and OneDrive at
+`%USERPROFILE%\creds\gatewayai-openviking-20261001.tar.gz.gpg`. Its recovery
+passphrase is in the separate protected file
+`%USERPROFILE%\creds\gatewayai-openviking-recovery-20261001.pass`.
+The test target is clean Ubuntu VM9127, documented in the Git-excluded
+`VM_NOTES/9127-gatewayai-memory-restore.md`. The recovery Compose file has no
+provider-egress network, no published port and no restart policy. GPG archive
+authentication and tar listing passed before extraction. The restored v0.4.22
+service returned three authenticated public search hits from the archived
+exact-main index and retained all five private chat sessions. A private session
+returned owner 200, public operator 404, root 403 and anonymous 401. The local
+embedding model was present. The test containers were stopped afterward.
+The source and target VMs share the same NAS backend, so this test does not
+prove recovery after NAS/site loss. Full-core Phase 5 recovery/cutover remains
+separate. See BUILD_STATUS for the measured acceptance.

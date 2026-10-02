@@ -1,0 +1,11 @@
+[Unit]
+Description=Synchronize private Open WebUI chats to OpenViking
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+Persistent=true
+Unit=gatewayai-openviking-webui-private.service
+
+[Install]
+WantedBy=timers.target
