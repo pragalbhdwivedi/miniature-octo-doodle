@@ -39,6 +39,9 @@ def select_route(decision, allowed, deterministic, *, calibrated=False, threshol
         raise ValueError("Deterministic route must already be allowed")
     if not calibrated:
         return deterministic, "live_calibration_pending"
+    if (type(threshold) not in (int, float) or isinstance(threshold, bool)
+            or not 0 <= threshold <= 1 or not math.isfinite(threshold)):
+        return deterministic, "invalid_threshold"
     if not isinstance(decision, dict) or set(decision) != {"route", "confidence", "in_domain"}:
         return deterministic, "malformed_or_unavailable"
     confidence = decision["confidence"]
