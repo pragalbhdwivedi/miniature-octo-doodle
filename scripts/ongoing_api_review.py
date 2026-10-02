@@ -79,7 +79,7 @@ def reserve(path,request_id,body_hash,day,debit,cap):
 def validate_response(response,expected):
     model=response.get('model','')
     base=expected.removeprefix('openai/')
-    if not isinstance(model,str) or not re.fullmatch(re.escape(base)+r'(?:-[0-9]{4}-[0-9]{2}-[0-9]{2})?',model):
+    if not isinstance(model,str) or (model!='review' and not re.fullmatch(re.escape(base)+r'(?:-[0-9]{4}-[0-9]{2}-[0-9]{2})?',model)):
         raise ReviewError('Response model differs from admitted OpenAI model')
     choices=response.get('choices')
     if not isinstance(choices,list) or len(choices)!=1 or choices[0].get('finish_reason')!='stop':
@@ -101,7 +101,7 @@ def validate_response(response,expected):
     return value,model,counts
 
 
-def run(config,request,*,transport=gateway.request_json,load=gateway.private_config,clock=None):
+def run(config,request,*,transport=gateway.request_json,load=gateway.private_config,clock=None,reconcile=False):
     creds=load(config['gateway_config'])
     if (set(creds)!={'gateway_url','gateway_key','policy_file'}
             or not re.fullmatch(r'http://127\.0\.0\.1:[0-9]{1,5}',creds['gateway_url'])
@@ -117,8 +117,18 @@ def run(config,request,*,transport=gateway.request_json,load=gateway.private_con
         raise ReviewError('Absolute non-symlink local ledger required')
     ledger.parent.mkdir(parents=True,exist_ok=True)
     fingerprint=digest({'request':request,'body':body,'expected_model':config['expected_model']})
-    receipt=reserve(ledger,request['request_id'],fingerprint,day,debit,config['daily_token_cap'])
-    if receipt is not None:return receipt
+    saved=None
+    if reconcile:
+        # Explicit operator recovery of received evidence, never a new call.
+        with closing(sqlite3.connect(ledger,timeout=10)) as db:
+            row=db.execute('SELECT body_hash,state,receipt,day,reserved_tokens FROM reviews WHERE id=?',
+                           (request['request_id'],)).fetchone()
+        if not row or row[0]!=fingerprint or row[1]!='received':
+            raise ReviewError('No matching received response for offline reconciliation')
+        saved=json.loads(row[2])['raw_response'];day,debit=row[3],row[4]
+    else:
+        receipt=reserve(ledger,request['request_id'],fingerprint,day,debit,config['daily_token_cap'])
+        if receipt is not None:return receipt
     # Reservation persists before network I/O. All failures retain it, including
     # malformed output, truncated responses, timeouts and uncertain delivery.
     previous=None
@@ -126,19 +136,22 @@ def run(config,request,*,transport=gateway.request_json,load=gateway.private_con
     if hasattr(signal,'SIGALRM'):
         previous=signal.signal(signal.SIGALRM,expired);signal.alarm(100)
     try:
-        response=transport(creds['gateway_url']+'/v1/chat/completions',creds['gateway_key'],body)
+        response=saved if reconcile else transport(creds['gateway_url']+'/v1/chat/completions',creds['gateway_key'],body)
         # Retain the received bytes before parsing; a failed parser must never
         # force another provider call just to discover the response's model or
         # finish reason. Protected ledger only, never public logs.
         with closing(sqlite3.connect(ledger,timeout=10)) as db,db:
             db.execute('UPDATE reviews SET state=?,receipt=? WHERE id=? AND body_hash=? AND state=?',
                 ('received',json.dumps({'raw_response':response}),request['request_id'],fingerprint,'reserved'))
+        validate(config,request,load(creds['policy_file']))
         value,model,usage=validate_response(response,config['expected_model'])
         if usage['total_tokens']>debit or usage['completion_tokens']>config['max_output_tokens']:
             raise ReviewError('Observed usage exceeds token reservation; reconcile before further calls')
         receipt={'candidate':value,'candidate_sha256':request['candidate_sha256'],
             'request_id':request['request_id'],'response_id':response.get('id'),
-            'route':{'provider':'openai_api_via_gateway','model':model,'stage':'review','api_fallback':False},
+            'route':{'provider':'openai_api_via_gateway','model':config['expected_model'].removeprefix('openai/') if model=='review' else model,
+                     'returned_model':model,'model_basis':'gateway_policy' if model=='review' else 'provider_response',
+                     'stage':'review','api_fallback':False},
             'usage':{'status':'observed','input_tokens':usage['prompt_tokens'],'output_tokens':usage['completion_tokens'],
                      'total_tokens':usage['total_tokens']},
             'budget':{'utc_day':day,'reserved_tokens':debit,'daily_token_cap':config['daily_token_cap'],
@@ -154,13 +167,14 @@ def run(config,request,*,transport=gateway.request_json,load=gateway.private_con
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--config',type=Path,required=True)
+    parser.add_argument('--reconcile',action='store_true',help='Validate a retained response offline; never call a model')
     args=parser.parse_args()
     if os.name!='posix' or os.geteuid()!=0:raise ReviewError('Linux operator only')
     os.umask(0o077)
     config=gateway.private_config(args.config)
     raw=sys.stdin.buffer.read(32769)
     if len(raw)>32768:raise ReviewError('Request size limit')
-    print(json.dumps(run(config,json.loads(raw))))
+    print(json.dumps(run(config,json.loads(raw),reconcile=args.reconcile)))
 
 
 if __name__=='__main__':

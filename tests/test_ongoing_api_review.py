@@ -121,3 +121,24 @@ class ApiReviewTests(unittest.TestCase):
         self.assertEqual(json.loads(receipt)['raw_response'],self.response)
         with self.assertRaisesRegex(api.ReviewError,'uncertain'):self.run_review()
         self.assertEqual(self.transport.call_count,1)
+
+    def test_gateway_alias_reports_policy_basis_not_provider_observation(self):
+        self.response['model']='review'
+        result=self.run_review()
+        self.assertEqual(result['route']['model'],'gpt-5.4-mini')
+        self.assertEqual(result['route']['returned_model'],'review')
+        self.assertEqual(result['route']['model_basis'],'gateway_policy')
+
+    def test_explicit_received_reconciliation_never_calls_provider(self):
+        body,debit=api.validate(self.config,self.request,self.policy)
+        fingerprint=api.digest({'request':self.request,'body':body,'expected_model':self.config['expected_model']})
+        api.reserve(Path(self.config['ledger_path']),self.request['request_id'],fingerprint,'2026-10-01',debit,20000)
+        with closing(sqlite3.connect(self.config['ledger_path'])) as db,db:
+            db.execute('UPDATE reviews SET state=?,receipt=?',('received',json.dumps({'raw_response':self.response})))
+        result=api.run(self.config,self.request,transport=self.transport,
+            load=lambda path:self.creds if path=='protected.json' else self.policy,reconcile=True)
+        self.transport.assert_not_called()
+        self.assertEqual(result['budget']['utc_day'],'2026-10-01')
+        self.assertEqual(result['candidate']['verdict'],'pass')
+        self.assertEqual(self.run_review(),result)
+        self.transport.assert_not_called()

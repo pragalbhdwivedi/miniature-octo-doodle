@@ -43,7 +43,11 @@ Input JSON has exactly `request_id`, `prompt`, `data_class` (public/synthetic)
 and `candidate_sha256`. Prompt text is bounded to 24 KB. Output is capped at
 1024 tokens; the response must be complete JSON with pass/repair, findings,
 confidence and confidence reason. Tool calls, refusals, model drift and missing
-or inconsistent usage cannot produce acceptance.
+or inconsistent usage cannot produce acceptance. LiteLLM may return the alias
+`review` in its response. The receipt then identifies the configured OpenAI model
+with `model_basis: gateway_policy` and preserves `returned_model: review`; it does
+not fabricate an observed provider snapshot model. The policy is checked before
+and after the call.
 
 ## Daily accounting and recovery
 
@@ -65,6 +69,8 @@ This adapter is implemented and tested independently. Enabling it in the ongoing
 worker requires separate deployment/configuration and evidence that its selected
 model belongs to the owner's intended allowance. Code review remains distinct
 from running the isolated acceptance suite and from GitHub integration review.
+An explicit operator `--reconcile` invocation can validate a retained response
+offline against the exact request fingerprint. It never performs network inference.
 
 References: [OpenAI API limits](https://developers.openai.com/api/docs/guides/rate-limits)
 and [Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
