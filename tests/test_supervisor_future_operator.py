@@ -120,6 +120,44 @@ class FutureOperatorTests(unittest.TestCase):
         self.run.assert_not_called()
         self.assertEqual(self.s['ongoing']['calls'], 0)
 
+    def test_proposal_cannot_cite_test_file_omitted_from_planner_context(self):
+        self.receipt['candidate']['tasks'][0]['evidence'] = ['tests/test_app.py']
+        self.assertEqual(self.tick()['state'], 'failed_evidence_retained')
+        prompt = self.run.call_args.args[1]
+        self.assertNotIn('tests/test_app.py', prompt)
+        self.assertNotIn('# immutable tests', prompt)
+        self.assertEqual(self.s['supervision']['future']['tasks'], [])
+        self.assertFalse(list(self.root.glob('future-*/result.json')))
+        self.assertFalse(any(r['action'] == 'ongoing_future_finish' for r in self.calls))
+        self.tick()
+        self.assertEqual(self.run.call_count, 1)
+
+    def test_proposal_cannot_cite_oversized_file_omitted_from_planner_context(self):
+        self.source['files']['src/oversized.py'] = '# omitted large source\n' + 'x' * 12001
+        self.profiles['gateway-routes']['paths'].append('src/oversized.py')
+        self.receipt['candidate']['tasks'][0]['evidence'] = ['src/oversized.py']
+        self.assertEqual(self.tick()['state'], 'failed_evidence_retained')
+        prompt = self.run.call_args.args[1]
+        self.assertNotIn('src/oversized.py', prompt)
+        self.assertNotIn('# omitted large source', prompt)
+        self.assertEqual(self.s['supervision']['future']['tasks'], [])
+        self.assertFalse(list(self.root.glob('future-*/result.json')))
+        self.assertFalse(any(r['action'] == 'ongoing_future_finish' for r in self.calls))
+
+    def test_no_visible_writable_source_holds_without_running_ownership(self):
+        for files, writable in (({}, ['src/app.py']),
+                ({'src/app.py': 'x' * 12001, 'src/helper.py': 'PUBLIC_HELPER = 1\n'}, ['src/app.py']),
+                ({'src/helper.py': 'PUBLIC_HELPER = 1\n', 'tests/test_app.py': '# test only\n'}, ['tests/test_app.py'])):
+            with self.subTest(writable=writable, paths=list(files)):
+                self.source['files'] = files
+                self.profiles['gateway-routes'].update(paths=list(files), write_paths=writable)
+                self.assertEqual(self.tick()['state'], 'source_busy')
+                self.assertEqual(self.s['supervision']['future']['generation']['state'], 'pending')
+                self.assertEqual(self.s['ongoing']['calls'], 0)
+                self.assertFalse(any(r['action'] == 'ongoing_future_begin' for r in self.calls))
+                self.prepare.assert_not_called()
+                self.run.assert_not_called()
+
     def test_pause_and_resume_retain_request_without_implicit_coding(self):
         self.s['ongoing']['enabled'] = False
         self.assertEqual(self.tick()['state'], 'paused')
