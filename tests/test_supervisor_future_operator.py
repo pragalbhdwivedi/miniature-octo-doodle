@@ -54,6 +54,11 @@ class FutureOperatorTests(unittest.TestCase):
         self.refresh = self.patch('admission.refresh_source', return_value=True)
         self.prepare = self.patch('native.prepare', return_value=self.route)
         self.run = self.patch('native.run', side_effect=lambda *a, **k: copy.deepcopy(self.receipt))
+        review_patch = patch('supervisor_future_review.review', side_effect=lambda executable, context, proposals, directory, route: {
+            'proposals': copy.deepcopy(proposals), 'accepted': list(range(len(proposals))),
+            'rejected': [], 'route': {'model': 'independent-review-model'}})
+        self.review = review_patch.start()
+        self.addCleanup(review_patch.stop)
 
     def patch(self, name, **kwargs):
         patcher = patch('supervisor_future_operator.' + name, **kwargs)
@@ -82,7 +87,7 @@ class FutureOperatorTests(unittest.TestCase):
     def test_success_records_actual_planner_model_without_coding_authority(self):
         self.tick()
         self.assertEqual(self.s['supervision']['future']['generation']['model'], self.route['model'])
-        self.assertEqual(self.s['ongoing']['calls'], 1)
+        self.assertEqual(self.s['ongoing']['calls'], 2)
         self.assertEqual(self.s['ongoing']['jobs'], [])
         self.assertEqual(self.s['supervision']['intake'], [])
         self.worker.run.assert_not_called()
@@ -93,6 +98,17 @@ class FutureOperatorTests(unittest.TestCase):
         self.assertEqual(kwargs['schema'], operator.SCHEMA)
         self.assertIn(self.source['sha'], args[1])
         self.assertEqual(len(list(self.root.glob('future-*/result.json'))), 1)
+
+    def test_only_independently_accepted_proposals_reach_finish(self):
+        self.receipt['candidate']['tasks'].append({**proposal(), 'title': 'Already implemented boolean guard'})
+        self.review.side_effect = lambda executable, context, proposals, directory, route: {
+            'proposals': [copy.deepcopy(proposals[0])], 'accepted': [0],
+            'rejected': [{'index': 1, 'reason': 'Exact type excludes bool already.'}],
+            'route': {'model': 'independent-review-model'}}
+        self.tick()
+        finished = next(r for r in self.calls if r['action'] == 'ongoing_future_finish')
+        self.assertEqual(finished['proposals'], [proposal()])
+        self.assertEqual(len(self.s['supervision']['future']['tasks']), 1)
 
     def test_quota_preflight_wait_does_not_claim_or_repeat_before_reset(self):
         reset = (self.now + timedelta(hours=1)).isoformat()
@@ -105,7 +121,7 @@ class FutureOperatorTests(unittest.TestCase):
         self.assertEqual(self.s['supervision']['future']['generation']['state'], 'pending')
 
     def test_budget_or_live_lease_denies_model_call(self):
-        for field, value in [('calls', 10), ('lease', {'stage': 'coding'})]:
+        for field, value in [('calls', 9), ('calls', 10), ('lease', {'stage': 'coding'})]:
             with self.subTest(field=field):
                 self.s['ongoing'].update(calls=0, lease=None)
                 self.s['ongoing'][field] = value
@@ -168,6 +184,7 @@ class FutureOperatorTests(unittest.TestCase):
         self.assertEqual(self.s['ongoing']['jobs'], [])
 
     def test_unknown_scope_evidence_or_authority_fails_without_replay(self):
+        self.s['ongoing']['policy']['max_calls_per_day'] = 40
         for change in ({'scope_id': 'host-shell'}, {'evidence': ['private/credentials']},
                        {'project': 'AADI'}, {'dependencies': ['FUT-000001']}, {'risk': 'needs_owner'},
                        {'priority': True}, {'acceptance': []}, {'command': 'execute something'}):
@@ -190,14 +207,14 @@ class FutureOperatorTests(unittest.TestCase):
         self.assertEqual(self.tick()['state'], 'failed_evidence_retained')
         self.tick()
         self.assertEqual(self.run.call_count, 1)
-        self.assertEqual(self.s['ongoing']['calls'], 1)
+        self.assertEqual(self.s['ongoing']['calls'], 2)
 
     def test_running_without_saved_result_never_restarts_native(self):
         runtime.rpc(self.s, {'action': 'ongoing_future_begin', 'request_id': 'manual-one'})
         self.assertEqual(self.tick()['state'], 'running_evidence_retained')
         self.prepare.assert_not_called()
         self.run.assert_not_called()
-        self.assertEqual(self.s['ongoing']['calls'], 1)
+        self.assertEqual(self.s['ongoing']['calls'], 2)
 
     def test_existing_native_intent_prevents_duplicate_inference(self):
         directory = self.root / ('future-' + operator.github.digest('manual-one')[:24])
@@ -212,7 +229,7 @@ class FutureOperatorTests(unittest.TestCase):
         self.tick()
         self.assertEqual(self.s['supervision']['future']['generation']['state'], 'completed')
         self.assertEqual(self.s['supervision']['future']['tasks'], [])
-        self.assertEqual(self.s['ongoing']['calls'], 1)
+        self.assertEqual(self.s['ongoing']['calls'], 2)
 
     def test_saved_result_recovery_uses_zero_additional_model_calls(self):
         self.fail_finish = 'before'
@@ -226,7 +243,7 @@ class FutureOperatorTests(unittest.TestCase):
         self.prepare.assert_not_called()
         self.run.assert_not_called()
         self.assertEqual(self.s['supervision']['future']['generation']['state'], 'completed')
-        self.assertEqual(self.s['ongoing']['calls'], 1)
+        self.assertEqual(self.s['ongoing']['calls'], 2)
 
     def test_committed_completion_with_lost_response_is_not_new_generation(self):
         self.fail_finish = 'after'
