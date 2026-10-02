@@ -216,6 +216,20 @@ class PolicyTests(unittest.TestCase):
         with self.ledger.connect() as db:
             self.assertEqual(db.execute('SELECT outcome FROM attempts WHERE ordinal=1').fetchone()[0], 'stream_incomplete')
 
+    def test_normalize_choice_rejects_boolean_confidence(self):
+        allowed = ["coding-fast", "coding-standard"]
+        valid_answer = {
+            "type": "choice",
+            "choice": "coding-fast",
+            "probabilities": {"coding-fast": 0.95, "coding-standard": 0.05},
+            "confidence": 0.9,
+        }
+        self.assertIsNotNone(normalize_choice({"answers": {"route": valid_answer}}, allowed))
+        for bad_confidence in (True, False):
+            with self.subTest(confidence=bad_confidence):
+                bad_answer = dict(valid_answer, confidence=bad_confidence)
+                self.assertIsNone(normalize_choice({"answers": {"route": bad_answer}}, allowed))
+
 
 if __name__ == "__main__":
     unittest.main()
