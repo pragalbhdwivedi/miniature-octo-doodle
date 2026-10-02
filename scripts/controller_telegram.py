@@ -89,7 +89,7 @@ def request_approval(store,root,row,config,transport=None):
     approval_id=secrets.token_hex(16)
     t=validate_config(d.private_json(Path(config['telegram_approval_config'])))
     record=store.request_approval(approval_id,root['run_id'],digest,t['user_id'],t['chat_id'],900)
-    message=('GatewayAI draft PR approval\nRun: '+root['run_id']+'\nSource: '+receipt['source_sha']+
+    message=('Please review this proposed draft pull request. Approving publishes a draft for review; it does not merge or deploy. Use the pilot menu for readable Inputs and Outputs.\n\nTechnical receipt (binds your approval to these exact bytes):\nRun: '+root['run_id']+'\nSource: '+receipt['source_sha']+
              '\nArtifact: '+receipt['artifact_sha256']+'\nReceipt: '+digest+'\nExpires in 15 minutes.')
     markup={'inline_keyboard':[[
         {'text':'Approve draft PR','callback_data':callback(t,approval_id,'approve',digest)},
@@ -183,8 +183,10 @@ def main():
             root=store.get(args.run_id);row=store.pipeline(args.run_id)
             result=request_approval(store,root,row,config)
         elif args.action=='poll':
-            result={'decisions':poll_once(store,d.private_json(Path(config['telegram_approval_config'])),
-                                          runtime/'telegram-offset.json')}
+            with (runtime/'telegram-consumer.lock').open('a') as consumer_lock:
+                fcntl.flock(consumer_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                result={'decisions':poll_once(store,d.private_json(Path(config['telegram_approval_config'])),
+                                              runtime/'telegram-offset.json')}
         else:
             if not re.fullmatch('[a-f0-9]{32}',args.approval_id or ''):raise ValueError('Approval ID required')
             row=store.approval(args.approval_id)

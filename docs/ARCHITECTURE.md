@@ -1,5 +1,29 @@
 # Architecture
 
+[Continuous supervision](SUPERVISOR_CONTROL.md) adds a board over the existing
+VM ledger. A bounded observer reconciles exact GitHub PR evidence and admits
+operator-defined roadmap recipes. Local Qwen derives prompts and answers task
+questions; immutable scope and execution authority remain deterministic. Project
+workers use separate source trees and publication ledgers. The internal no-login
+HTTP surface exposes task controls only through explicit network allowlists and
+same-origin protections. It does not expose worker credentials or a host shell.
+
+New development tasks follow [assigned-subtask coordination](ONGOING_COORDINATION.md).
+The VM owns durable stage leases, task dependencies and budgets. Qwen orders the
+admitted catalog; three separate owner slots support Codex, Antigravity native
+CLI and local Devstral proposals. Immutable shared context is allowed, writable
+files are disjoint. The operator runs isolated tests and a fresh compact review,
+then publishes a separate draft PR. This optional subscription/local development
+lane does not replace the canonical LiteLLM application gateway.
+
+The [Telegram pilot](TELEGRAM_PILOT.md) adds VM-owned parent task reservations around the existing laptop coordination lane. The laptop remains a delegated operator worker; local Qwen is advisory. Telegram approvals bind the batch scope and exact publication result. Signed question buttons bind fixed answers or Custom text capture to one pending question. Operator-only saved-proposal recovery preserves source/candidate integrity and requires fresh isolated tests and independent review; it cannot generate new coder runs.
+
+The optional desktop subscription lane now supports
+[unattended delivery of operator-admitted tasks](CODER_SCHEDULING.md) through
+Antigravity's built-in sidecar scheduler. Its durable delivery reservation and
+exact-task claim use the existing local ledger. This is separate from the VM
+controller and grants no automatic admission, source execution or publication.
+
 ## Canonical target
 
 ```text
@@ -46,6 +70,14 @@
 ```
 
 ## Architectural roles
+
+The optional [local subscription coordination lane](CODER_COORDINATION.md)
+uses operator-admitted AADI Dev packets, a private SQLite ownership ledger,
+Antigravity Gemini, installed signed-in Codex and local Qwen advice. It has no
+test execution or publication authority and does not share ownership with the
+VM controller. The disabled VM AADI adapter must remain disabled until private
+transport and a single cross-lane ownership mechanism are accepted. LiteLLM
+remains the canonical gateway for the separate controller/API architecture.
 
 ### Git/GitHub
 Canonical source code and project history.
@@ -120,6 +152,15 @@ It requires no additional service/image. Jev live execution remains disabled;
 only its offline decision contract is tested. See [ADR 0007](adr/0007-phase2-local-policy-ledger.md).
 
 ## Core principle
+
+An optional [desktop handoff](DESKTOP_AGENTS.md) accepts proposals authored in
+ChatGPT Work or Gemini for exact public-main files and reuses local Qwen advisory
+review. It cannot dispatch the VM worker, edit source, publish or merge. Desktop
+subscription sessions are not LiteLLM API credentials. The optional stdio MCP
+adapter automates proposal transfer to the existing local-only Qwen review path.
+It fixes the source checkout and model at operator startup, exposes no shell,
+and cannot invoke the VM controller. MCP findings return to the calling coding
+client, so only public/synthetic tasks and candidates are permitted.
 Document the full architecture now, install components only when they are needed and disk capacity allows it.
 
 ## Phase 1 implementation boundary

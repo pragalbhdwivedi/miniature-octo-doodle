@@ -14,6 +14,11 @@ Before making changes:
 ## Source of truth
 GitHub is the source of truth for current project state. Do not rely on old chat context when repository state disagrees.
 
+## Desktop coding contributors
+For ChatGPT Work/Gemini handoffs, read `docs/DESKTOP_AGENTS.md`. Assign one owner
+per task and separate worktrees for edits. The local Qwen supervisor gives advice;
+it does not grant merge, deployment, credential or private-source permissions.
+
 ## Change discipline
 - Prefer small, reviewable changes.
 - Preserve history.

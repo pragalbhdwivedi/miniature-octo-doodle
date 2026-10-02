@@ -1,7 +1,27 @@
 # miniature-octo-doodle
 
+[Continuous task supervision](docs/SUPERVISOR_CONTROL.md) now tracks both
+projects with task IDs, audited Markdown queues, roadmap subtasks, PR corrections,
+Telegram conversation and an internal no-login control page linked from dash.
+The executable scope remains admitted synthetic tests and reviewed draft PRs.
+
+New work uses [assigned-subtask coordination](docs/ONGOING_COORDINATION.md):
+Qwen orders admitted work; Codex, the official Antigravity CLI and an installed
+local Devstral coder own separate tasks. Routine decisions, isolated checks and
+draft PR publication are delegated. Integration and destructive actions remain
+owner decisions. Model selection considers task size and shared quota groups.
+
+The bounded [Telegram coordination pilot](docs/TELEGRAM_PILOT.md) adds readable controls, immediate button acknowledgements, durable VM ownership, and a delegated laptop worker. Publication remains an exact-result owner decision. The three-task recovery has completed and published after Telegram approval. Questions now offer fixed-answer buttons and Custom text capture.
+
 A modular, self-hosted AI development platform, developed on Windows + WSL2 with
 a dedicated Linux control-plane VM now hosting the live gateway.
+
+The optional [local two-coder handoff](docs/CODER_COORDINATION.md) connects an
+operator-admitted AADI task in Antigravity to independent Codex generation and
+local Qwen comparison. It produces review artifacts; source application, isolated
+tests and publication remain separate steps. The optional
+[unattended queue schedule](docs/CODER_SCHEDULING.md) delivers each admitted task
+once while Antigravity is running.
 
 This repository is the permanent source of truth for the platform. It is designed to start lean on a laptop with limited free disk space, while preserving a documented path to a larger multi-agent coding system.
 
@@ -77,6 +97,10 @@ No optional component may be downloaded merely because it appears in the archite
 The control plane deliberately separates **authority**, **decision intelligence**, and **model execution**: deterministic policy decides what is permitted; Jev may help choose among already-permitted routes; LiteLLM executes the approved provider/model route. A Jev or LLM result cannot grant itself broader access.
 
 ## Source-of-truth rule
+
+For ChatGPT Work/Gemini proposals and local Qwen review, including the Antigravity
+MCP connection, see [desktop agents](docs/DESKTOP_AGENTS.md). This does not enable
+unattended desktop control or replace the VM controller.
 
 Repository files and Git history are authoritative for this project. Chat history is not.
 

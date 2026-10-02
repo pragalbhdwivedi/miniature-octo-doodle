@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f4f6fa">
+  <title>AADI · Task control</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to tasks</a>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="AADI task control home"><span class="brand-mark">A</span><span>AADI<small>TASK CONTROL</small></span></a>
+    <div class="workspace-label">YOUR WORKSPACE</div>
+    <nav aria-label="Workspace">
+      <a class="nav-item active" href="#board"><span aria-hidden="true">▦</span> Work board <span class="nav-count" id="navCount">—</span></a>
+      <button class="nav-item" id="openGuides"><span aria-hidden="true">▤</span> Task records</button>
+      <a class="nav-item" href="http://dash.aadi.dgoi.local/"><span aria-hidden="true">↗</span> All services</a>
+    </nav>
+    <section class="sidebar-note"><span class="small-dot" aria-hidden="true"></span><strong>One place to stay in control</strong><p>Follow the work, ask a question, and give the next direction.</p></section>
+    <div class="network-note"><span class="network-icon" aria-hidden="true">⌂</span><div>Internal workspace<small>No separate sign-in needed</small></div></div>
+  </aside>
+
+  <main id="main">
+    <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> Task control</div><div class="connection"><span class="small-dot" id="connectionDot" aria-hidden="true"></span><span id="connectionLabel">Connecting…</span></div></header>
+    <section class="page-heading">
+      <div><p class="eyebrow">SUPERVISOR WORKSPACE</p><h1>Your work, in motion.</h1><p class="subtitle">A clear view of what is happening, what needs you, and what comes next.</p></div>
+      <button class="button primary" id="openAdd"><span aria-hidden="true">＋</span> Add a task</button>
+    </section>
+
+    <div class="notice error-notice" id="connectionError" role="status" hidden></div>
+    <section class="summary" aria-label="Work summary">
+      <button class="summary-card" data-summary="working"><span class="metric-label"><span class="metric-symbol blue" aria-hidden="true">↗</span> In progress</span><strong id="metricWorking">—</strong><span class="metric-detail">Coding, testing, and verification</span></button>
+      <button class="summary-card" data-summary="review"><span class="metric-label"><span class="metric-symbol violet" aria-hidden="true">◈</span> Ready for review</span><strong id="metricReview">—</strong><span class="metric-detail">Results ready for your attention</span></button>
+      <button class="summary-card" data-summary="blocked"><span class="metric-label"><span class="metric-symbol amber" aria-hidden="true">!</span> Needs attention</span><strong id="metricBlocked">—</strong><span class="metric-detail">A question or blocker to resolve</span></button>
+      <button class="summary-card" data-summary="done"><span class="metric-label"><span class="metric-symbol green" aria-hidden="true">✓</span> Reviewed or merged</span><strong id="metricDone">—</strong><span class="metric-detail">Work that has reached a checkpoint</span></button>
+    </section>
+
+    <section class="work-area" id="board" aria-labelledby="boardTitle">
+      <div class="section-heading"><div><h2 id="boardTitle">Work board <span id="totalTasks" class="count-pill">—</span></h2><p>Open a task for its instructions, confidence scores, and controls.</p></div><div class="board-actions"><span id="supervisorStatus" class="supervisor-status">Checking supervisor…</span><button class="button secondary compact" id="globalToggle" data-write disabled>Pause work</button><button class="button icon-button" id="refresh" aria-label="Refresh tasks" title="Refresh tasks"><span aria-hidden="true">↻</span></button></div></div>
+      <div class="filters">
+        <label class="search-field"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Find a task, owner, or project" autocomplete="off" aria-label="Search tasks"></label>
+        <label class="select-field"><span class="sr-only">Project</span><select id="projectFilter"><option value="all">All projects</option><option value="AADI">AADI</option><option value="GatewayAI">GatewayAI</option></select></label>
+        <label class="select-field"><span class="sr-only">Stage</span><select id="stageFilter"><option value="all">All stages</option><option value="queued">Queued</option><option value="working">Working</option><option value="review">PR review ready</option><option value="changes">Changes requested</option><option value="reviewed">Reviewed</option><option value="merged">Merged</option><option value="blocked">Blocked</option><option value="attention">Needs attention</option><option value="done">Reviewed or merged</option></select></label>
+        <button class="text-button" id="clearFilters" hidden>Clear filters</button>
+      </div>
+      <div class="board-note"><span id="filterCount">Loading your tasks…</span><span class="scroll-hint">Scroll across to see every stage <span aria-hidden="true">→</span></span></div>
+      <div class="kanban" id="taskBoard" aria-label="Tasks by stage" tabindex="0"><div class="loading-state"><span class="spinner" aria-hidden="true"></span><p>Getting your latest work…</p></div></div>
+      <div class="empty-results" id="emptyResults" hidden><span aria-hidden="true">⌕</span><h3>No matching tasks</h3><p>Try a different search or clear your filters.</p><button class="button secondary" id="emptyClear">Clear filters</button></div>
+    </section>
+
+    <section class="activity-section" aria-labelledby="activityTitle"><div class="section-heading"><div><h2 id="activityTitle">Latest activity</h2><p>The latest updates from your supervisor.</p></div><span class="muted small">Updates every 15 seconds</span></div><ol class="activity-list" id="activityList"><li class="muted">Activity will appear here once connected.</li></ol></section>
+    <footer><span>AADI · Task control</span><span id="lastUpdated">Waiting for a connection</span><span>Available on your internal network</span></footer>
+  </main>
+
+  <div id="announcements" class="toast-region" aria-live="polite" aria-atomic="false"></div>
+
+  <dialog class="task-dialog" id="taskDialog" aria-labelledby="detailTitle">
+    <div class="dialog-top"><span id="detailId" class="task-id"></span><button class="close-button" data-close="taskDialog" aria-label="Close task details">×</button></div>
+    <div class="detail-heading"><div class="detail-pills"><span id="detailProject" class="project-pill"></span><span id="detailStage" class="stage-pill"></span><span id="detailPaused" class="paused-pill" hidden>Paused</span></div><h2 id="detailTitle">Task details</h2><div class="detail-meta" id="detailMeta"></div><a class="button secondary" id="detailPr" target="_blank" rel="noopener noreferrer" hidden>Open pull request <span aria-hidden="true">↗</span></a></div>
+    <div class="detail-body">
+      <section id="detailExecution" hidden><h3 id="detailExecutionTitle">Current step</h3><p id="detailExecutionText" class="prompt-text"></p></section>
+      <div class="notice error-notice" id="detailError" hidden></div>
+      <section><h3>Who is working on it</h3><div class="model-grid"><div><span class="field-caption">CODER</span><strong id="detailCoder">Not assigned</strong><span id="detailCoderConfidence" class="confidence-text">Not assessed</span></div><div><span class="field-caption">REVIEWER</span><strong id="detailReviewer">Not assigned</strong><span id="detailReviewerConfidence" class="confidence-text">Not assessed</span></div></div><p id="confidenceReason" class="explanation" hidden></p></section>
+      <section><h3>Your instructions</h3><p id="detailPrompt" class="prompt-text"></p></section>
+      <section id="detailTests" hidden><h3>Recorded checks</h3><p id="detailTestsText" class="prompt-text"></p></section>
+      <section id="savedReview" hidden><h3>Latest review note</h3><p id="savedReviewText" class="prompt-text"></p><p id="savedReviewDate" class="field-help"></p></section>
+      <section class="detail-controls"><h3>Task controls</h3><div class="priority-row"><label for="detailPriority">Priority <small>5 is highest · 1 is lowest</small></label><select id="detailPriority"><option value="5">5 · Highest</option><option value="4">4 · High</option><option value="3">3 · Normal</option><option value="2">2 · Low</option><option value="1">1 · Lowest</option></select><button class="button secondary compact" id="savePriority" data-write>Save priority</button></div><div class="control-line"><p id="taskPauseHelp">Pause this task while you decide what comes next.</p><button class="button secondary compact" id="taskToggle" data-write>Pause task</button></div></section>
+      <section><h3>Review the result</h3><label class="field-label" for="reviewNote">Your note</label><textarea id="reviewNote" rows="3" maxlength="2000" placeholder="What looks good, or what should change?" autocomplete="off"></textarea><p class="field-help">Your note stays with this task. Marking it reviewed does not merge a pull request.</p><div class="form-actions"><button class="button secondary" id="requestChanges" data-write>Request changes</button><button class="button primary" id="markReviewed" data-write>Mark reviewed <span aria-hidden="true">✓</span></button></div></section>
+      <section><h3>Ask the supervisor</h3><form id="askForm"><label class="field-label" for="question">Your question</label><textarea id="question" rows="3" maxlength="2000" placeholder="For example: What is blocking this task?" required autocomplete="off"></textarea><div class="form-actions"><span class="field-help">Answers are based on the task record.</span><button class="button secondary" type="submit" data-write>Send question <span aria-hidden="true">→</span></button></div></form></section>
+      <section><h3>Task activity</h3><ol class="activity-list compact-activity" id="detailActivity"></ol></section>
+    </div>
+  </dialog>
+
+  <dialog class="form-dialog" id="addDialog" aria-labelledby="addTitle"><div class="dialog-top"><span class="eyebrow">A NEW REQUEST</span><button class="close-button" data-close="addDialog" aria-label="Close new task">×</button></div><div class="form-dialog-body"><h2 id="addTitle">What should we work on?</h2><p class="subtitle">Add a request to the backlog. The supervisor checks its scope before starting.</p><form id="addForm"><label class="field-label" for="newProject">Project</label><select id="newProject" required><option>AADI</option><option>GatewayAI</option></select><label class="field-label" for="newTitle">Task title</label><input id="newTitle" maxlength="180" required placeholder="A short, clear name for this task" autocomplete="off"><label class="field-label" for="newText">Instructions</label><textarea id="newText" rows="7" maxlength="2000" required placeholder="Describe the outcome you want, relevant context, and how you will know it is done." autocomplete="off"></textarea><div class="form-actions"><button class="button secondary" type="button" data-close="addDialog">Keep as a draft</button><button class="button primary" type="submit" data-write>Add to backlog <span aria-hidden="true">→</span></button></div></form></div></dialog>
+
+  <dialog class="form-dialog guides-dialog" id="guidesDialog" aria-labelledby="guidesTitle"><div class="dialog-top"><span class="eyebrow">YOUR TASK RECORDS</span><button class="close-button" data-close="guidesDialog" aria-label="Close task records">×</button></div><div class="form-dialog-body"><h2 id="guidesTitle">The complete picture.</h2><p class="subtitle">Download the current Markdown records for a closer look at your work.</p><div class="document-list">
+    <a href="/api/documents/future_supervisor_tasks.md" download><span class="document-icon" aria-hidden="true">01</span><span><strong>Future tasks</strong><small>Requests waiting in the backlog</small></span><span aria-hidden="true">↓</span></a>
+    <a href="/api/documents/active_supervisor_tasks.md" download><span class="document-icon" aria-hidden="true">02</span><span><strong>Active tasks</strong><small>Current assignments and progress</small></span><span aria-hidden="true">↓</span></a>
+    <a href="/api/documents/completed_supervisor_tasks.md" download><span class="document-icon" aria-hidden="true">03</span><span><strong>Completed tasks</strong><small>Finished work and its outcomes</small></span><span aria-hidden="true">↓</span></a>
+    <a href="/api/documents/rerun_supervision_tasks.md" download><span class="document-icon" aria-hidden="true">04</span><span><strong>Changes and reruns</strong><small>Follow-up requests and corrections</small></span><span aria-hidden="true">↓</span></a>
+    <a href="/api/documents/supervisor_audit.md" download><span class="document-icon" aria-hidden="true">05</span><span><strong>Supervisor activity</strong><small>The record of decisions and actions</small></span><span aria-hidden="true">↓</span></a>
+  </div></div></dialog>
+</body>
+</html>

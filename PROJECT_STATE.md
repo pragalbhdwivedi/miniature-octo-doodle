@@ -1,5 +1,110 @@
 # Project State
 
+## Continuous task supervision, 2 October 2026
+
+IMPLEMENTED and DEPLOYED: a durable, timestamped task board for AADI and
+GatewayAI, monotonic SUP identifiers, five generated Markdown views plus a
+preserved input inbox, bounded roadmap planning, exact-head PR review observation,
+correction queues, task-bound Telegram conversation and a dedicated internal
+control page linked from the dashboard. Routine task controls need no login;
+access is limited to the admitted management/development/VPN networks.
+
+LIVE VERIFIED: the scheduler derived SUP-000005 from an admitted GatewayAI
+roadmap recipe, assigned Gemini Flash Low, passed 17 isolated tests, obtained a
+fresh GPT-6 Luna review (9/10 model-reported confidence), and published draft
+[PR #40](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/40).
+It then derived SUP-000006 for AADI; local Devstral generated its proposal and
+four isolated tests passed without operator correction. Independent cloud review
+is waiting at the existing daily 12-stage cap. No budget was increased.
+
+DNS, strict TLS, rendered controls, real pause/resume, duplicate-request receipt,
+foreign-origin rejection and immediate question acknowledgement passed. The
+first local answer mixed legacy pilot context; exact-task evidence isolation was
+corrected and regression-tested. Historical advice remains in the audit.
+
+VALIDATION: 235 affected tests passed (74 supervisor, 77 ongoing, 62 pilot,
+13 coordinator and nine scheduler), plus repository security/YAML validation
+and frontend syntax/contract checks. Current-stage, budget-wait and task-question
+context isolation have explicit regressions.
+
+BOUNDARIES: executable recipes currently add synthetic tests only. Free-text
+intake is planned until its scope is admitted. PR corrections are tested offline;
+a fresh live correction cycle, full hourly digest delivery interval, phone VPN
+access to the new page and Windows logout/reboot continuity are not yet claimed.
+No automatic merge or production deployment is enabled. Confidence is a model
+self-assessment, not a calibrated success probability. See
+[supervisor control](docs/SUPERVISOR_CONTROL.md) and ADR-0021 for operation and constraints.
+
+## Assigned cloud and local work, 2 October 2026
+
+IMPLEMENTED and DEPLOYED for the existing running laptop scheduler: distinct
+coder ownership, compact model routing, native Antigravity CLI, a local Devstral
+lane, isolated test/review stages, and separate issue/draft-PR publication.
+Routine choices are delegated; no new automatic Dev/main merge or deployment.
+The official CLI 1.2.14 is installed with native sign-in and a restricted proposal
+profile. Shared native quota groups use observed weekly/five-hour allowances.
+
+LIVE VERIFIED: Codex reconciliation draft #27 passed 29 isolated tests; Gemini
+feed-warning draft #29 passed 20; both had independent review. GitHub stale-list
+readback was corrected without duplicate writes. A test-validator omission was
+fixed using the saved candidate without another coder call. Native scheduling
+uses the resolved physical installation path across Windows app virtualization.
+
+LIVE ACCEPTANCE COMPLETE WITH OPERATOR RECOVERY: all four test-only tasks are
+reviewed draft PRs (#27, #29, #32, #33); their combined isolated suite passed 76
+checks. Local Devstral's first full-file call timed out. Its compact method call
+completed in 169 seconds (1,136 input / 185 output tokens, no cloud generation).
+The saved method needed field normalization and one operator correction requested
+by independent review; four fresh tests and a fresh review passed. No coding-model
+call was repeated for those corrections. Clean unattended local repetition after
+these fixes is not yet claimed. Dev/main remain unchanged.
+
+VALIDATION: 68 ongoing tests, 60 pilot tests, 18 assigned-owner tests, 13 legacy
+coordination tests and nine scheduler tests passed. Repository YAML/core security
+validation passed. Native timer execution with Flash Low and distinct local work
+was observed; end-to-end operation included the explicit recoveries above.
+
+Telegram distinguishes technical recovery from owner decisions. Status, Usage,
+Inputs and the comprehensive report include new assigned work and observed model
+usage, while excluding lease tokens. Source and provider ambiguity retain claims.
+Catalog additions are synchronized idempotently; empty queues call no models.
+See [ongoing coordination](docs/ONGOING_COORDINATION.md) and ADR-0020. Historical pilot entries below refer
+to the prior owner-approved publication, not the new draft-only workflow.
+
+## Completed pilot recovery and reply controls, 2 October 2026
+
+LIVE VALIDATED: the owner-authorized saved-proposal recovery completed all three
+tasks using two fresh GPT reviews and no coder reruns. The combined 22-test suite
+passed and all three defect mutations were detected. Exact Telegram approval
+triggered a verified test-only Dev publication; main was unchanged. The batch is
+completed, with no new scope admitted. Local task-3 advisory was unavailable and
+was explicitly replaced by fresh isolated tests and independent acceptance.
+
+DEPLOYED: fixed-answer buttons, question-bound Custom capture, Cancel and durable
+acknowledgements. Bare `/answer` opens buttons instead of querying Qwen. Sixty
+pilot tests passed. Live delivery of the preference question passed; user-answer
+acceptance is tracked separately. Earlier pending-completion entries below are
+historical. See [pilot recovery and replies](docs/TELEGRAM_PILOT.md).
+
+
+## Automatic handoff repair, 2 October 2026
+
+FIXED and live-validated: an orphaned one-minute Antigravity timer survived its
+parent host and stole delivery reservations from the active five-minute timer.
+The confirmed orphan was stopped. A read-only Windows ancestry/creation-time
+check now rejects disconnected or reused host chains before reserving delivery.
+At 20:01 UTC the normal timer delivered pilot task 3, agentapi recorded a successful
+event, and Gemini claimed the exact queued task without UI input. The two earlier
+tasks were already verified; complete batch acceptance/publication remains a
+separate gate. Four lifecycle tests and nine scheduler regressions passed.
+No download or permission change; free C: measured 10.23 GiB. The small helper and
+regressions add no runtime model/image footprint. See [scheduler operations](docs/CODER_SCHEDULING.md).
+
+
+## Telegram pilot deployment, 2 October 2026
+
+DEPLOYED for the bounded pilot: VM service, private Telegram menu/report delivery and the native laptop timer are live. The owner confirmed button acknowledgements and approved the three-task scope. The additive schema preserved five prior runs. Full batch completion and publication remain unverified; see [pilot contract](docs/TELEGRAM_PILOT.md).
+
 ## Project
 `pragalbhdwivedi/miniature-octo-doodle`
 
@@ -7,6 +112,39 @@
 Modular local/cloud AI coding platform with a single AI gateway, browser UI, optional agent memory/code graph, and future multi-agent orchestration.
 
 ## Current phase
+
+2 October 2026 unattended local queue delivery: IMPLEMENTED / LIVE TESTED.
+Antigravity's documented sidecar scheduler checks the admitted queue without an
+idle model call and delivers each waiting task once. Timer-originated Gemini
+Pro, independent Codex and local Qwen completed a no-change acceptance task;
+matching hashes and a later no-repeat tick were verified. Twenty-one coordinator/
+scheduler tests plus the existing 16 bridge tests passed. Exact-task claims and
+durable delivery reservations stop replacement-task races and automatic retries.
+The configured cadence is five minutes. Antigravity must be running; power-off,
+logout/reboot recovery, automatic admission/tests/application and VM integration
+remain outside this acceptance. See [scheduler operations](docs/CODER_SCHEDULING.md).
+
+1 October 2026 local AADI coordination: IMPLEMENTED and LIVE TESTED for one
+operator-admitted code-only task. Antigravity Gemini generated a candidate, the
+new MCP coordinator automatically invoked signed-in Codex and local Qwen, and
+the app displayed matching persisted candidate hashes/findings. Eleven fixtures
+and the existing 16 desktop/local bridge tests passed. Qwen produced an
+unsupported wording criticism; findings remain advisory. This active-session
+subscription lane is not unattended backlog execution or acceptance of the VM
+AADI adapter, which stays disabled. No candidate source was applied or executed.
+See [coordination](docs/CODER_COORDINATION.md).
+
+Desktop supervisor increment (1 October 2026): a stdio MCP bridge is locally
+configured for Antigravity, using installed Qwen3 thinking and existing public-main
+proposal guards. Local protocol and live review checks passed. A deliberately
+incorrect explanation was flagged `revise` and an accurate one `review`; both
+remain advisory. Antigravity-originated tool use passed: Gemini 3.1 Pro called
+all three tools, submitted its own no-change candidate, and displayed Qwen's
+findings with an audit ID matched to local evidence. The local model still
+produced an erroneous wording criticism, so review quality remains limited.
+No private AADI source, worker dispatch, source edits, merge or deployment are
+enabled by this bridge. See DESKTOP_AGENTS and BUILD_STATUS for acceptance limits.
+
 **Phases 1-2: COMPLETE and merged, with Jev disabled. Phase 3: local backup,
 restore and clean container rebuild COMPLETE for the tested same-host scope.
 Phase 4: COMPLETE for local developer Kubernetes validation.
@@ -105,6 +243,21 @@ planner was merged in PR #15, durable dispatch in PR #18 and review/repair/draft
 publication in PR #22. See [dispatch operations](docs/CONTROLLER_DISPATCH.md)
 and [review operations](docs/CONTROLLER_REVIEW.md).
 See `docs/BUILD_STATUS.md` for measured results and remaining Phase 5 gates.
+
+## Desktop coding handoff - 1 October 2026
+
+PARTIAL, local implementation: `scripts/desktop_review.py` prepares exact-public-main
+packets for ChatGPT Work or Gemini Pro and imports bounded proposals into the
+existing local Qwen critique. No source edit, test execution, controller dispatch,
+publication or automatic desktop scheduling is granted. The Gemini account's
+supported memory-import flow received a curated project summary and returned a
+saved-memory acknowledgment. This is a one-time transfer, not live memory sync.
+See [desktop agents](docs/DESKTOP_AGENTS.md) and BUILD_STATUS for acceptance.
+The existing checkout and VM runtime remain preserved. Following the storage
+warning, the owner explicitly requested Gemini CLI installation: version 0.62.0
+is installed and launches from the user PATH. Google sign-in and authenticated
+coding acceptance remain pending. This CLI-only exception does not lift the
+15-GiB floor for further optional installations.
 
 ## Hardware baseline
 - Windows 11
@@ -341,3 +494,12 @@ publish, merge or call a model. AADI remains disabled. Live unprivileged VM run
 fetched main and correctly recorded `no_committed_task_manifest`; synthetic tests
 cover selection/denial paths. PostgreSQL persistence, dispatch, independent review,
 repair and exact-run approval integration are not implemented. See controller docs.
+
+
+Live pilot handoff boundary: planning and parent-to-local task admission passed,
+but the first Antigravity message delivery was recorded as uncertain before a
+coder claimed it. Its reservation is retained; the native timer correctly refused
+to resend. Windows UI input returned `GetCursorPos: Access is denied`. An actionable
+recovery instruction was delivered through Telegram. The worker now surfaces this
+condition once per task automatically and resumes observation of the same child;
+full unattended coder delivery/completion is not claimed for this pilot run.

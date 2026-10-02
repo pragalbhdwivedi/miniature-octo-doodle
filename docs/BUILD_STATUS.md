@@ -1,6 +1,187 @@
 # Build Status
 
+## Continuous task supervision, 2 October 2026
+
+IMPLEMENTED and DEPLOYED: a durable, timestamped task board for AADI and
+GatewayAI, monotonic SUP identifiers, five generated Markdown views plus a
+preserved input inbox, bounded roadmap planning, exact-head PR review observation,
+correction queues, task-bound Telegram conversation and a dedicated internal
+control page linked from the dashboard. Routine task controls need no login;
+access is limited to the admitted management/development/VPN networks.
+
+LIVE VERIFIED: the scheduler derived SUP-000005 from an admitted GatewayAI
+roadmap recipe, assigned Gemini Flash Low, passed 17 isolated tests, obtained a
+fresh GPT-6 Luna review (9/10 model-reported confidence), and published draft
+[PR #40](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/40).
+It then derived SUP-000006 for AADI; local Devstral generated its proposal and
+four isolated tests passed without operator correction. Independent cloud review
+is waiting at the existing daily 12-stage cap. No budget was increased.
+
+DNS, strict TLS, rendered controls, real pause/resume, duplicate-request receipt,
+foreign-origin rejection and immediate question acknowledgement passed. The
+first local answer mixed legacy pilot context; exact-task evidence isolation was
+corrected and regression-tested. Historical advice remains in the audit.
+
+VALIDATION: 235 affected tests passed (74 supervisor, 77 ongoing, 62 pilot,
+13 coordinator and nine scheduler), plus repository security/YAML validation
+and frontend syntax/contract checks. Current-stage, budget-wait and task-question
+context isolation have explicit regressions.
+
+BOUNDARIES: executable recipes currently add synthetic tests only. Free-text
+intake is planned until its scope is admitted. PR corrections are tested offline;
+a fresh live correction cycle, full hourly digest delivery interval, phone VPN
+access to the new page and Windows logout/reboot continuity are not yet claimed.
+No automatic merge or production deployment is enabled. Confidence is a model
+self-assessment, not a calibrated success probability. See
+[supervisor control](SUPERVISOR_CONTROL.md) and ADR-0021 for operation and constraints.
+
+## Assigned cloud and local work, 2 October 2026
+
+IMPLEMENTED and DEPLOYED for the existing running laptop scheduler: distinct
+coder ownership, compact model routing, native Antigravity CLI, a local Devstral
+lane, isolated test/review stages, and separate issue/draft-PR publication.
+Routine choices are delegated; no new automatic Dev/main merge or deployment.
+The official CLI 1.2.14 is installed with native sign-in and a restricted proposal
+profile. Shared native quota groups use observed weekly/five-hour allowances.
+
+LIVE VERIFIED: Codex reconciliation draft #27 passed 29 isolated tests; Gemini
+feed-warning draft #29 passed 20; both had independent review. GitHub stale-list
+readback was corrected without duplicate writes. A test-validator omission was
+fixed using the saved candidate without another coder call. Native scheduling
+uses the resolved physical installation path across Windows app virtualization.
+
+LIVE ACCEPTANCE COMPLETE WITH OPERATOR RECOVERY: all four test-only tasks are
+reviewed draft PRs (#27, #29, #32, #33); their combined isolated suite passed 76
+checks. Local Devstral's first full-file call timed out. Its compact method call
+completed in 169 seconds (1,136 input / 185 output tokens, no cloud generation).
+The saved method needed field normalization and one operator correction requested
+by independent review; four fresh tests and a fresh review passed. No coding-model
+call was repeated for those corrections. Clean unattended local repetition after
+these fixes is not yet claimed. Dev/main remain unchanged.
+
+VALIDATION: 68 ongoing tests, 60 pilot tests, 18 assigned-owner tests, 13 legacy
+coordination tests and nine scheduler tests passed. Repository YAML/core security
+validation passed. Native timer execution with Flash Low and distinct local work
+was observed; end-to-end operation included the explicit recoveries above.
+
+Telegram distinguishes technical recovery from owner decisions. Status, Usage,
+Inputs and the comprehensive report include new assigned work and observed model
+usage, while excluding lease tokens. Source and provider ambiguity retain claims.
+Catalog additions are synchronized idempotently; empty queues call no models.
+See [ongoing coordination](ONGOING_COORDINATION.md) and ADR-0020. Historical pilot entries below refer
+to the prior owner-approved publication, not the new draft-only workflow.
+
+## Completed pilot recovery and reply controls, 2 October 2026
+
+LIVE VALIDATED: the owner-authorized saved-proposal recovery completed all three
+tasks using two fresh GPT reviews and no coder reruns. The combined 22-test suite
+passed and all three defect mutations were detected. Exact Telegram approval
+triggered a verified test-only Dev publication; main was unchanged. The batch is
+completed, with no new scope admitted. Local task-3 advisory was unavailable and
+was explicitly replaced by fresh isolated tests and independent acceptance.
+
+DEPLOYED: fixed-answer buttons, question-bound Custom capture, Cancel and durable
+acknowledgements. Bare `/answer` opens buttons instead of querying Qwen. Sixty
+pilot tests passed. Live delivery of the preference question passed; user-answer
+acceptance is tracked separately. Earlier pending-completion entries below are
+historical. See [pilot recovery and replies](TELEGRAM_PILOT.md).
+
+
+## Automatic handoff repair, 2 October 2026
+
+FIXED and live-validated: an orphaned one-minute Antigravity timer survived its
+parent host and stole delivery reservations from the active five-minute timer.
+The confirmed orphan was stopped. A read-only Windows ancestry/creation-time
+check now rejects disconnected or reused host chains before reserving delivery.
+At 20:01 UTC the normal timer delivered pilot task 3, agentapi recorded a successful
+event, and Gemini claimed the exact queued task without UI input. The two earlier
+tasks were already verified; complete batch acceptance/publication remains a
+separate gate. Four lifecycle tests and nine scheduler regressions passed.
+No download or permission change; free C: measured 10.23 GiB. The small helper and
+regressions add no runtime model/image footprint. See [scheduler operations](CODER_SCHEDULING.md).
+
+
+## Telegram pilot, 2 October 2026
+
+DEPLOYED for the bounded pilot; end-to-end completion remains PARTIAL. The VM service and native laptop timer are running. Menu delivery, zero-model idle worker RPC, schema backup/restore/CAS and owner-confirmed button acknowledgement passed. The owner approved the three-task scope through Telegram. Forty-eight pilot tests plus twenty-seven existing coordination/scheduling/Telegram regressions passed. Full three-task coding/verification/publication is not yet established. See [pilot operations](TELEGRAM_PILOT.md).
+
 Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
+
+## Unattended admitted-task delivery, 2 October 2026
+
+COMPLETE for the running-app scheduling boundary; not an always-on OS service.
+Installed a small queue-aware helper using Antigravity's documented sidecar
+`schedule` builtin and `agentapi send-message`, with no new dependency/download.
+The owner selected Gemini 3.1 Pro High and restarted Antigravity to load the
+updated MCP schema. Existing app permissions were preserved byte-for-byte as
+JSON values. No desktop clicks, credential substitution or editor backend was
+used to deliver scheduled work.
+
+An automatic empty-queue tick recorded `idle` and zero model calls. After the
+app restart, a timer tick delivered a reviewed synthetic no-change task without
+an operator sending its prompt. Gemini claimed the exact ID and submitted its
+candidate; signed-in Codex generated independently and local Qwen reviewed.
+The persisted result reached `human_review_required`; both candidate hashes
+matched recomputation, both changes arrays and patches were empty. No source
+write, candidate execution, publication or deployment occurred. Subsequent ticks
+held the completed work, retaining exactly one delivery reservation.
+
+Qwen returned advisory `revise` while listing no actual defect; it remains a
+quality limitation, not authority to approve or reject a release. Model quota,
+network and app permission failures still require operator reconciliation.
+
+Nine new scheduler tests and twelve coordinator tests passed, including real
+Git/SQLite ownership, concurrent ticks, process restart/crash reservations,
+ambiguous send, dirty/stale source, wrong-task claim denial, held/completed work
+and new admission after close. The existing sixteen local-agent/desktop/MCP
+tests, YAML/security validator and diff checks passed. Independent review found
+and verified fixes for a replacement-task race and lost diagnostic state.
+
+Acceptance used a temporary one-minute interval, then configured `*/5 * * * *`.
+The sidecar restarted and its next five-minute tick recorded `held`, zero new
+model calls and exactly one retained agentapi delivery event. The operator then
+closed the no-change acceptance task, retaining all evidence. Antigravity can add
+jitter; the cadence is not an exact wall-clock completion guarantee. App restart
+and durable no-repeat behavior were observed; laptop reboot, logout, sleep/wake
+and laptop-off availability were NOT TESTED. No OS-startup setting was changed.
+The helper's latest heartbeat is bounded; Antigravity owns its existing logs.
+Free laptop storage was 10.33 GiB before setup and 10.27 GiB afterward, below
+the 15-GiB install floor. No image/model/dependency installation footprint was
+added; ordinary app/log and host storage changes were not separately attributed.
+Private config, conversation IDs, evidence and backups stay outside Git/sync.
+See [operation, recovery and rollback](CODER_SCHEDULING.md).
+
+## Local AADI two-coder coordination, 1 October 2026
+
+PARTIAL overall; live subscription handoff PASSED. Antigravity 2.19.1 displayed
+four new tools alongside the unchanged three public-supervisor tools. Gemini
+3.1 Pro Low claimed an operator-reviewed exact-Dev package-docstring task and
+submitted its own replacement. After user-handled app permissions, one
+`advance_task` invoked Codex CLI 0.158.0-alpha.2.1 / `gpt-6-astra`, then the existing
+local Qwen3 thinking. Both independent candidates, applicable patches, hashes
+and advisory findings persisted outside Git/sync. App-rendered hashes matched
+fresh local recomputation. Codex event evidence contains no tool execution.
+Final state was `human_review_required`; no candidate code was applied or run.
+
+Qwen returned `revise`, speculating that mentioning the already-known project
+name invented context. This is not a supported defect; the quality limitation
+remains open and Qwen cannot approve or automatically reject a release.
+
+Executed: eleven real-Git/SQLite coordination fixtures; existing 16 local-agent,
+desktop-handoff and MCP regressions; repository YAML/security contract and diff
+checks. Independent static review prompted result retrieval, explicit operator
+close, strict CLI configuration/event checks and provider-environment isolation.
+Initial fixture cleanup exposed unclosed Windows SQLite handles; explicit
+connection closing fixed it. A strict CLI probe and the actual Antigravity child
+run passed. Physical packaged-app LocalCache paths fixed native MCP startup.
+
+Gemini CLI authentication failed with provider `IneligibleTierError`, directing
+this individual account to Antigravity. No fallback credentials were used.
+Disk was 10.17 GiB free, below the 15-GiB floor; no optional install/download.
+Background Gemini execution, automatic candidate tests/application, unified VM
+ownership and full private AADI controller acceptance remain NOT IMPLEMENTED.
+See [runbook](CODER_COORDINATION.md). Detailed private source evidence stays in
+the private AADI handover and local artifacts, never this public repository.
 
 | Subsystem | Status | Evidence |
 |---|---|---|
@@ -32,6 +213,106 @@ Status values: COMPLETE, PARTIAL, NOT STARTED, BLOCKED, DEFERRED.
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
 | Telegram approvals | PARTIAL | Exact private callback was consumed for live draft PR #32; bounded publication gate passed, broader Phase 8 actions/notifications pending |
+
+## Desktop memory and proposal handoff - 1 October 2026
+
+### Antigravity MCP supervisor increment
+
+- IMPLEMENTED: dependency-free stdio MCP tools for fixed-source preparation,
+  bounded candidate review and boundary status. Runtime copies of three Python
+  modules are outside Git/sync under `.local/share/gatewayai-supervisor`.
+  The existing global MCP config was backed up and only the named server added.
+  A model-decision rule describes public GatewayAI review usage.
+- TESTED: five new bridge tests cover child-process initialization/status,
+  malformed/oversized protocol frames, notification non-execution, path/argument
+  rejection, stale-source rejection and audit/source preservation. Six existing
+  local-agent and five desktop handoff tests pass (16 total). Repository
+  YAML/security validation and Git whitespace checks pass.
+- LIVE LOCAL MCP: configured command started; current public main
+  `3e8672b8412d2084fbd145bf6f42cb842ad90ffd` and selected public source were checked.
+  A private `creds` path was rejected before inference. Qwen returned findings
+  over stdio in 27.09 seconds, with an evidence record and no source changes.
+- REVIEW QUALITY: the first prompt gave a misleading verdict for a deliberately
+  false explanation and included an unsupported finding on an accurate one.
+  Clarified verdict semantics and required exact wording comparison. Retested:
+  false platform/admin-role claims returned `revise` in 19.77 seconds; an accurate
+  explanation returned `review` in 20.79 seconds. The latter still contains
+  imprecise Linux-versus-POSIX commentary. These probes establish transport and
+  bounded behavior, not general model accuracy or acceptance authority.
+- APP ACCEPTANCE PASSED: on 1 October 2026, Antigravity 2.19.1 loaded the server
+  after Customizations > Refresh MCP servers and displayed three enabled tools.
+  In an Outside of Project conversation, Gemini 3.1 Pro Low called status and
+  preparation, then submitted its own no-change candidate for controller-init.py.
+  The owner handled app tool-permission prompts; automation did not grant them.
+  Gemini corrected an initial candidate string to the required object and invoked
+  review successfully. Qwen findings and audit ID were displayed in the completed
+  conversation. Audit `332ad392b45141349e56d93870db4537` matches session task
+  `8ed27b1c4d71424f9b40bc8636fd52d9`, candidate digest and source SHA. The JSON
+  record and rendered app text are retained in local supervisor evidence.
+  Public source remained clean, patch/actions/tests were empty. This validates
+  transport and no-change proposal review, not execution of Gemini-generated code.
+- APP REVIEW QUALITY LIMIT: Qwen returned `review` but falsely said the candidate
+  used OR instead of AND; the candidate actually said both POSIX and root were
+  required. Gemini reproduced the finding without correcting it. Do not treat
+  either model's result as an authoritative acceptance gate. No AADI source
+  integration, automated dual-coder dispatch or blanket app permission was added.
+- STORAGE: about 10.16 GiB free, below the 15-GiB optional installation floor.
+  Only small source/config/evidence files were created; existing Python/Ollama
+  reused. No model/package/image download or new VM.
+- LIMITS: no automatic assignment between coders, controller claims, source
+  edits, test execution, enforcement on Antigravity's own tools, publishing,
+  merging or deployment. Restart/logon app discovery remains unverified.
+
+Later CLI installation checkpoint: after being informed of the storage stop,
+the owner explicitly requested Gemini CLI installation. Used the official npm
+package `@google/gemini-cli@0.62.0` with existing Node 24.14.1/npm 11.19.0,
+installed per-user outside Git/sync under `.local/share/gemini-cli`. Added only
+that prefix to the existing user PATH. Version/help and native keytar module
+loading passed; no credential values were accessed. npm inventory reports 0.62.0.
+Installation footprint 106.3 MiB plus 26.3 MiB task-specific npm cache; free C:
+was 11.41 GiB before and 11.26 GiB afterward (whole-host measurements).
+npm reported a keytar lifecycle-script warning; its shipped native binary loaded
+without enabling a global script allowance. No Node/npm upgrade, model download,
+API key or authentication was performed. Sign-in and authenticated CLI coding
+remain pending. This explicit CLI-only exception leaves the general storage
+floor and controller/production boundaries intact.
+
+- Refreshed GitHub main `3e8672b8412d2084fbd145bf6f42cb842ad90ffd`, issues and
+  open PRs. The original Phase 6 checkout and untracked dashboard work were
+  preserved. Prepared a separate `feat/desktop-agent-handoff` worktree.
+- Gemini Desktop 1.13.1 was running with Gemini Pro selected. Its native input
+  failed twice with Windows access denied; the signed-in Edge browser supported
+  the account's memory importer. A curated summary of available ChatGPT project
+  memory, stable preferences and dated public-Git context was submitted. Gemini
+  returned a saved-memory acknowledgment in the resulting chat. No complete
+  ChatGPT account export, credentials, raw records or private source was imported.
+  Future-chat recall and automatic cross-product memory synchronization are not
+  proven by this acknowledgment. Personal import text/evidence remains outside Git.
+- Added Gemini project instructions, shared handoff rules and a manual proposal
+  adapter reusing `local_agent.py` guards. It accepts only current clean public
+  main and named tracked text files. Source identity, file/byte bounds, JSON shape
+  and Git patch applicability are checked; review output stays in LocalAppData.
+  It cannot apply patches, execute candidate tests, invoke the VM controller or
+  publish. No task scheduler/claim integration or private AADI adapter is enabled.
+- Five new guard tests and six existing local-agent tests passed. Repository
+  YAML/core-security validation passed using the existing venv; Python syntax and
+  Git whitespace checks passed. No packages were installed.
+- A real ChatGPT-authored docstring proposal passed local Qwen review and Git
+  applicability checking. A separate AST comparison confirmed executable statements
+  were unchanged. Source remained clean; no provisioning script was executed.
+  The Qwen verdict is advisory, not code-quality or deployment acceptance.
+- Gemini's first rendered response had invalid JSON; its first repair violated
+  the required schema. The adapter rejected the latter before model review or
+  edits. The handoff prompt now requests a JSON code block to preserve escaping.
+  A full-packet follow-up stalled; after reloading the saved conversation, that
+  pending follow-up was absent. Gemini-to-Qwen positive acceptance remains
+  unverified; no response was fabricated or silently repaired into an accepted
+  candidate. The saved conversation retains the two rejected attempts.
+- Laptop disk measured about 12.05 GiB initially and 11.50 GiB later, below the
+  15-GiB floor. Host changes are not attributable solely to this task. Only small
+  source/context/evidence files were created; no CLI, model, image, service or VM
+  was installed. Autonomous desktop/CLI dispatch and end-to-end dual-coder
+  supervision remain unimplemented and unvalidated.
 
 ## Laptop local models in the existing WebUI - 1 October 2026
 
@@ -1432,3 +1713,12 @@ Resolved the open P1 review: cluster/deployment reserves now apply to every
 discovered Docker/repository storage drive before downloads. Synthetic C:50GiB
 and Docker D:18GiB reject both 8GiB and 4GiB reservations; zero-reserve inspection
 passes. No image download or running cluster change during this review.
+
+
+Live pilot handoff boundary: planning and parent-to-local task admission passed,
+but the first Antigravity message delivery was recorded as uncertain before a
+coder claimed it. Its reservation is retained; the native timer correctly refused
+to resend. Windows UI input returned `GetCursorPos: Access is denied`. An actionable
+recovery instruction was delivered through Telegram. The worker now surfaces this
+condition once per task automatically and resumes observation of the same child;
+full unattended coder delivery/completion is not claimed for this pilot run.
