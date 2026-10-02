@@ -1,7 +1,7 @@
 # Verified supervisor task archives
 
-2 October 2026. Implemented operator library and inspection CLI; automatic live
-archival and HTTP history routing are separate integration steps. No live ledger
+2 October 2026. Implemented operator library, inspection CLI, opt-in operator RPC and bounded
+HTTP history routing. Live activation remains a separate operator step. No live ledger
 was compacted by this implementation. No model calls, database credential changes,
 new packages, or runtime downloads are required.
 
@@ -116,3 +116,61 @@ shared evidence, two successive archives, SUP counter preservation, bounded
 history projection, traversal denial and failure when compaction is insufficient.
 No live archive, PostgreSQL CAS integration, HTTP route or backup/restore acceptance
 is claimed by these unit tests.
+
+## Opt-in integration and worker hookup
+
+The private VM `pilot_server` configuration may contain:
+
+```json
+{"supervisor_archive":{"enabled":true,"directory":"/protected/operator/archive"}}
+```
+
+The existing operator RPC accepts `ongoing_archive` with the expected board
+`revision`, and `ongoing_archive_history` with optional bounded `offset`/`limit`.
+It rejects request-supplied paths and archive IDs. Archive writes are disabled
+without the explicit private configuration above. The HTTP surface exposes only
+`GET /api/archive-history?offset=0&limit=100`; existing network checks apply,
+unknown/duplicate parameters are rejected, and no archive POST or full-state
+file route exists. `/api/state` includes a bounded `archived` summary page.
+The completed-task Markdown view lists that page and reports omitted summaries.
+
+The observer's separate `archive_enabled: true` option requests archival only
+when approaching 80 hot tasks or a 1.5 MB board response, after PR reconciliation.
+It then refreshes the authoritative board. Regardless of this trigger option,
+the observer prunes only verified archived catalog identities before admitting
+more work. `ongoing_sync` also filters archived identities before its existing
+100-hot-task check. Reused archived IDs with changed scope fail closed. Recipe
+IDs and source/goal digests in the archive index prevent roadmap re-admission.
+This implementation was not enabled against the live six-task ledger.
+
+The worker integration owner should add this small pre-sync hook after loading
+the catalog and before serializing the RPC. This avoids transmitting a historic
+catalog that could exceed the existing RPC byte bound when the observer is
+throttled or disabled. `ongoing_worker.py` is deliberately not edited here because
+another implementation task owns it:
+
+```python
+from supervisor_archive_operator import filter_catalog
+snapshot = self.remote({'action': 'ongoing_board_data'})
+rows = list(self.catalog.values())
+filtered = filter_catalog({'supervision': snapshot['supervision']}, rows)
+if filtered != rows:
+    pilot.write_json(Path(self.config['ongoing_catalog']), filtered)
+    self.catalog = {row['id']: row for row in filtered}
+```
+
+`filter_catalog` retains every nonarchived spec unchanged. It verifies persisted
+archive receipt identity, SUP-to-key tombstone and immutable scope digest before
+removing a local entry. The complete archived job spec remains in the verified
+VM file. New dependencies referencing archived keys currently fail the existing
+catalog dependency check; no acceptance is fabricated to satisfy them.
+
+Integration validation: the Windows supervisor suite passed 102 tests (one
+POSIX-only skip), including 18 observer tests with catalog pruning and
+archived-recipe deduplication; 80 ongoing regressions passed. An additional
+125-task regression verifies pruning to 20 hot jobs while preserving all 125
+identity mappings and the next SUP counter; 103 supervisor tests then passed. Operator RPC tests
+cover disabled mode, path injection, revision conflict, bounded history, scope
+reuse rejection and a six-task no-op. The final suite count includes those new
+observer cases in the subsequent verification record. Real VM CAS, live history
+browser interaction and a live 100-task run remain NOT RUN until deployment acceptance.

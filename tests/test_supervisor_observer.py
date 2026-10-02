@@ -76,6 +76,27 @@ class ObserverTests(unittest.TestCase):
     def status(self):
         return json.loads(self.observer.state_path.read_text())
 
+    def test_archived_recipe_is_not_admitted_again(self):
+        self.board['supervision']['archived_tasks']={'SUP-000099':{
+            'id':'SUP-000099','key':o.recipe_job_id(self.recipe),
+            'roadmap_recipe_id':self.recipe['recipe_id']}}
+        result=self.observer.tick()
+        self.assertEqual(json.loads(self.catalog.read_text()),[])
+        self.chat.assert_not_called()
+
+    def test_verified_archived_catalog_entries_are_pruned_without_other_changes(self):
+        from test_supervisor_archive import fixture,NOW
+        from supervisor_archive import archive_state
+        original=fixture()
+        saved,_=archive_state(original,self.root/'private-archive',now=NOW)
+        self.board['supervision']=saved['supervision']
+        rows=original['ongoing']['jobs']
+        self.catalog.write_text(json.dumps(rows))
+        self.observer._prune_archive_catalog(self.board)
+        remaining=json.loads(self.catalog.read_text())
+        self.assertEqual(remaining,rows[5:])
+        self.assertEqual(set(self.worker.catalog),{j['id'] for j in rows[5:]})
+
     def test_recipe_admits_one_fixed_scope_and_never_repeats(self):
         result = self.observer.tick()
         self.assertEqual(result['roadmap']['state'], 'admitted')

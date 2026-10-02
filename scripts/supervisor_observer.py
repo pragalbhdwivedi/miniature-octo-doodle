@@ -140,6 +140,16 @@ class Observer:
             except Exception as exc:
                 self._error(state, 'corrections', exc)
                 board = None
+            try:
+                if board is not None:
+                    if (self.config.get('archive_enabled') is True and
+                            (len(board['jobs'])>=80 or len(json.dumps(board).encode())>=1500000)):
+                        self.remote({'action':'ongoing_archive','revision':board['supervision']['revision']})
+                        board=self.remote({'action':'ongoing_board_data'})
+                    self._prune_archive_catalog(board)
+            except Exception as exc:
+                self._error(state,'archive',exc)
+                board=None
             self._mirror(state)
             try:
                 from development_admission import admit_intake
@@ -157,6 +167,17 @@ class Observer:
             # A local disk/permission failure must not convert observation into a
             # blocker for the separately locked ordinary worker's admitted task.
             return {'state': 'observer_storage_error', 'model_calls': state.get('model_calls', 0)}
+
+    def _prune_archive_catalog(self, board):
+        if not board['supervision'].get('archived_tasks'):
+            return
+        from supervisor_archive_operator import filter_catalog
+        path=Path(self.config['ongoing_catalog'])
+        catalog=_read(path)
+        filtered=filter_catalog({'supervision':board['supervision']},catalog)
+        if filtered!=catalog:
+            _write(path,filtered)
+            self.worker.catalog={j['id']:j for j in filtered}
 
     def _sync_prs(self, board, state):
         verified = []
@@ -302,17 +323,27 @@ class Observer:
             raise ObserverError('Duplicate roadmap recipe identity')
         catalog_path = Path(self.config['ongoing_catalog'])
         catalog = _read(catalog_path)
+        from supervisor_archive_operator import filter_catalog
+        from supervisor_archive import digest
+        filtered=filter_catalog({'supervision':board['supervision']},catalog)
+        if filtered!=catalog:
+            _write(catalog_path,filtered)
+            catalog=filtered
+            self.worker.catalog={j['id']:j for j in catalog}
+        archived=list(board['supervision'].get('archived_tasks',{}).values())
         if not isinstance(catalog, list) or len(catalog) >= 100:
             raise ObserverError('Catalog has no admission capacity')
-        known = {j['id'] for j in catalog} | {j['id'] for j in jobs}
+        known = {j['id'] for j in catalog} | {j['id'] for j in jobs} | {j['key'] for j in archived}
         # A local addition not yet mirrored to the VM also consumes queue capacity.
         if sum(j.get('state') not in TERMINAL for j in jobs) + len({j['id'] for j in catalog} - {j['id'] for j in jobs}) >= 3:
             return {'state': 'capacity_wait'}
-        consumed = {j.get('roadmap_recipe_id') for j in catalog + jobs}
+        consumed = {j.get('roadmap_recipe_id') for j in catalog + jobs + archived}
         for recipe in recipes:
             job_id = recipe_job_id(recipe)
             if not cloud_available and recipe['owner']!='local':continue
-            if job_id in known or recipe['recipe_id'] in consumed:
+            if (job_id in known or recipe['recipe_id'] in consumed or any(
+                    j.get('repository')==recipe['repository'] and j.get('source_sha')==recipe['source_sha']
+                    and j.get('roadmap_goal_digest')==digest(recipe['goal']) for j in archived)):
                 continue
             # Never schedule the same operator topic twice merely because its ID
             # changed. Previous draft title and source are retained as evidence.

@@ -260,6 +260,8 @@ def compact(state, receipt, store, *, now=None):
                        archived_at=proposal['created_at'], archive_id=receipt['archive_id'])
         job = jobs_by_key[meta['key']]
         summary.update(source_sha=job.get('source_sha'), roadmap_recipe_id=job.get('roadmap_recipe_id'),
+                       repository=job.get('repository', 'pragalbhdwivedi/aadi'),
+                       roadmap_goal_digest=digest(job.get('roadmap_goal', job.get('prompt'))),
                        scope_digest=task_scope_digest(job))
         archived[sid] = summary
         removed_hashes.update(h['evidence_digest'] for h in meta.get('history', []))

@@ -389,7 +389,9 @@ def _public(s, now=None, limit=200):
     events=board.get('events',[])
     policy={k:_safe(v,200) if not isinstance(v,(bool,int)) else v for k,v in o.get('policy',{}).items()
             if k in ('max_active','max_calls_per_day','repairs','publication','routine_decisions','destructive')}
+    from supervisor_archive import history_index
     return {'revision':board.get('revision',0),'enabled':bool(o.get('enabled')),
+            'archived':history_index(s,limit=100),
             'tasks':tasks[:limit] if limit else tasks,'tasks_omitted':max(0,len(tasks)-limit) if limit else 0,
             'events':copy.deepcopy(events[-100:] if limit else events),
             'events_omitted':max(0,len(events)-100) if limit else 0,
@@ -427,4 +429,8 @@ def documents(s):
         for c in data['corrections']) or 'No correction requests.\n')
     output['supervisor_audit.md']='# Supervisor audit\n\nRevision: '+str(data['revision'])+'\n\nConfidence is unknown unless observed; model-reported confidence is uncalibrated. No audit events are omitted from this document.\n\n'+('\n'.join(
         '- '+str(e['sequence'])+' | '+_md(e['timestamp'])+' | '+_md(e['actor'])+' | '+_md(e['task_id'] or 'all')+' | '+_md(e['action'])+' | '+_md(e['detail']) for e in data['events']) or 'No audit events.\n')
+    archived=data.get('archived',{})
+    if archived.get('total'):
+        output['completed_supervisor_tasks.md']+='\n## Verified archived tasks\n\n'+str(archived['total'])+' archived; use the paginated archive history for all summaries and operator archives for full evidence.\n\n'+''.join('- '+_md(t['id'])+' | '+_md(t.get('title'))+' | '+_md(t['state'])+' | '+_md(t.get('pr_url'))+'\n' for t in archived['tasks'])
+        if archived.get('omitted'):output['completed_supervisor_tasks.md']+='\n'+str(archived['omitted'])+' additional archived summaries are available through pagination.\n'
     return output

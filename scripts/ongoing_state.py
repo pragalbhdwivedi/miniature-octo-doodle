@@ -190,7 +190,8 @@ def rpc(s,r):
         import supervisor_runtime
         return supervisor_runtime.rpc(s,r)
     if r['action']=='ongoing_sync':
-        catalog=r['catalog'];o=s['ongoing']
+        from supervisor_archive_operator import filter_catalog
+        catalog=filter_catalog(s,r['catalog']);o=s['ongoing']
         if not isinstance(catalog,list) or len(catalog)>100:raise ValueError('Catalog bound exceeded')
         existing={j['id']:j for j in o['jobs']}
         if not set(existing)<={j['id'] for j in catalog}:raise ValueError('Catalog cannot remove retained work')
