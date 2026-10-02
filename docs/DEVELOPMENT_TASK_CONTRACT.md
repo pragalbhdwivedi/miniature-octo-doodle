@@ -1,0 +1,57 @@
+# Admitted development tasks
+
+`development_change` allows real application source changes and regression tests.
+It is distinct from the older `test_addition` operation, whose AST preservation
+contract remains unchanged. Each task names immutable source SHA, exact context,
+writable and staged files, and an operator-owned `development_profile` key.
+The source adapter must explicitly admit any new file; an empty baseline is not
+permission for a coder to invent additional paths.
+
+Profiles contain only `image`, `commands`, `acceptance_tests`, `timeout_seconds`
+and `minimum_tests`. `image` is an already-installed immutable Docker SHA ID.
+One to four fixed Python unittest commands run for baseline and candidate.
+The existing acceptance files are read-only to the coder; separate writable
+regression files can be added or changed. Source/test manifests contain at most
+eight exact public text paths. Replacement files are at most 32 KiB each and
+64 KiB total. A task must actually change application source.
+
+Example operator profile (replace the illustrative digest):
+
+```json
+{
+  "image": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "commands": [["python", "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py", "-v"]],
+  "acceptance_tests": ["tests/test_existing.py"],
+  "timeout_seconds": 90,
+  "minimum_tests": 1
+}
+```
+
+Each suite uses a disposable non-root container with no network, no capabilities,
+read-only root and source, a bounded temporary filesystem, process/memory/CPU
+limits and bounded output. No host home, credentials or Docker socket are mounted.
+The worker forcibly removes the named container in a `finally` block, including
+when the Docker client times out. Images and dependencies are never downloaded.
+Commands are operator configuration, not coder output. The Windows worker
+retains broker authority; generated Python is never imported or executed by it.
+
+Both baseline and candidate must pass, without skipped tests or reduced test
+count. Evidence records source, source snapshot, profile, output and candidate
+digests. Independent review receives the exact source diff plus both test
+receipts and must assess behavior, compatibility, meaningful regression coverage
+and security. Tests and review must bind the same candidate before publication;
+changing the acceptance profile invalidates old receipts. Test diagnostics are
+not a proof of production service acceptance or adversarial code correctness.
+
+The local Devstral lane can generate full-file proposals for compact development
+tasks using the already installed model, a 24 KiB input bound, 8192 context and
+3072 output-token ceiling. Incomplete output is held, not silently truncated.
+Configured `local_fallback` can use that lane when cloud allowance is unavailable
+while preserving immutable task ownership and reporting the actual local model.
+This is proposal generation only; tests and independent review still follow.
+
+Verified 2 October 2026: offline contract/worker tests and actual existing Docker
+image execution. A source change with a new regression test passed (baseline one
+test, candidate two); an incorrect replacement failed the regression. No new
+image/model was installed. These checks do not establish deployment of these
+modules, actual model generation, service integration or a production release.

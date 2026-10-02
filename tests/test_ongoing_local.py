@@ -38,6 +38,18 @@ class LocalCoderTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'incomplete'):self.call()
         self.assertTrue((self.root/'local-intent.json').exists())
 
+    def test_development_uses_bounded_full_file_schema_without_tools(self):
+        value={'summary':'Confidence: 8/10; small change','proposal':'Not executed',
+               'changes':[{'path':'src/example.py','content':'VALUE = 2\n'}]}
+        self.payload['message']['content']=json.dumps(value)
+        opener=Mock();opener.open.return_value=io.BytesIO(json.dumps(self.payload).encode())
+        result=local.run('Immutable development task',self.root,opener=opener,development=True)
+        body=json.loads(opener.open.call_args.args[0].data)
+        self.assertEqual(body['format'],local.DEVELOPMENT_SCHEMA)
+        self.assertEqual(body['options']['num_predict'],3072)
+        self.assertEqual(body['options']['num_ctx'],8192)
+        self.assertNotIn('tools',body);self.assertEqual(result['candidate'],value)
+
     def test_method_placement_preserves_baseline_and_rejects_extra_code(self):
         before='import unittest\nclass Checks(unittest.TestCase):\n    def test_old(self):\n        self.assertTrue(True)\n\nif __name__=="__main__":\n    unittest.main()\n'
         method='def test_new(self):\n    self.assertEqual(1, 1)'
