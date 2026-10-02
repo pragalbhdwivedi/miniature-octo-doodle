@@ -64,7 +64,7 @@ def handler(app):
             if not isinstance(body,bytes):body=json.dumps(body,ensure_ascii=False).encode()
             self.send_response(code)
             for k,v in {'Content-Type':kind,'Content-Length':str(len(body)),
-                'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY',
+                'Cache-Control':'no-store','X-Accel-Buffering':'no','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY',
                 'Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}.items():self.send_header(k,v)
             if cookie:self.send_header('Set-Cookie','__Host-supervisor='+cookie+'; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=3600')
             self.end_headers();self.wfile.write(body)

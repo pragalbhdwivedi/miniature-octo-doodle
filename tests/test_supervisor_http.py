@@ -28,6 +28,16 @@ class FakeStore:
 
 
 class SupervisorHttpTests(unittest.TestCase):
+    def test_large_future_snapshot_disables_disk_buffering(self):
+        from test_supervisor_future_integration import entry
+        import supervisor_future
+        supervisor_future.seed(self.store.value,[entry(i) for i in range(1,111)],'2026-10-02T13:00:00+00:00')
+        code,headers,body=self.request('/api/state')
+        self.assertEqual(code,200)
+        self.assertEqual(headers['X-Accel-Buffering'],'no')
+        self.assertEqual(int(headers['Content-Length']),len(body))
+        self.assertEqual(len(json.loads(body)['future']['tasks']),110)
+
     def setUp(self):
         base=fixture.SupervisorBoardTests();base.setUp()
         self.store=FakeStore(base.s)
