@@ -71,7 +71,7 @@ def _snapshot(snapshot):
     return {key: _clean(snapshot.get(key, default)) for key, default in
             (('batch', {}), ('tasks', []), ('events', []), ('questions', []),
              ('totals', {}), ('limits', {}), ('publication', {}),
-             ('publication_result', {}), ('worker', {}))}
+             ('publication_result', {}), ('worker', {}), ('ongoing', {}))}
 
 
 def _text(value):
@@ -239,7 +239,8 @@ def report(snapshot):
                        ('questions', 'Questions and decisions'), ('events', 'Event history'),
                        ('totals', 'Usage totals'), ('limits', 'Limits'),
                        ('publication','Combined publication evidence'),
-                       ('publication_result','Publication result'), ('worker','Worker availability')]:
+                       ('publication_result','Publication result'), ('worker','Worker availability'),
+                       ('ongoing','Ongoing assigned work and model usage')]:
         sections += ['## '+title, escape(_text(data[key]))]
     sections += ['Credential redaction is heuristic; this report requires an admitted, safe snapshot.']
     return '\n\n'.join(sections)+'\n'

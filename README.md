@@ -1,5 +1,11 @@
 # miniature-octo-doodle
 
+New work uses [assigned-subtask coordination](docs/ONGOING_COORDINATION.md):
+Qwen orders admitted work; Codex, the official Antigravity CLI and an installed
+local Devstral coder own separate tasks. Routine decisions, isolated checks and
+draft PR publication are delegated. Integration and destructive actions remain
+owner decisions. Model selection considers task size and shared quota groups.
+
 The bounded [Telegram coordination pilot](docs/TELEGRAM_PILOT.md) adds readable controls, immediate button acknowledgements, durable VM ownership, and a delegated laptop worker. Publication remains an exact-result owner decision. The three-task recovery has completed and published after Telegram approval. Questions now offer fixed-answer buttons and Custom text capture.
 
 A modular, self-hosted AI development platform, developed on Windows + WSL2 with

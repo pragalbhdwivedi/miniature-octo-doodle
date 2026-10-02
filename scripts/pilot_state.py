@@ -264,11 +264,17 @@ def snapshot(s):
     value.update({k:copy.deepcopy(s.get(k,{})) for k in ('publication','publication_result','worker','recovery')})
     value['totals']={'gpt_calls':s['batch']['gpt_calls'],
                      'records':[{'started_at':at,'usage':copy.deepcopy(usage)} for at,usage in s['totals'].items()]}
+    if s.get('ongoing'):
+        import ongoing_state
+        value['ongoing']=ongoing_state.public(s)
     return value
 
 
 def rpc(s, request):
     action=request.get('action')
+    if isinstance(action,str) and action.startswith('ongoing_'):
+        import ongoing_state
+        return ongoing_state.rpc(s,request)
     if action=='work':
         s['worker']={'last_seen':stamp()}
         return work(s)

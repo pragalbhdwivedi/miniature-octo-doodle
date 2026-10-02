@@ -43,6 +43,7 @@ def tick(coordinator, conversation, executable, sender=notify):
                    'id TEXT PRIMARY KEY, state TEXT NOT NULL, '
                    'created_at TEXT NOT NULL, updated_at TEXT NOT NULL)')
         rows = db.execute('SELECT id,state,packet FROM tasks WHERE state != "closed"').fetchall()
+        rows = [r for r in rows if coordinator.sidecar_packet(json.loads(r['packet']))]
         if not rows:
             return {'state': 'idle', 'model_calls': 0}
         if len(rows) != 1 or rows[0]['state'] != 'queued':
@@ -61,6 +62,9 @@ def tick(coordinator, conversation, executable, sender=notify):
         db.execute('INSERT INTO scheduled_dispatches VALUES(?,?,?,?)',
                    (row['id'], 'delivery_started', now(), now()))
     # Persist before delivery: a crash or timeout can never cause a repeat send.
+    assigned = json.loads(row['packet']).get('owner') == 'gemini'
+    report = ('Report source SHA, owner and candidate hash. No duplicate coding or Qwen comparison. '
+              if assigned else 'Report source SHA, both hashes and advisory findings. ')
     prompt = (
         'Scheduled AADI coordination task '+row['id']+'. Use ONLY '
         'aadi-coder-coordination MCP tools. Read coordination_status. Continue '
@@ -68,8 +72,7 @@ def tick(coordinator, conversation, executable, sender=notify):
         'once with expected_task_id="'+row['id']+'", generate your own candidate from the returned source/task packet, '
         'submit_candidate as a JSON object, then call advance_task ONCE. '
         'If disconnected or timed out, use coordination_status; never rerun '
-        'advance_task or take over a claim. Report source SHA, both hashes and '
-        'advisory findings. Do not read other files, use other tools, execute '
+        'advance_task or take over a claim. '+report+'Do not read other files, use other tools, execute '
         'commands/tests, edit source, publish, merge or deploy. Permission '
         'requests must remain pending for the user. Stop at human_review_required.')
     state = 'notified'

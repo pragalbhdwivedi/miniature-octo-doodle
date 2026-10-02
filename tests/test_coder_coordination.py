@@ -157,6 +157,25 @@ class CoordinationTests(unittest.TestCase):
                 c.codex_candidate(sys.executable, 'x'*65536, directory)
         self.assertLess(time.monotonic()-started, 5)
 
+    def test_codex_optional_routing_keeps_strict_cli_boundary(self):
+        directory = self.coordinator.root/'routing-test'
+        directory.mkdir()
+        def capture(command, **kwargs):
+            self.assertEqual(command[command.index('-m')+1], 'gpt-6-luna')
+            self.assertIn('model_reasoning_effort="low"', command)
+            self.assertIn('--strict-config', command)
+            self.assertIn('forced_login_method="chatgpt"', command)
+            raise RuntimeError('Captured command without inference')
+        with patch.object(c.subprocess, 'Popen', side_effect=capture):
+            with self.assertRaisesRegex(RuntimeError, 'Captured command'):
+                c.codex_candidate(sys.executable, 'Synthetic probe', directory,
+                                  model='gpt-6-luna', effort='low')
+        for kwargs in ({'model': 'arbitrary-provider'}, {'effort': 'unbounded'}):
+            with patch.object(c.subprocess, 'Popen') as launch:
+                with self.assertRaises(c.agent.AgentError):
+                    c.codex_candidate(sys.executable, 'Synthetic probe', directory, **kwargs)
+                launch.assert_not_called()
+
     def test_run_logs_stop_at_byte_ceiling(self):
         directory = self.coordinator.root/'log-limit-test'
         directory.mkdir()

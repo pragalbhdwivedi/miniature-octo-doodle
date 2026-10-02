@@ -53,6 +53,15 @@ def authorized(config, update):
 def show(s, view, level, key):
     markup=views.keyboard(view,level)
     text=views.render(view,level,state.snapshot(s))
+    if s.get('ongoing'):
+        import ongoing_state
+        markup['inline_keyboard'].insert(0,[{'text':'Ongoing work','callback_data':'p:ongoing:brief'},
+            {'text':'Pause ongoing','callback_data':'p:ongoing-pause:brief'},
+            {'text':'Resume ongoing','callback_data':'p:ongoing-resume:brief'}])
+        if view in ('status','outputs'):text=ongoing_state.summary(s)
+        if view=='questions':text=ongoing_state.decisions(s)+'\n\n'+text
+        if view=='usage':text=ongoing_state.usage(s)
+        if view=='inputs':text='Ongoing assignments\n'+'\n\n'.join(j['title']+'\n'+j['prompt'] for j in s['ongoing']['jobs'])
     if view=='questions':
         if s['batch']['state']=='awaiting_scope':
             text=('Start this pilot?\nThree synthetic identity regression tests: case-sensitive system names, spaces inside external IDs, and case-sensitive IDs. Both coders propose; isolated tests and independent GPT review verify.\nLimit: 3 tasks, 60 minutes, 10 GPT calls, one repair per task. No paid API fallback. Publishing to Dev requires another exact-result approval.\n\n'+text)[:3500]
@@ -95,6 +104,11 @@ def handle(s, update, key):
                         state.message(s,'Resume recorded. Work will continue within the original time and usage limits.')
                     else: state.message(s,'Resume was received. The pilot is not paused; open Status or Decisions to see what it needs.')
                 elif view=='report': state.message(s,'Your comprehensive report is attached.',report=True)
+                elif view in ('ongoing','ongoing-pause','ongoing-resume'):
+                    import ongoing_state
+                    if not s.get('ongoing'):raise ValueError('Ongoing work is not configured')
+                    if view!='ongoing':s['ongoing']['enabled']=view=='ongoing-resume'
+                    state.message(s,ongoing_state.summary(s))
                 elif view=='ask': state.message(s,'Ask anything about this pilot: type your question here. Qwen will answer from saved task evidence. New project work is saved for a separate scope decision.')
                 elif view=='defer':
                     if s['batch']['state']!='awaiting_publication':raise ValueError('There is no current publication decision to defer')

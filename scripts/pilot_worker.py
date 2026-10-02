@@ -76,7 +76,7 @@ def read_json(path, limit=262144):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
-def bounded_run(command, *, data=b'', timeout=30, limit=262144):
+def bounded_run(command, *, data=b'', timeout=30, limit=262144, cwd=None, env=None):
     """Bound both output pipes while enforcing a wall-clock process deadline."""
     if len(data) > limit:
         raise WorkerError('Process input exceeds bounded size')
@@ -86,7 +86,7 @@ def bounded_run(command, *, data=b'', timeout=30, limit=262144):
         stdin.write(data)
         stdin.seek(0)
         process = subprocess.Popen(command, stdin=stdin, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.PIPE,cwd=cwd,env=env,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         def drain(stream, target):
             while chunk := stream.read(4096):
@@ -692,6 +692,9 @@ def main():
     args = parser.parse_args()
     worker = Worker(read_json(args.config))
     result = worker.tick()
+    if result.get('state')=='idle' and worker.config.get('ongoing_enabled'):
+        from ongoing_worker import Worker as OngoingWorker
+        result=OngoingWorker(worker.config).tick()
     write_json(worker.root/'worker-status.json', {'checked_at': now(), **result})
     print(json.dumps(result))
 

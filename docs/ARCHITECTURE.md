@@ -1,5 +1,13 @@
 # Architecture
 
+New development tasks follow [assigned-subtask coordination](ONGOING_COORDINATION.md).
+The VM owns durable stage leases, task dependencies and budgets. Qwen orders the
+admitted catalog; three separate owner slots support Codex, Antigravity native
+CLI and local Devstral proposals. Immutable shared context is allowed, writable
+files are disjoint. The operator runs isolated tests and a fresh compact review,
+then publishes a separate draft PR. This optional subscription/local development
+lane does not replace the canonical LiteLLM application gateway.
+
 The [Telegram pilot](TELEGRAM_PILOT.md) adds VM-owned parent task reservations around the existing laptop coordination lane. The laptop remains a delegated operator worker; local Qwen is advisory. Telegram approvals bind the batch scope and exact publication result. Signed question buttons bind fixed answers or Custom text capture to one pending question. Operator-only saved-proposal recovery preserves source/candidate integrity and requires fresh isolated tests and independent review; it cannot generate new coder runs.
 
 The optional desktop subscription lane now supports

@@ -1,5 +1,41 @@
 # Build Status
 
+## Assigned cloud and local work, 2 October 2026
+
+IMPLEMENTED and DEPLOYED for the existing running laptop scheduler: distinct
+coder ownership, compact model routing, native Antigravity CLI, a local Devstral
+lane, isolated test/review stages, and separate issue/draft-PR publication.
+Routine choices are delegated; no new automatic Dev/main merge or deployment.
+The official CLI 1.2.14 is installed with native sign-in and a restricted proposal
+profile. Shared native quota groups use observed weekly/five-hour allowances.
+
+LIVE VERIFIED: Codex reconciliation draft #27 passed 29 isolated tests; Gemini
+feed-warning draft #29 passed 20; both had independent review. GitHub stale-list
+readback was corrected without duplicate writes. A test-validator omission was
+fixed using the saved candidate without another coder call. Native scheduling
+uses the resolved physical installation path across Windows app virtualization.
+
+LIVE ACCEPTANCE COMPLETE WITH OPERATOR RECOVERY: all four test-only tasks are
+reviewed draft PRs (#27, #29, #32, #33); their combined isolated suite passed 76
+checks. Local Devstral's first full-file call timed out. Its compact method call
+completed in 169 seconds (1,136 input / 185 output tokens, no cloud generation).
+The saved method needed field normalization and one operator correction requested
+by independent review; four fresh tests and a fresh review passed. No coding-model
+call was repeated for those corrections. Clean unattended local repetition after
+these fixes is not yet claimed. Dev/main remain unchanged.
+
+VALIDATION: 68 ongoing tests, 60 pilot tests, 18 assigned-owner tests, 13 legacy
+coordination tests and nine scheduler tests passed. Repository YAML/core security
+validation passed. Native timer execution with Flash Low and distinct local work
+was observed; end-to-end operation included the explicit recoveries above.
+
+Telegram distinguishes technical recovery from owner decisions. Status, Usage,
+Inputs and the comprehensive report include new assigned work and observed model
+usage, while excluding lease tokens. Source and provider ambiguity retain claims.
+Catalog additions are synchronized idempotently; empty queues call no models.
+See [ongoing coordination](ONGOING_COORDINATION.md) and ADR-0020. Historical pilot entries below refer
+to the prior owner-approved publication, not the new draft-only workflow.
+
 ## Completed pilot recovery and reply controls, 2 October 2026
 
 LIVE VALIDATED: the owner-authorized saved-proposal recovery completed all three
