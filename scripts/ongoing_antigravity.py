@@ -90,12 +90,15 @@ def parse_result(stdout,route):
     if any((x.get('step_update',{}).get('step_type')=='tool' and x['step_update'].get('tool_name')!='finish') or x.get('step_update',{}).get('subagent_info') for x in events):
         raise ValueError('Unexpected tool/delegation attempt')
     results=[x['result'] for x in events if x.get('event')=='result']
-    if len(results)!=1 or results[0].get('status')!='SUCCESS' or results[0].get('num_turns')!=1:raise ValueError('CLI did not complete one turn; preserve claim, no automatic generation retry')
+    if (len(results)!=1 or results[0].get('status')!='SUCCESS'
+            or type(results[0].get('num_turns')) is not int
+            or results[0]['num_turns'] not in (1,2)):
+        raise ValueError('CLI did not complete a bounded structured response; preserve claim, no automatic generation retry')
     result=results[0]
     value=result.get('structured_output')
     if value is None:raise ValueError('Native structured result missing; no response concatenation or replay')
     if not isinstance(value,dict):raise ValueError('Structured output missing')
-    return {'candidate':value,'route':route,'usage':result.get('usage',{'status':'unavailable'})}
+    return {'candidate':value,'route':{**route,'native_turns':result['num_turns']},'usage':result.get('usage',{'status':'unavailable'})}
 
 
 def prepare(executable,directory,complexity='routine',attempt=0,prefer_group=None,runner=bounded_run):
@@ -134,6 +137,7 @@ def run(executable,prompt,directory,complexity='routine',attempt=0,schema=None,p
     data=(json.dumps({'event':'user','message':{'content':prompt}})+'\n').encode()
     code,out,err=runner(command,data=data,timeout=200,limit=1024*1024,cwd=directory,env=env)
     (directory/'antigravity-events.jsonl').write_bytes(out);(directory/'antigravity-stderr.txt').write_bytes(err)
+    write_json(directory/'antigravity-exit.json',{'exit_code':code})
     if code:raise ValueError('Native CLI failed; inspect saved evidence, no automatic replay')
     result=parse_result(out,route);write_json(directory/'antigravity-result.json',result)
     return result

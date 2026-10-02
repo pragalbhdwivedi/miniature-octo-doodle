@@ -134,3 +134,23 @@ independent review. SUP-000006 completed local AADI coding and four tests; cloud
 review waits at the daily budget cap. Protected task files are updated by the
 observer and after stage completion. Live configuration, network inventory and
 rollback backups remain outside the public repository.
+
+
+## Blocker recovery, 2 October 2026
+
+Blocked/owner-held jobs retain their evidence and claims but do not consume all
+roadmap admission capacity. New independent work may be planned; recipes sharing
+a held coder or writable path in the same repository wait for reconciliation.
+The native CLI accepts one successful structured result from one invocation with
+one or two native turns, the exact selected model/agent and strict permissions;
+unexpected tools/delegation, duplicate results and incomplete output stay held.
+Turn count is checked after completion, not a provider billing ceiling. Exit
+status is saved beside the original event stream. This is not an inference
+retry. Local development explanations are bounded so code has output space;
+truncation still fails closed. Reviewer suggestions remain advisory and cannot
+silently replace task requirements or protected compatibility expectations.
+
+Operator corrections use a new numbered attempt, preserve previous artifacts,
+identify operator authorship, and repeat isolated tests and independent review
+before draft publication. These controls do not make arbitrary future work
+admissible or authorize a release deployment.

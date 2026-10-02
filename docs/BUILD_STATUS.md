@@ -1,5 +1,15 @@
 # Build Status
 
+## Blocker recovery, 2 October 2026
+
+IMPLEMENTED AND TESTED: retain blocked claims without exhausting independent
+roadmap capacity; accept bounded successful native CLI structured responses with
+one or two reported turns; persist CLI exit receipts; constrain local explanation
+length and clarify empty writable files; preserve existing contracts during review.
+Linux suite: 497 tests, no failures, three opt-in PostgreSQL skips. Core security
+contract, nine YAML files and whitespace checks pass. Deployment and corrected
+task acceptance are recorded separately in the protected operational receipts.
+
 ## Real development and API review, 2 October 2026
 
 IMPLEMENTED: source-code development tasks with fixed writable files, immutable

@@ -33,6 +33,16 @@ class LocalCoderTests(unittest.TestCase):
         self.assertEqual(result['usage']['output_tokens'],20)
         with self.assertRaisesRegex(ValueError,'replay'):self.call()
 
+    def test_development_explanations_are_bounded_and_saved_for_recovery(self):
+        self.payload['message']['content']=json.dumps({'summary':'x'*601,'proposal':'brief','changes':[]})
+        opener=Mock();opener.open.return_value=io.BytesIO(json.dumps(self.payload).encode())
+        with self.assertRaisesRegex(ValueError,'compact contract'):
+            local.run('Compact source task',self.root,opener=opener,development=True)
+        self.assertTrue((self.root/'local-response.json').exists())
+        body=json.loads(opener.open.call_args.args[0].data)
+        self.assertEqual(body['format']['properties']['summary']['maxLength'],600)
+        self.assertEqual(body['format']['properties']['proposal']['maxLength'],400)
+
     def test_truncated_generation_stays_held(self):
         self.payload['done_reason']='length'
         with self.assertRaisesRegex(ValueError,'incomplete'):self.call()

@@ -13,7 +13,7 @@ MAX_PROMPT_BYTES=10000
 METHOD_SCHEMA={'type':'object','properties':{k:{'type':'string'} for k in ('summary','proposal','method_source')},
                'required':['summary','proposal','method_source'],'additionalProperties':False}
 DEVELOPMENT_SCHEMA={'type':'object','properties':{
-    'summary':{'type':'string'},'proposal':{'type':'string'},
+    'summary':{'type':'string','maxLength':600},'proposal':{'type':'string','maxLength':400},
     'changes':{'type':'array','minItems':1,'maxItems':4,'items':{'type':'object',
         'properties':{'path':{'type':'string'},'content':{'type':'string'}},
         'required':['path','content'],'additionalProperties':False}}},
@@ -71,6 +71,9 @@ def run(prompt,directory,model=MODEL,opener=None,development=False):
         raise ValueError('Local result incomplete, wrong model or attempted tools; claim retained')
     candidate=json.loads(value['message']['content'])
     if not isinstance(candidate,dict):raise ValueError('Local structured result missing')
+    if development and any(not isinstance(candidate.get(k),str) or len(candidate[k])>limit
+                           for k,limit in (('summary',600),('proposal',400))):
+        raise ValueError('Local explanation exceeds compact contract; claim retained')
     result={'candidate':candidate,'route':route,'usage':{
         'input_tokens':value.get('prompt_eval_count'),'output_tokens':value.get('eval_count'),
         'duration_ns':value.get('total_duration'),'cloud_tokens':0}}
