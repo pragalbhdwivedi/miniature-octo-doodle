@@ -158,7 +158,8 @@ function futureView() {
 function renderFuture() {
   const {future, entries, size, next, matching, visible} = futureView();
   const labels = {ready: 'Ready', queued: 'Queued for admission', planned: 'Planned', scheduled: 'Scheduled', admitted: 'Admitted',
-    needs_scope: 'Needs scope', completed: 'Completed'};
+    needs_scope: 'Needs scope', needs_owner: 'Needs your input', blocked: 'Held for recovery',
+    review_ready: 'PR review ready', completed: 'Completed'};
   $('futureCount').textContent = entries.length;
   const interval = Number.isInteger(future.interval_minutes) && future.interval_minutes > 0 ? future.interval_minutes : 5;
   $('futureCadence').textContent = `Up to ${size} tasks in the next batch · checked every ${interval} minutes`;
