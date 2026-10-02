@@ -149,6 +149,25 @@ class FutureTests(unittest.TestCase):
         self.assertEqual(self.promote()['ready'], [])
         self.assertEqual(self.promote(self.later)['ready_ids'], ['FUT-000001'])
 
+    def test_blocked_work_releases_slot_preserves_link_and_holds_dependencies(self):
+        entries = [self.entry(i) for i in range(1, 13)]
+        entries[10]['dependencies'] = ['FUT-000001']
+        future.seed(self.s, entries, self.at)
+        self.promote()
+        fid = self.admit(1)
+        future.mark_blocked(self.s, fid, 'Independent review needs correction', self.at)
+        before = copy.deepcopy(self.s)
+        future.mark_blocked(self.s, fid, 'Independent review needs correction', self.later)
+        self.assertEqual(self.s, before)
+        self.assertEqual(self.promote(self.later)['ready_ids'], ['FUT-000012'])
+        blocked = future.public(self.s, self.at)['tasks'][0]
+        self.assertEqual(blocked['intake_id'], 'SUP-000001')
+        self.assertEqual(blocked['state'], 'blocked')
+        with self.assertRaises(ValueError):
+            future.mark_admitted(self.s, fid, 'SUP-000099', self.later)
+        future.mark_admitted(self.s, fid, 'SUP-000001', self.later)
+        self.assertEqual(future.public(self.s, self.at)['tasks'][0]['state'], 'admitted')
+
     def test_intake_links_and_transition_audit_are_idempotent(self):
         self.seed(2)
         self.promote()

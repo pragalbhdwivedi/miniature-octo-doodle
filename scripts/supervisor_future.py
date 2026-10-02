@@ -372,7 +372,23 @@ def mark_intake(s, future_id, intake_id, now):
 
 
 def mark_admitted(s, future_id, intake_id, now):
-    return _transition(s, future_id, intake_id, 'admitted', {'queued'}, now)
+    return _transition(s, future_id, intake_id, 'admitted', {'queued', 'blocked'}, now)
+
+
+def mark_blocked(s, future_id, reason, now):
+    """Release a blocked work slot while retaining its intake and dependency hold."""
+    at = _at(now)
+    _text(reason, 1000, 'blocked reason')
+    def change(f, candidate):
+        task = _task(f, future_id)
+        if task['state'] not in {'queued', 'admitted', 'review_ready', 'blocked'}:
+            raise ValueError('Only linked unfinished work can become blocked')
+        if task['state'] == 'blocked' and task.get('reason') == reason:
+            return copy.deepcopy(task)
+        task.update(state='blocked', reason=reason, updated_at=at, blocked_at=at)
+        _event(f, at, 'blocked', task_id=future_id, intake_id=task['intake_id'])
+        return copy.deepcopy(task)
+    return _change(s, change)
 
 
 def mark_review_ready(s, future_id, now):
