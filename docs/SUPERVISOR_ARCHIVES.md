@@ -143,21 +143,9 @@ more work. `ongoing_sync` also filters archived identities before its existing
 IDs and source/goal digests in the archive index prevent roadmap re-admission.
 This implementation was not enabled against the live six-task ledger.
 
-The worker integration owner should add this small pre-sync hook after loading
-the catalog and before serializing the RPC. This avoids transmitting a historic
-catalog that could exceed the existing RPC byte bound when the observer is
-throttled or disabled. `ongoing_worker.py` is deliberately not edited here because
-another implementation task owns it:
-
-```python
-from supervisor_archive_operator import filter_catalog
-snapshot = self.remote({'action': 'ongoing_board_data'})
-rows = list(self.catalog.values())
-filtered = filter_catalog({'supervision': snapshot['supervision']}, rows)
-if filtered != rows:
-    pilot.write_json(Path(self.config['ongoing_catalog']), filtered)
-    self.catalog = {row['id']: row for row in filtered}
-```
+The worker applies the verified catalog filter before sync when `archive_enabled`
+is true, including when the observer is throttled. It updates only the protected
+local catalog after verifying the server's archive identity and scope digest.
 
 `filter_catalog` retains every nonarchived spec unchanged. It verifies persisted
 archive receipt identity, SUP-to-key tombstone and immutable scope digest before

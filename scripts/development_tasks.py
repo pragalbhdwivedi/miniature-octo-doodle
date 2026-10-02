@@ -3,6 +3,8 @@
 Models supply UTF-8 replacement files, never commands or sandbox configuration.
 The existing Docker daemon receives only disposable public source snapshots.
 """
+import ast
+from collections import Counter
 import difflib
 import hashlib
 import json
@@ -65,6 +67,82 @@ def validate_task(task, profiles):
     return profile
 
 
+def _tampering_signatures(content):
+    """Recognize direct harness tampering, not an arbitrary-Python safety proof.
+
+    Preserve pre-existing constructs only in their original lexical context.
+    This lets existing guarded CLI exits remain while rejecting moved exits,
+    alias-based process termination and newly introduced dynamic execution.
+    Independent review remains required for indirect or semantic manipulation.
+    """
+    tree=ast.parse(content)
+    aliases={}
+    for node in ast.walk(tree):
+        if isinstance(node,ast.Import):
+            for name in node.names:aliases[name.asname or name.name.split('.')[0]]=name.name if name.asname else name.name.split('.')[0]
+        elif isinstance(node,ast.ImportFrom):
+            for name in node.names:aliases[name.asname or name.name]=(node.module or '')+'.'+name.name
+    def qualified(node):
+        if isinstance(node,ast.Name):return aliases.get(node.id,node.id)
+        if isinstance(node,ast.Attribute):return qualified(node.value)+'.'+node.attr
+        return ''
+    def dangerous_reference(name):
+        return (name in {'eval','exec','compile','__import__','exit','quit','SystemExit',
+                         'builtins.eval','builtins.exec','builtins.compile','builtins.__import__',
+                         'builtins.exit','builtins.quit','builtins.SystemExit','sys.exit','os._exit',
+                         'os.abort','os.kill','os.killpg','signal.raise_signal','signal.pthread_kill',
+                         'importlib.import_module','runpy.run_module','runpy.run_path'}
+                or name.startswith(('os.exec','os.spawn'))
+                or name.rsplit('.',1)[-1] in {'exec_module','load_module','__globals__','__builtins__','__subclasses__'})
+    def harness_reference(node):
+        name=qualified(node)
+        return (name.startswith(('unittest.','pytest.','builtins.')) or name in {'unittest','pytest','builtins'}
+                or isinstance(node,ast.Attribute) and node.attr.startswith('assert'))
+    found=Counter()
+    def visit(node,context):
+        risk=False
+        if isinstance(node,(ast.Name,ast.Attribute)) and isinstance(node.ctx,ast.Load):
+            risk=dangerous_reference(qualified(node))
+        if isinstance(node,ast.Constant) and isinstance(node.value,str):
+            risk=bool(re.search(r'(?m)(?:^|\n)\s*Ran\s+.+?\s+tests?\s+in\b',node.value)
+                or re.search(r'(?:unittest|pytest)\.[A-Za-z_.]*assert[A-Za-z_]*',node.value))
+        if isinstance(node,ast.JoinedStr):
+            text=''.join(v.value if isinstance(v,ast.Constant) and isinstance(v.value,str) else '{}' for v in node.values)
+            risk=bool(re.search(r'(?m)(?:^|\n)\s*Ran\s+.+?\s+tests?\s+in\b',text))
+        if isinstance(node,ast.Attribute) and isinstance(node.ctx,(ast.Store,ast.Del)):
+            risk=harness_reference(node) or qualified(node) in {'sys.stdout','sys.stderr','sys.modules'}
+        if isinstance(node,ast.Subscript) and isinstance(node.ctx,(ast.Store,ast.Del)):
+            risk=qualified(node.value) in {'sys.modules','__builtins__'}
+        if isinstance(node,ast.Call):
+            call=qualified(node.func)
+            if call.rsplit('.',1)[-1] in {'setattr','delattr','getattr'} and len(node.args)>=2:
+                attr=node.args[1].value if isinstance(node.args[1],ast.Constant) else None
+                risk=risk or (isinstance(attr,str) and (dangerous_reference(qualified(node.args[0])+'.'+attr)
+                    or attr.startswith('assert') or attr in {'__dict__','__globals__','__builtins__'}))
+                if call.rsplit('.',1)[-1] in {'setattr','delattr'}:
+                    risk=risk or harness_reference(node.args[0])
+            if call in {'unittest.mock.patch','unittest.mock.patch.object','mock.patch','mock.patch.object'} and node.args:
+                target=node.args[0]
+                risk=risk or harness_reference(target) or (isinstance(target,ast.Constant) and isinstance(target.value,str)
+                    and target.value.startswith(('unittest.','pytest.','builtins.')))
+        if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)) and (node.name=='load_tests' or node.name.startswith('assert')):
+            risk=True
+        if risk:found[(context,ast.dump(node,include_attributes=False),qualified(node))]+=1
+        child_context=context
+        if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef)):
+            child_context=context+((type(node).__name__,node.name),)
+        elif isinstance(node,ast.If):child_context=context+(('If',ast.dump(node.test,include_attributes=False)),)
+        for child in ast.iter_child_nodes(node):visit(child,child_context)
+    visit(tree,())
+    return found
+
+
+def validate_source_integrity(before,after):
+    try:added=_tampering_signatures(after)-_tampering_signatures(before)
+    except SyntaxError as exc:raise ValueError('Invalid Python development source') from exc
+    if added:raise ValueError('New test-harness tampering, process termination or dynamic execution requires operator review')
+
+
 def validate_changes(task, before, changes, profile):
     if set(changes) != set(task['write_paths']) or not set(task['test_files']) <= set(before):
         raise ValueError('Proposal does not match admitted development scope')
@@ -75,7 +153,9 @@ def validate_changes(task, before, changes, profile):
         if not isinstance(content, str) or '\x00' in content:raise ValueError('Text proposal required')
         size = len(content.encode('utf-8'));total += size
         if size > MAX_FILE_BYTES or total > MAX_TOTAL_BYTES:raise ValueError('Development proposal exceeds byte bound')
-        if content != before[path]:changed.append(path)
+        if content != before[path]:
+            if path.endswith('.py'):validate_source_integrity(before[path],content)
+            changed.append(path)
     if not changed or not any(not p.startswith('tests/') for p in changed):
         raise ValueError('Development proposal must change application source')
     if set(changes) & set(profile['acceptance_tests']):raise ValueError('Protected acceptance test changed')

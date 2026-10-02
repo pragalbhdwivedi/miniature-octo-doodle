@@ -360,6 +360,14 @@ class Worker:
                 from supervisor_observer import Observer
                 Observer(self).tick()
                 self.catalog={x['id']:x for x in pilot.read_json(self.config['ongoing_catalog'])}
+            if self.config.get('archive_enabled'):
+                from supervisor_archive_operator import filter_catalog
+                snapshot=self.remote({'action':'ongoing_board_data'})
+                rows=list(self.catalog.values())
+                filtered=filter_catalog({'supervision':snapshot['supervision']},rows)
+                if filtered!=rows:
+                    pilot.write_json(Path(self.config['ongoing_catalog']),filtered)
+                    self.catalog={row['id']:row for row in filtered}
             self.remote({'action':'ongoing_sync','catalog':list(self.catalog.values())})
             work=self.remote({'action':'ongoing_work'});stage=work['action']
             if stage=='idle':return {'state':'idle','model_calls':0}

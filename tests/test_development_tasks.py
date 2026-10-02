@@ -35,6 +35,42 @@ class DevelopmentTasksTests(unittest.TestCase):
         self.assertEqual(dev.validate_task(self.job,self.profiles),self.profile)
         self.assertEqual(dev.validate_changes(self.job,self.before,self.changes,self.profile),[SOURCE,NEW])
 
+    def test_candidate_cannot_forge_suite_output_or_exit_before_assertions(self):
+        attacks=[
+            'import os\nprint("Ran 2 tests in 0.01s\\n\\nOK",flush=True)\nos._exit(0)\n',
+            'import os as process\nprocess._exit(0)\n',
+            'from os import _exit as finish\nfinish(0)\n',
+            'import sys\nsys.exit(0)\n',
+            'raise SystemExit(0)\n',
+            'exec("print(1)")\n',
+            'eval("1+1")\n',
+            '__import__("os")._exit(0)\n',
+            'import importlib\nimportlib.import_module("os")\n',
+            'import runpy\nrunpy.run_path("other.py")\n',
+            'import os\ngetattr(os,"_exit")(0)\n',
+            'print(f"Ran {2} tests in 0.01s\\nOK")\n',
+            'import unittest\nunittest.TestCase.assertEqual=lambda *a: None\n',
+            'from unittest import TestCase as Case\nsetattr(Case,"assertEqual",lambda *a: None)\n',
+            'from unittest.mock import patch\npatch("unittest.TestCase.assertEqual",lambda *a:None).start()\n',
+            'import unittest\ndef load_tests(*args): return unittest.TestSuite()\n',
+            'import sys\nsys.modules["unittest"]=None\n',
+        ]
+        for attack in attacks:
+            with self.subTest(attack=attack),self.assertRaisesRegex(ValueError,'tampering'):
+                dev.validate_changes(self.job,self.before,{**self.changes,SOURCE:attack},self.profile)
+        self.runner.assert_not_called()
+
+    def test_existing_guarded_cli_exit_is_preserved_but_cannot_be_moved(self):
+        cli='import json, argparse\nfrom pathlib import Path\ndef answer(): return 1\nif __name__ == "__main__":\n    raise SystemExit(answer())\n'
+        dev.validate_source_integrity(cli,cli.replace('return 1','return 2'))
+        with self.assertRaises(ValueError):
+            dev.validate_source_integrity(cli,cli.replace('if __name__ == "__main__":\n    ','').replace('return 1','return 2'))
+
+    def test_regular_json_path_argparse_and_assertions_remain_available(self):
+        valid='import json, argparse\nfrom pathlib import Path\ndef answer():\n    parser=argparse.ArgumentParser()\n    value=json.loads("{\\"answer\\":42}")\n    return value["answer"]\n'
+        dev.validate_source_integrity('',valid)
+        dev.validate_source_integrity('', 'import unittest\nclass Checks(unittest.TestCase):\n    def test_answer(self):\n        self.assertEqual(42,42)\n')
+
     def test_protected_tests_cannot_be_writable_or_omitted(self):
         for field,value in [('write_paths',[SOURCE,ACCEPT]),('test_files',[SOURCE,NEW]),('paths',[SOURCE,NEW])]:
             job={**self.job,field:value}
