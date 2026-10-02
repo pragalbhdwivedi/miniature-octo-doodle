@@ -156,15 +156,25 @@ class Policy:
         candidates = self.config["resolved_routes"].get(route)
         if not candidates:
             raise Denied("unknown_or_unavailable_route")
-        allowed = {"openai", "gemini"}
+        universe = {"openai", "gemini"}
         if self.config.get("local_models_enabled") is True:
-            allowed.add("ollama")
+            universe.add("ollama")
+        allowed = set(universe)
+        restrictions_by_source = []
+        # Validate each declaration against the unchanged provider universe.
+        # A narrow request must not make the administrator's broader key invalid.
         for restrictions in (meta, key_metadata):
-            if "allowed_providers" in restrictions:
-                values = restrictions["allowed_providers"]
-                if not isinstance(values, list) or any(not isinstance(v, str) or v not in allowed for v in values):
-                    raise Denied("invalid_provider_allowlist")
-                allowed &= set(values)
+            values = restrictions.get("allowed_providers", list(universe))
+            if not isinstance(values, list) or any(not isinstance(v, str) or v not in universe for v in values):
+                raise Denied("invalid_provider_allowlist")
+            restriction = set(values)
+            restrictions_by_source.append(restriction)
+            allowed &= restriction
+        # Empty declarations/intersections retain the established denial reason.
+        if not allowed:
+            raise Denied("no_allowed_provider")
+        if "allowed_providers" in meta and not restrictions_by_source[0] <= restrictions_by_source[1]:
+            raise Denied("invalid_provider_allowlist")
         candidates = [c for c in candidates if c["model"].split('/')[0] in allowed]
         if not candidates:
             raise Denied("no_allowed_provider")
