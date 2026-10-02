@@ -19,6 +19,15 @@ REVIEW={'type':'object','properties':{'verdict':{'type':'string','enum':['pass',
     'required':['verdict','findings','confidence','confidence_reason'],'additionalProperties':False}
 
 
+def routing_attempt(job):
+    """Escalate within one repair cycle, not across the task's audit history."""
+    attempt, start = job['attempt'], job.get('repair_start', 0)
+    if (type(attempt) is not int or type(start) is not int or start < 0
+            or attempt - start not in (0, 1)):
+        raise ValueError('Invalid routing repair cycle')
+    return attempt - start
+
+
 def validate_additions(before,after):
     """Candidate may only add unittest methods, preserving every baseline node."""
     old,new=ast.parse(before),ast.parse(after)
@@ -133,12 +142,12 @@ class Worker:
         j=work['job'];self.spec(j)
         reports=[]
         def generate(executable,prompt,folder):
-            try:r=models.run(executable,prompt,folder,complexity=j.get('complexity','routine'),stage='code',attempt=j['attempt'])
+            try:r=models.run(executable,prompt,folder,complexity=j.get('complexity','routine'),stage='code',attempt=routing_attempt(j))
             except Exception:
                 if not models.confirmed_quota_denial(folder):raise
                 import ongoing_antigravity
                 r=ongoing_antigravity.run(self.config['antigravity_cli'],prompt,folder/'quota-fallback',
-                    complexity=j.get('complexity','routine'),attempt=j['attempt'],prefer_group='Claude and GPT models')
+                    complexity=j.get('complexity','routine'),attempt=routing_attempt(j),prefer_group='Claude and GPT models')
                 r['route']['reason']='Confirmed Codex quota denial before generation'
             reports.append(r)
             return r['candidate']
@@ -152,12 +161,12 @@ class Worker:
         j=work['job'];self.spec(j)
         reports=[]
         try:route=ongoing_antigravity.prepare(self.config['antigravity_cli'],directory/'preflight',
-                    complexity=j.get('complexity','routine'),attempt=j['attempt'])
+                    complexity=j.get('complexity','routine'),attempt=routing_attempt(j))
         except ongoing_antigravity.QuotaWait as exc:
             return {'state':'quota_wait','retry_at':exc.reset_at,'inference_started':False}
         def generate(prompt,folder):
             r=ongoing_antigravity.run(self.config['antigravity_cli'],prompt,folder,
-                complexity=j.get('complexity','routine'),attempt=j['attempt'],prepared=route);reports.append(r)
+                complexity=j.get('complexity','routine'),attempt=routing_attempt(j),prepared=route);reports.append(r)
             return r['candidate']
         result=self.coordinator.run_gemini(self.child(j),generate)
         if reports:result.update(route=reports[0]['route'],usage=reports[0]['usage'])

@@ -167,3 +167,26 @@ class OngoingWorkerTests(unittest.TestCase):
         self.assertEqual(generated,self.value)
         self.w.coordinator.run_codex.assert_called_once_with(self.w.child(self.job))
         self.assertEqual(model.call_args.kwargs['stage'],'code')
+
+    def test_correction_cycles_reset_coder_escalation_without_resetting_audit(self):
+        for attempt, start, expected in ((0, 0, 0), (1, 0, 1), (2, 2, 0), (3, 2, 1), (8, 8, 0)):
+            with self.subTest(attempt=attempt, start=start):
+                job=dict(self.job,attempt=attempt,repair_start=start)
+                self.w.coordinator.run_codex.return_value=self.result
+                with patch.object(worker.models,'run',return_value={'candidate':self.value}) as model:
+                    self.w.codex({'job':job},self.directory)
+                    self.w.coordinator.coder('synthetic-codex','fixed prompt',self.directory)
+                self.assertEqual(model.call_args.kwargs['attempt'],expected)
+                self.assertEqual(job['attempt'],attempt)
+        for attempt,start in ((2,0),(-1,0),(1,2),(True,0),(1,False)):
+            with self.subTest(attempt=attempt,start=start),self.assertRaises(ValueError):
+                worker.routing_attempt(dict(attempt=attempt,repair_start=start))
+
+    def test_gemini_correction_uses_current_repair_cycle(self):
+        import ongoing_antigravity
+        job=dict(self.job,owner='gemini',attempt=5,repair_start=5)
+        self.w.config['antigravity_cli']='synthetic-antigravity'
+        self.w.coordinator.run_gemini=Mock(return_value=self.result)
+        with patch.object(self.w,'spec'),patch.object(ongoing_antigravity,'prepare',return_value={}) as prepare:
+            self.w.antigravity({'job':job},self.directory)
+        self.assertEqual(prepare.call_args.kwargs['attempt'],0)

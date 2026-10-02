@@ -159,3 +159,11 @@ unit tests; actual account exhaustion was not forced to manufacture evidence.
 Telegram delivery receipts confirm the corrected technical-recovery notices and
 all four draft notifications. Final queue state is idle with no active lease;
 new admitted catalog entries can continue through the existing timer.
+
+### Review-cycle routing
+
+A task's lifetime attempt number remains monotonic for audit. Model escalation
+uses the attempt offset within the current correction cycle: a newly requested
+correction starts at the normal route, and its one permitted automatic repair
+may escalate once. Repeated PR reviews therefore do not exhaust model routing
+merely because earlier attempts exist. Invalid cycle counters fail closed.

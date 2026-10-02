@@ -100,11 +100,11 @@ def codex_candidate(executable, prompt, directory, schema=None, *, model=None, e
         command += ['-c', 'features.'+feature+'=false']
     command += ['-c', 'features.skip_host_skill_discovery=true', '-c', 'suppress_unstable_features_warning=true', '-c', 'web_search="disabled"',
                 '-c', 'forced_login_method="chatgpt"', '-']
-    # Preserve Windows runtime/auth locations, never inherited provider/API overrides.
+    # Preserve runtime/auth locations, never inherited provider/API overrides.
     names = {'SYSTEMROOT', 'WINDIR', 'SYSTEMDRIVE', 'COMSPEC', 'PATH', 'PATHEXT',
-             'TEMP', 'TMP', 'USERPROFILE', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA'}
+             'TEMP', 'TMP', 'HOME', 'USERPROFILE', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA'}
     env = {k: v for k, v in os.environ.items() if k.upper() in names}
-    env['CODEX_HOME'] = str(Path(os.environ['USERPROFILE'])/'.codex')
+    env['CODEX_HOME'] = str(Path.home()/'.codex')
     overflow = threading.Event()
     # A file avoids blocking on pipe capacity before the process deadline starts.
     prompt_file = directory/'codex-input.txt'

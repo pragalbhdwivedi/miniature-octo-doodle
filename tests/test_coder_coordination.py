@@ -96,7 +96,8 @@ class CoordinationTests(unittest.TestCase):
         self.assertEqual(self.calls, [])
 
     def test_remote_advance_denied(self):
-        self.command('commit', '--allow-empty', '-m', 'advance')
+        self.command('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                     'commit', '--allow-empty', '-m', 'advance')
         self.command('push', 'origin', 'HEAD:Dev')
         self.command('reset', '--hard', 'HEAD~1')
         with self.assertRaises(c.agent.AgentError):
@@ -175,6 +176,21 @@ class CoordinationTests(unittest.TestCase):
                 with self.assertRaises(c.agent.AgentError):
                     c.codex_candidate(sys.executable, 'Synthetic probe', directory, **kwargs)
                 launch.assert_not_called()
+
+    def test_codex_uses_platform_home_without_inherited_api_configuration(self):
+        directory = self.coordinator.root/'portable-home-test'
+        directory.mkdir()
+        safe_home = self.repo.parent/'operator-home'
+        def capture(command, **kwargs):
+            self.assertEqual(kwargs['env']['CODEX_HOME'], str(safe_home/'.codex'))
+            self.assertNotIn('OPENAI_API_KEY', kwargs['env'])
+            self.assertNotIn('CODEX_HOME_OVERRIDE', kwargs['env'])
+            raise RuntimeError('Captured portable environment')
+        environment={k:v for k,v in os.environ.items() if k not in ('USERPROFILE','CODEX_HOME')}
+        environment.update(OPENAI_API_KEY='synthetic-only',CODEX_HOME_OVERRIDE='untrusted')
+        with patch.dict(os.environ,environment,clear=True),patch.object(c.Path,'home',return_value=safe_home),patch.object(c.subprocess,'Popen',side_effect=capture):
+            with self.assertRaisesRegex(RuntimeError,'Captured portable environment'):
+                c.codex_candidate(sys.executable,'Synthetic probe',directory)
 
     def test_run_logs_stop_at_byte_ceiling(self):
         directory = self.coordinator.root/'log-limit-test'
