@@ -59,7 +59,7 @@ def tick(observer,board,state,now):
         files={p:text for p,text in source['files'].items() if not p.startswith('tests/')}
         # Supply whole small source files, never misleadingly cut code mid-line.
         files={p:text for p,text in files.items() if len(text.encode())<=12000}
-        if not files:continue
+        if not files or not any(p in files and not p.startswith('tests/') for p in scope['write_paths']):continue
         entry={'scope_id':key,'project':'AADI' if scope['repository']==github.REPOSITORY else 'GatewayAI',
             'description':scope['description'],'source_sha':source['sha'],'files':files,
             'writable_files':scope['write_paths']}
