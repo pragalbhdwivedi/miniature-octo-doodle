@@ -147,7 +147,7 @@ function futureView() {
   const future = state.data?.future || {};
   const entries = Array.isArray(future.tasks) ? future.tasks.filter((task) => task && typeof task === 'object') : [];
   const size = Number.isInteger(future.next_batch_size) ? Math.max(0, Math.min(10, future.next_batch_size)) : 10;
-  const next = new Set(entries.filter((task) => task.state === 'ready').slice(0, size).map((task) => task.id));
+  const next = new Set(entries.filter((task) => ['ready', 'queued'].includes(task.state)).slice(0, size).map((task) => task.id));
   const needle = $('futureSearch').value.trim().toLowerCase();
   const filter = $('futureFilter').value;
   const matching = entries.filter((task) => (filter === 'all' || filter === task.state || (filter === 'next' && next.has(task.id)))
@@ -157,11 +157,11 @@ function futureView() {
 }
 function renderFuture() {
   const {future, entries, size, next, matching, visible} = futureView();
-  const labels = {ready: 'Ready', planned: 'Planned', scheduled: 'Scheduled', admitted: 'Admitted',
+  const labels = {ready: 'Ready', queued: 'Queued for admission', planned: 'Planned', scheduled: 'Scheduled', admitted: 'Admitted',
     needs_scope: 'Needs scope', completed: 'Completed'};
   $('futureCount').textContent = entries.length;
   const interval = Number.isInteger(future.interval_minutes) && future.interval_minutes > 0 ? future.interval_minutes : 5;
-  $('futureCadence').textContent = `Up to ${size} ready tasks in the next batch · checked every ${interval} minutes`;
+  $('futureCadence').textContent = `Up to ${size} tasks in the next batch · checked every ${interval} minutes`;
   const generation = future.generation || {};
   const generationLabels = {pending: 'Generation requested. Waiting for the supervisor.', requested: 'Generation requested. Waiting for the supervisor.', queued: 'Generation queued.',
     running: 'The supervisor is preparing future tasks.', generating: 'The supervisor is preparing future tasks.',
@@ -170,7 +170,7 @@ function renderFuture() {
   const generationText = generationLabels[generation.state] || (state.data?.future ? 'Future-task record is up to date.' : 'Future-task generation is not available yet.');
   $('generationStatus').textContent = [generationText, generation.model ? `Model: ${generation.model}` : '',
     generation.requested_at ? `Requested ${fullDate(generation.requested_at)}` : '', value(generation.error)].filter(Boolean).join(' · ');
-  $('futureSummary').textContent = `${visible.length} shown · ${matching.length} match · ${entries.length} total in this snapshot. ${next.size} ready candidates for the next batch.`;
+  $('futureSummary').textContent = `${visible.length} shown · ${matching.length} match · ${entries.length} total in this snapshot. ${next.size} ready or queued candidates for the next batch.`;
   const list = $('futureList');
   const scroll = list.scrollTop;
   const openIds = new Set(Array.from(list.querySelectorAll('details[open]')).map((row) => row.dataset.futureId));
