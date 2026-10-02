@@ -99,3 +99,13 @@ Unchanged context omissions are explicit; missing prompt context is not itself a
 code defect. The 24,000-byte ceiling still fails closed and requests a smaller
 scope. A context repair uses an explicitly audited new attempt, never silent
 replay of an existing provider request identity.
+
+
+The operator may enable `complex_review_via_antigravity` to reserve API review for
+routine work and route complex/hard code to an independent native subscription
+conversation, preferring the other model pool. Live quota/model inventory still
+selects the exact model, and the normal stage budget is charged. This is an
+explicit routing decision, not an automatic retry after an API review. In the
+2 October recovery, the mini API reviewer repeatedly contradicted executable
+contract evidence even after full context was supplied; its findings remain in
+the audit record and are not silently relabelled as passed.

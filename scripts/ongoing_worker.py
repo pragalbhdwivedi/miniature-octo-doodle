@@ -341,7 +341,15 @@ class Worker:
                         if isinstance(method,ast.FunctionDef) and method.name in j['tests']['added']:
                             pieces.append(ast.get_source_segment(content,method))
         if prompt is None:prompt='Independently review this synthetic test-only task. Return pass or repair and concise findings. Existing AST preservation and isolated suite were mechanically checked; do not claim you ran them. Check assertions meet the task, meaningful edge coverage and no invented acceptance. Task: '+j['prompt']+'\nAdded tests:\n'+'\n'.join(pieces)+'\nEvidence:'+json.dumps(j['tests'])
-        if self.config.get('openai_api_review',{}).get('enabled') is True:
+        if (self.config.get('complex_review_via_antigravity') is True
+                and self.complexity(j) in ('complex','hard','high_risk')):
+            import ongoing_antigravity
+            group=j.get('coding',{}).get('route',{}).get('group')
+            answer=ongoing_antigravity.run(self.config['antigravity_cli'],prompt,directory,
+                schema=REVIEW,complexity=self.complexity(j),
+                prefer_group='Gemini Models' if group=='Claude and GPT models' else 'Claude and GPT models')
+            answer['route']['provider']='antigravity_subscription'
+        elif self.config.get('openai_api_review',{}).get('enabled') is True:
             answer=self.api_review(j,value,prompt,directory)
         else:
             try:answer=models.run(self.coordinator.executable,prompt,directory,schema=REVIEW,

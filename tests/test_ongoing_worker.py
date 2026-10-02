@@ -178,6 +178,18 @@ class OngoingWorkerTests(unittest.TestCase):
                 with self.assertRaises(ValueError):self.w.review({'job':j},self.directory)
                 model.assert_not_called()
 
+    def test_complex_review_uses_independent_subscription_pool_when_configured(self):
+        self.accepted();j=dict(self.job,complexity='complex')
+        self.w.config.update(complex_review_via_antigravity=True,antigravity_cli='native',openai_api_review={'enabled':True})
+        answer={'candidate':{'verdict':'pass','findings':[]},'route':{},'usage':{}}
+        with patch.object(self.w,'candidate',return_value=(self.value,{PATH:self.value['changes'][0]['content']})), \
+             patch('ongoing_antigravity.run',return_value=answer) as native, patch.object(self.w,'api_review') as api:
+            result=self.w.review({'job':j},self.directory)
+        api.assert_not_called()
+        self.assertEqual(native.call_args.kwargs['prefer_group'],'Claude and GPT models')
+        self.assertEqual(native.call_args.kwargs['complexity'],'complex')
+        self.assertEqual(result['route']['provider'],'antigravity_subscription')
+
     def test_recovery_counter_does_not_escalate_a_routine_reviewer(self):
         self.accepted();j=dict(self.job,attempt=1)
         answer={'candidate':{'verdict':'pass','findings':[]},'route':{},'usage':{}}
