@@ -122,8 +122,15 @@ function syncControls() {
   $('refresh').disabled = state.loading || state.posting;
   if (state.data) {
     $('globalToggle').textContent = state.data.enabled ? 'Pause work' : 'Resume work';
-    $('supervisorStatus').textContent = state.data.enabled ? 'Supervisor active' : tasks().some((task) => task.execution) ? 'Pausing after current work' : 'Work paused';
+    const active = tasks().some((task) => task.execution);
+    const fallback = !state.data.enabled ? active ? 'Pausing after current work' : 'Work paused' : active ? 'Work in progress' : 'Idle · scheduling enabled';
+    $('supervisorStatus').textContent = value(state.data.work_status?.label, fallback);
     $('supervisorStatus').classList.toggle('paused', !state.data.enabled);
+    $('workStatusLabel').textContent = value(state.data.work_status?.label, fallback);
+    $('workStatusReason').textContent = value(state.data.work_status?.reason, state.data.enabled
+      ? 'Scheduling is enabled. Tasks start when their scope, capacity and budget checks pass.'
+      : 'Scheduling is paused. Resume to allow eligible work to start.');
+    $('generateFuture').disabled = !writable || !state.data.future || generationPending();
   }
   const task = currentTask();
   if (task) {
@@ -132,6 +139,65 @@ function syncControls() {
   } else if ($('taskDialog').open) {
     $('taskDialog').querySelectorAll('[data-write]').forEach((button) => { button.disabled = true; });
   }
+}
+function generationPending() {
+  return ['pending', 'requested', 'queued', 'running', 'generating'].includes(state.data?.future?.generation?.state);
+}
+function futureView() {
+  const future = state.data?.future || {};
+  const entries = Array.isArray(future.tasks) ? future.tasks.filter((task) => task && typeof task === 'object') : [];
+  const size = Number.isInteger(future.next_batch_size) ? Math.max(0, Math.min(10, future.next_batch_size)) : 10;
+  const next = new Set(entries.filter((task) => task.state === 'ready').slice(0, size).map((task) => task.id));
+  const needle = $('futureSearch').value.trim().toLowerCase();
+  const filter = $('futureFilter').value;
+  const matching = entries.filter((task) => (filter === 'all' || filter === task.state || (filter === 'next' && next.has(task.id)))
+    && (!needle || [task.id, task.title, task.project, task.prompt, task.scope_id, task.reason]
+      .some((field) => typeof field === 'string' && field.toLowerCase().includes(needle))));
+  return {future, entries, size, next, matching, visible: matching.slice(0, 100)};
+}
+function renderFuture() {
+  const {future, entries, size, next, matching, visible} = futureView();
+  const labels = {ready: 'Ready', planned: 'Planned', scheduled: 'Scheduled', admitted: 'Admitted',
+    needs_scope: 'Needs scope', completed: 'Completed'};
+  $('futureCount').textContent = entries.length;
+  const interval = Number.isInteger(future.interval_minutes) && future.interval_minutes > 0 ? future.interval_minutes : 5;
+  $('futureCadence').textContent = `Up to ${size} ready tasks in the next batch · checked every ${interval} minutes`;
+  const generation = future.generation || {};
+  const generationLabels = {pending: 'Generation requested. Waiting for the supervisor.', requested: 'Generation requested. Waiting for the supervisor.', queued: 'Generation queued.',
+    running: 'The supervisor is preparing future tasks.', generating: 'The supervisor is preparing future tasks.',
+    completed: 'Future-task generation completed.', complete: 'Future-task generation completed.',
+    failed: 'Generation needs attention.', blocked: 'Generation is held.'};
+  const generationText = generationLabels[generation.state] || (state.data?.future ? 'Future-task record is up to date.' : 'Future-task generation is not available yet.');
+  $('generationStatus').textContent = [generationText, generation.model ? `Model: ${generation.model}` : '',
+    generation.requested_at ? `Requested ${fullDate(generation.requested_at)}` : '', value(generation.error)].filter(Boolean).join(' · ');
+  $('futureSummary').textContent = `${visible.length} shown · ${matching.length} match · ${entries.length} total in this snapshot. ${next.size} ready candidates for the next batch.`;
+  const list = $('futureList');
+  const scroll = list.scrollTop;
+  const openIds = new Set(Array.from(list.querySelectorAll('details[open]')).map((row) => row.dataset.futureId));
+  const focusedId = document.activeElement?.dataset?.futureId;
+  const fragment = document.createDocumentFragment();
+  for (const task of visible) {
+    const row = node('details', 'future-task');
+    row.dataset.futureId = String(task.id); row.open = openIds.has(String(task.id));
+    const summary = node('summary', 'future-task-heading'); summary.dataset.futureId = String(task.id);
+    const title = node('span', 'future-task-title', value(task.title, 'Untitled task'));
+    title.append(node('small', '', `${value(task.id)} · ${value(task.project, 'Project')} · P${priority(task)}`));
+    const badges = node('span', 'future-badges');
+    badges.append(node('span', 'stage-pill', labels[task.state] || value(task.state, 'Status unavailable')));
+    if (next.has(task.id)) badges.append(node('span', 'next-badge', 'Next batch candidate'));
+    summary.append(title, badges); row.append(summary);
+    const body = node('div', 'future-task-body');
+    body.append(node('p', 'prompt-text', value(task.prompt, 'Instructions are not recorded yet.')));
+    if (task.reason) body.append(node('p', 'future-reason', value(task.reason)));
+    body.append(node('p', 'field-help', `Created ${fullDate(task.created_at)}`));
+    if (task.not_before) body.append(node('p', 'field-help', `Scheduled no earlier than ${fullDate(task.not_before)}`));
+    if (task.scope_id) body.append(node('p', 'field-help', `Scope: ${task.scope_id}`));
+    row.append(body); fragment.append(row);
+  }
+  if (!visible.length) fragment.append(node('p', 'future-empty', entries.length ? 'No future tasks match these filters.'
+    : 'No future tasks are listed yet. Generate a batch or add a task with your own instructions.'));
+  list.replaceChildren(fragment); list.scrollTop = scroll;
+  if (focusedId) Array.from(list.querySelectorAll('summary')).find((row) => row.dataset.futureId === focusedId)?.focus({preventScroll: true});
 }
 function filteredTasks() {
   const needle = $('search').value.trim().toLowerCase();
@@ -176,7 +242,7 @@ function renderBoard() {
   const visible = filteredTasks();
   const stage = $('stageFilter').value;
   const board = $('taskBoard');
-  const scroll = board.scrollLeft;
+  const scroll = board.scrollLeft; const scrollTop = board.scrollTop;
   const focusedTask = document.activeElement?.dataset?.taskId;
   const fragment = document.createDocumentFragment();
   for (const [key, title, emptyText] of STAGES) {
@@ -189,7 +255,7 @@ function renderBoard() {
     else column.append(node('p', 'column-empty', emptyText));
     fragment.append(column);
   }
-  board.replaceChildren(fragment); board.scrollLeft = scroll;
+  board.replaceChildren(fragment); board.scrollLeft = scroll; board.scrollTop = scrollTop;
   if (focusedTask) Array.from(board.querySelectorAll('[data-task-id]')).find((button) => button.dataset.taskId === focusedTask)?.focus({preventScroll: true});
   const filtering = Boolean($('search').value.trim() || $('projectFilter').value !== 'all' || stage !== 'all');
   $('clearFilters').hidden = !filtering;
@@ -319,7 +385,7 @@ function acceptState(data) {
   $('connectionDot').classList.remove('offline'); $('connectionLabel').textContent = 'Connected';
   $('connectionError').hidden = true;
   $('lastUpdated').textContent = `Updated ${new Intl.DateTimeFormat(undefined, {hour: 'numeric', minute: '2-digit'}).format(state.lastUpdated)}`;
-  renderBoard(); renderActivity($('activityList'), eventsFor(), 'No recent activity. New updates will appear here.');
+  renderBoard(); renderFuture(); renderActivity($('activityList'), eventsFor(), 'No recent activity. New updates will appear here.');
   syncControls(); renderDetail();
 }
 async function request(url, options = {}) {
@@ -355,7 +421,8 @@ async function control(action, fields = {}, button = null) {
   if (state.posting) { announce('Your previous action is still being saved. Please wait for its confirmation.', 'error'); return false; }
   if (!state.connected || !state.data?.csrf_token) { announce('Reconnect to the task service before making a change. Select Refresh to check.', 'error'); return false; }
   const labels = {pause: 'Pause request received', resume: 'Resume request received', priority: 'Priority change received',
-    request_changes: 'Change request received', mark_reviewed: 'Review note received', add_task: 'New task received', ask: 'Question received'};
+    request_changes: 'Change request received', mark_reviewed: 'Review note received', add_task: 'New task received', ask: 'Question received',
+    generate_future: 'Click received: future-task generation requested', override_start: 'Click received: resume scheduling requested'};
   const toast = announce(`${labels[action] || 'Request received'}. Saving…`);
   state.posting = true; syncControls();
   const oldLabel = button?.textContent;
@@ -373,7 +440,10 @@ async function control(action, fields = {}, button = null) {
     if (result.ok !== true) { const error = new Error(value(result.message, 'The request was not accepted.')); error.confirmed = true; throw error; }
     state.uncertain.delete(signature);
     if (result.state && Array.isArray(result.state.tasks) && typeof result.state.csrf_token === 'string') acceptState(result.state);
-    announce(value(result.message, action === 'ask' ? 'Question saved. Watch the task activity for the response.' : 'Saved. Your request has been acknowledged.'), 'success', toast);
+    const fallbackMessage = action === 'generate_future' ? 'Request saved. Generation runs in the background; watch Future tasks for progress.'
+      : action === 'override_start' ? 'Scheduling resume acknowledged. Blocked claims, scope checks, tests and budgets remain in force.'
+      : action === 'ask' ? 'Question saved. Watch the task activity for the response.' : 'Saved. Your request has been acknowledged.';
+    announce(value(result.message, fallbackMessage), 'success', toast);
     success = true;
   } catch (error) {
     if (error.confirmed) state.uncertain.delete(signature);
@@ -408,6 +478,11 @@ function taskAction(action, fields, button) {
 
 $('refresh').addEventListener('click', () => refresh(true));
 $('globalToggle').addEventListener('click', (event) => control(state.data?.enabled ? 'pause' : 'resume', {}, event.currentTarget));
+$('generateFuture').addEventListener('click', (event) => control('generate_future', {}, event.currentTarget));
+$('overrideStart').addEventListener('click', (event) => control('override_start', {}, event.currentTarget));
+for (const id of ['futureSearch', 'futureFilter']) $(id).addEventListener(id === 'futureSearch' ? 'input' : 'change', () => {
+  renderFuture(); $('futureList').scrollTop = 0;
+});
 $('openAdd').addEventListener('click', () => { $('addDialog').showModal(); $('newTitle').focus(); });
 $('openGuides').addEventListener('click', () => $('guidesDialog').showModal());
 document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => $(button.dataset.close).close()));
