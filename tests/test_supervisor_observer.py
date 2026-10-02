@@ -163,11 +163,18 @@ class ObserverTests(unittest.TestCase):
 
     def test_blocked_tasks_do_not_exhaust_independent_roadmap_capacity(self):
         self.board['jobs']=[{'id':str(i),'state':'blocked','child_id':'held-'+str(i),
-            'repository':'pragalbhdwivedi/miniature-octo-doodle','owner':'gemini',
+            'repository':'pragalbhdwivedi/miniature-octo-doodle','owner':'local',
             'write_paths':['gateway/policy.py']} for i in range(3)]
         self.assertEqual(self.observer.tick()['roadmap']['state'],'admitted')
         self.assertEqual(self.chat.call_count,1)
         self.assertTrue(all(j['state']=='blocked' for j in self.board['jobs']))
+
+    def test_held_coder_remains_exclusive_across_repositories(self):
+        self.board['jobs']=[{'id':'other-project','state':'blocked','child_id':'held-claim',
+            'repository':'pragalbhdwivedi/miniature-octo-doodle','owner':'gemini','write_paths':['unrelated.py']}]
+        self.observer.tick()
+        self.chat.assert_not_called()
+        self.assertEqual(json.loads(self.catalog.read_text()),[])
 
     def test_held_coder_or_write_claim_is_not_reused(self):
         for owner,paths in [('gemini',['unrelated.py']),('local',self.recipe['write_paths'])]:

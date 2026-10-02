@@ -140,7 +140,8 @@ rollback backups remain outside the public repository.
 
 Blocked/owner-held jobs retain their evidence and claims but do not consume all
 roadmap admission capacity. New independent work may be planned; recipes sharing
-a held coder or writable path in the same repository wait for reconciliation.
+a held coder across either project, or a writable path in the same repository,
+wait for reconciliation.
 The native CLI accepts one successful structured result from one invocation with
 one or two native turns, the exact selected model/agent and strict permissions;
 unexpected tools/delegation, duplicate results and incomplete output stay held.

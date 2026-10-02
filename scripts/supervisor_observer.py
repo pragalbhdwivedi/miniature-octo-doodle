@@ -344,10 +344,10 @@ class Observer:
             # A failed coder keeps its claim until explicit reconciliation. It
             # must not consume every queue slot or cause conflicting admissions.
             if any(j.get('state') in HELD and j.get('child_id')
-                   and j.get('repository', github.REPOSITORY) == recipe['repository']
                    and (j.get('owner', 'dual') in ('dual', recipe['owner']) or
-                        {p.casefold() for p in j.get('write_paths', j.get('paths', []))} &
-                        {p.casefold() for p in recipe['write_paths']}) for j in jobs):
+                        (j.get('repository', github.REPOSITORY) == recipe['repository'] and
+                         {p.casefold() for p in j.get('write_paths', j.get('paths', []))} &
+                         {p.casefold() for p in recipe['write_paths']})) for j in jobs):
                 continue
             if not cloud_available and recipe['owner']!='local':continue
             if (job_id in known or recipe['recipe_id'] in consumed or any(
