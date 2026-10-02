@@ -232,6 +232,7 @@ class ArchiveTests(unittest.TestCase):
     def test_linux_private_directory_and_file_permissions_required(self):
         unsafe = self.root / 'unsafe'
         unsafe.mkdir(mode=0o755)
+        unsafe.chmod(0o755)  # A previous worker test can leave a restrictive umask.
         with self.assertRaises(archive.ArchiveError):
             archive.ArchiveStore(unsafe)
         receipt = self.prepare()

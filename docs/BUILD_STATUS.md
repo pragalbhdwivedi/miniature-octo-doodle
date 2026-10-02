@@ -24,11 +24,19 @@ is recorded separately. Complimentary enrollment is confirmed, but exact free
 model eligibility and zero billing remain unverified. A conservative separate
 API token reservation cap does not measure account-wide free allowance.
 
-VALIDATION: 202 related integration tests passed before two additional prompt
-preservation regressions; the resulting 18 new admission/controller tests pass.
-The three live isolated profile baselines passed 5, 20 and 17 tests, using an
-existing image. Deployment and real model-generated development PR evidence
-are tracked separately below and in the development runbook.
+VALIDATION: final Linux suite ran 483 tests: 480 passed and three opt-in
+PostgreSQL checks skipped. Repository YAML/security validation and source-hash
+verification passed. All three isolated profile baselines passed (5 ERP, 20 feed,
+17 gateway tests). No image or model download was needed.
+
+DEPLOYED: controller and Windows runtime hashes verified; source development,
+finite roadmap planning, API review and archive maintenance are enabled. The
+API adapter reserves at most 250,000 tokens/day and its dedicated virtual key
+has a $1/day setting; neither proves complimentary billing. A live archive
+no-op retained all six merged tasks. SUP-000007 was automatically matched from
+owner intake; SUP-000008 was derived from the ERP roadmap. Their first coding
+stages are running separately on Gemini and the installed local model. Model
+results and new PR acceptance remain pending until recorded.
 
 See [development tasks](DEVELOPMENT_TASK_CONTRACT.md) and
 [OpenAI API review](OPENAI_API_REVIEW.md). Production data writes, migrations,

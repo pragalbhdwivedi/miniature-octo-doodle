@@ -74,3 +74,19 @@ offline against the exact request fingerprint. It never performs network inferen
 
 References: [OpenAI API limits](https://developers.openai.com/api/docs/guides/rate-limits)
 and [Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+
+## Deployment evidence, 2 October 2026
+
+The adapter and Windows integration are deployed. Public development reviews
+prefer this API path. The configured adapter cap is 250,000 conservative reserved
+tokens per UTC day, with 1,024 maximum output tokens per review. The dedicated
+virtual key has a $1/day budget setting; this is not an absolute invoice guarantee
+or proof that requests qualify for complimentary tokens. Existing gateway monthly
+limits remain effective. Input/output data sharing was already enabled in the
+owner's account; no account sharing setting was changed for this test.
+
+The synthetic probe returned a valid review using 139 input and 40 output tokens.
+The saved gateway-alias response was reconciled without repeating inference.
+The account UI confirms complimentary enrollment and Tier 1, but does not establish
+remaining free balance or exact eligibility for the configured model. Receipts
+continue to record `free_usage_verified: false`.

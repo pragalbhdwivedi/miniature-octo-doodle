@@ -162,3 +162,10 @@ cover disabled mode, path injection, revision conflict, bounded history, scope
 reuse rejection and a six-task no-op. The final suite count includes those new
 observer cases in the subsequent verification record. Real VM CAS, live history
 browser interaction and a live 100-task run remain NOT RUN until deployment acceptance.
+
+Deployment: archive RPC and worker maintenance are enabled in protected operator
+configuration. A live six-task archive request correctly returned zero archived;
+all tasks and audit records were preserved. Bounded history retrieval returned
+an empty page. Real compaction with more than 20 live closures remains unclaimed;
+the 125-task test covers that transition offline. Final Linux repository suite:
+480 passed, three opt-in database skips.
