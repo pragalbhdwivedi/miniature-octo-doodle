@@ -266,6 +266,22 @@ class Coordinator:
                        ('Operator reconciliation: '+reason, task_id))
         return {'task_id': task_id, 'state': 'closed', 'publication': False}
 
+    def hold_queued(self, task_id, reason):
+        """Retain an unstarted packet's file claim while releasing its coder."""
+        if not isinstance(task_id, str) or not re.fullmatch('[a-z0-9-]{1,64}', task_id):
+            raise agent.AgentError('Invalid task ID')
+        if not isinstance(reason, str) or not 10 <= len(reason) <= 1000:
+            raise agent.AgentError('A bounded pre-inference reason is required')
+        if (self.root/task_id).exists():
+            raise agent.AgentError('Candidate directory exists; queued hold requires reconciliation')
+        with self.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            changed = db.execute('UPDATE tasks SET state="blocked",error=? WHERE id=? AND state="queued"',
+                                 ('Pre-inference hold: '+reason, task_id)).rowcount
+            if changed != 1:
+                raise agent.AgentError('Only an unstarted queued packet can be held')
+        return {'task_id': task_id, 'state': 'blocked', 'model_replayed': False}
+
     def source(self, paths):
         if self.allowed_new_paths:
             return source(self.repo,paths,self.repository,self.branch,self.allowed_new_paths)
@@ -382,6 +398,7 @@ class Coordinator:
         return self._run_assigned(task_id, 'local', generator)
 
     def _run_assigned(self, task_id, owner, generator):
+        preflight_error = None
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT * FROM tasks WHERE id=?', (task_id,)).fetchone()
@@ -390,8 +407,16 @@ class Coordinator:
             packet = json.loads(row['packet'])
             if packet.get('owner') != owner or owner == 'gemini' and packet.get('transport') != 'cli':
                 raise agent.AgentError('Task coder or transport differs from this runner')
-            self.fresh(packet)
-            db.execute('UPDATE tasks SET state="running",token=? WHERE id=?', (secrets.token_hex(16), task_id))
+            try:
+                self.fresh(packet)
+            except Exception as exc:
+                db.execute('UPDATE tasks SET state="blocked",error=? WHERE id=? AND state="queued"',
+                           ('Source preflight failed before inference; exact packet retained.', task_id))
+                preflight_error = exc
+            else:
+                db.execute('UPDATE tasks SET state="running",token=? WHERE id=?', (secrets.token_hex(16), task_id))
+        if preflight_error is not None:
+            raise preflight_error
         directory = self.root/task_id
         try:
             directory.mkdir(exist_ok=False)

@@ -141,6 +141,24 @@ class CoordinationTests(unittest.TestCase):
         with self.assertRaises(c.agent.AgentError):
             self.coordinator.close(item['task_id'], 'Do not release uncertain work')
 
+    def test_stale_assigned_preflight_holds_packet_without_coder_call(self):
+        self.coordinator.admit('stale-cli', 'Return 42', ['example.py'],
+                               owner='gemini', transport='cli')
+        (self.repo/'example.py').write_text('changed')
+        calls=[]
+        with self.assertRaises(c.agent.AgentError):
+            self.coordinator.run_gemini('stale-cli',lambda *_: calls.append('called'))
+        self.assertEqual(calls,[])
+        self.assertEqual(self.coordinator.status()['tasks'][0]['state'],'blocked')
+
+    def test_operator_can_hold_only_a_queued_packet_without_model_intent(self):
+        self.coordinator.admit('queued-cli', 'Return 42', ['example.py'],
+                               owner='gemini', transport='cli')
+        result=self.coordinator.hold_queued('queued-cli','Source advanced before coder inference')
+        self.assertEqual(result['state'],'blocked')
+        with self.assertRaises(c.agent.AgentError):
+            self.coordinator.admit('other-cli','Other work',['example.py'],owner='gemini',transport='cli')
+
     def test_stalled_cli_input_and_logs_have_wall_clock_deadline(self):
         directory = self.coordinator.root/'deadline-test'
         directory.mkdir()

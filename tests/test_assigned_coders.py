@@ -182,7 +182,7 @@ class AssignedCoderTests(unittest.TestCase):
         with self.assertRaises(c.agent.AgentError):
             self.coordinator.run_codex('codex-task')
         self.assertEqual(self.calls, [])
-        self.assertEqual(self.coordinator.status()['tasks'][0]['state'], 'queued')
+        self.assertEqual(self.coordinator.status()['tasks'][0]['state'], 'blocked')
 
     def test_cli_gemini_never_claimed_by_mcp_or_scheduler(self):
         self.coordinator.admit('cli-gemini', 'Synthetic CLI task', self.paths,
