@@ -247,9 +247,11 @@ class OngoingWorkerTests(unittest.TestCase):
 
     def test_gemini_correction_uses_current_repair_cycle(self):
         import ongoing_antigravity
-        job=dict(self.job,owner='gemini',attempt=5,repair_start=5)
+        job=dict(self.job,owner='gemini',attempt=5,repair_start=5,
+                 repair='Independent tests found a reproducible failure')
         self.w.config['antigravity_cli']='synthetic-antigravity'
         self.w.coordinator.run_gemini=Mock(return_value=self.result)
         with patch.object(self.w,'spec'),patch.object(ongoing_antigravity,'prepare',return_value={}) as prepare:
             self.w.antigravity({'job':job},self.directory)
         self.assertEqual(prepare.call_args.kwargs['attempt'],0)
+        self.assertEqual(prepare.call_args.kwargs['prefer_group'],'Claude and GPT models')
