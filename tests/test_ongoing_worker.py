@@ -52,6 +52,37 @@ class OngoingWorkerTests(unittest.TestCase):
         (self.evidence/'codex.json').write_text(json.dumps(self.value),encoding='utf-8')
         (self.evidence/'result.json').write_text(json.dumps(self.result),encoding='utf-8')
 
+    def test_api_review_binds_candidate_and_preserves_usage(self):
+        self.w.config['openai_api_review']={'enabled':True,'ssh_host':'gatewayai-direct',
+            'remote_script':'/opt/gatewayai-pilot/scripts/ongoing_api_review.py',
+            'remote_config':'/etc/gatewayai-worker/api-review.json'}
+        def response(command,**kw):
+            request=json.loads(kw['data']);self.assertEqual(request['data_class'],'public')
+            self.assertNotIn('gateway_key',request);self.assertEqual(kw['timeout'],115)
+            return 0,json.dumps({'candidate_sha256':request['candidate_sha256'],
+                'request_id':request['request_id'],'route':{'provider':'openai_api_via_gateway'},
+                'usage':{'total_tokens':179},'candidate':{'verdict':'pass'}}).encode(),b''
+        with patch.object(worker.pilot,'bounded_run',side_effect=response):
+            result=self.w.api_review(self.job,self.value,'Review public source',self.directory)
+        self.assertEqual(result['usage']['total_tokens'],179)
+        self.assertTrue((self.directory/'api-receipt.json').exists())
+
+    def test_api_uncertainty_does_not_fall_back_or_retry(self):
+        self.w.config['openai_api_review']={'enabled':True,'ssh_host':'gatewayai-direct',
+            'remote_script':'/opt/gatewayai-pilot/scripts/ongoing_api_review.py',
+            'remote_config':'/etc/gatewayai-worker/api-review.json'}
+        with patch.object(worker.pilot,'bounded_run',return_value=(1,b'',b'')) as run, patch.object(worker.models,'run') as cloud:
+            with self.assertRaises(ValueError):self.w.api_review(self.job,self.value,'Review source',self.directory)
+        run.assert_called_once();cloud.assert_not_called()
+
+    def test_api_rejects_mismatched_candidate_receipt(self):
+        self.w.config['openai_api_review']={'enabled':True,'ssh_host':'gatewayai-direct',
+            'remote_script':'/opt/gatewayai-pilot/scripts/ongoing_api_review.py',
+            'remote_config':'/etc/gatewayai-worker/api-review.json'}
+        with patch.object(worker.pilot,'bounded_run',return_value=(0,b'{"candidate_sha256":"wrong"}',b'')):
+            with self.assertRaises(ValueError):self.w.api_review(self.job,self.value,'Review source',self.directory)
+        self.assertFalse((self.directory/'api-receipt.json').exists())
+
     def test_existing_codes_helper_and_numeric_assertions_are_valid_test_calls(self):
         addition="\n    def test_edge(self):\n        self.assertIn('MISSING_EFFECTIVE_DATES', self.codes())\n        self.assertLess(-1, 0)\n"
         self.assertEqual(worker.validate_additions(BEFORE,BEFORE+addition),['test_edge'])

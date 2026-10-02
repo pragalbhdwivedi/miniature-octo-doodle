@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 import secrets
 import time
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
 
 import pilot_server
 import supervisor_board as board
@@ -84,6 +84,13 @@ def handler(app):
                     cookie,token=app.session(self.headers.get('Cookie'))
                     value=app.state();value['csrf_token']=token
                     return self.response(200,value,cookie=cookie)
+                if path=='/api/archive-history':
+                    from supervisor_archive import history_index
+                    query=parse_qs(urlsplit(self.path).query,strict_parsing=True)
+                    if set(query)-{'offset','limit'} or any(len(v)!=1 for v in query.values()):
+                        raise ValueError('Invalid archive history query')
+                    return self.response(200,history_index(app.store.read()['value'],
+                        offset=int(query.get('offset',['0'])[0]),limit=int(query.get('limit',['100'])[0])))
                 if path.startswith('/api/documents/'):
                     name=path.removeprefix('/api/documents/')
                     docs=app.store.mutate(lambda s:board.documents(s))
@@ -93,6 +100,7 @@ def handler(app):
                 if not name:return self.response(404,{'error':'Not found'})
                 kind={'index.html':'text/html','app.js':'text/javascript','style.css':'text/css'}[name]
                 self.response(200,(app.assets/name).read_bytes(),kind+'; charset=utf-8')
+            except ValueError:self.response(400,{'error':'Invalid controller read request.'})
             except Exception:self.response(503,{'error':'The controller is unavailable. Saved work is retained.'})
 
         def do_POST(self):

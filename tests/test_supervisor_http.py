@@ -17,6 +17,8 @@ import test_supervisor_board as fixture
 class FakeStore:
     def __init__(self,value):
         self.value=copy.deepcopy(value);self.lock=threading.RLock()
+    def read(self):
+        with self.lock:return {'value':copy.deepcopy(self.value)}
     def mutate(self,operation):
         with self.lock:
             candidate=copy.deepcopy(self.value)
@@ -35,6 +37,21 @@ class SupervisorHttpTests(unittest.TestCase):
         self.server=web.ThreadingHTTPServer(('127.0.0.1',0),web.handler(self.app))
         self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
         self.addCleanup(self.close_server)
+
+    def test_archive_history_is_readonly_bounded_and_no_full_snapshot_export(self):
+        self.store.value['supervision']['archived_tasks']={'SUP-000099':{
+            'id':'SUP-000099','key':'saved','title':'Completed work','state':'merged'}}
+        before=copy.deepcopy(self.store.value)
+        code,_,raw=self.request('/api/archive-history?offset=0&limit=1')
+        self.assertEqual(code,200)
+        value=json.loads(raw)
+        self.assertEqual(value['total'],1)
+        self.assertEqual(value['tasks'][0]['id'],'SUP-000099')
+        self.assertEqual(before,self.store.value)
+        for query in ('limit=201','offset=-1','file=secret','limit=1&limit=2'):
+            self.assertEqual(self.request('/api/archive-history?'+query)[0],400)
+        self.assertEqual(self.request('/api/archive-history',headers={'X-Real-IP':'8.8.8.8'})[0],403)
+        self.assertEqual(self.request('/api/archive-history',method='POST')[0],404)
 
     def close_server(self):
         self.server.shutdown();self.server.server_close();self.thread.join(timeout=3)

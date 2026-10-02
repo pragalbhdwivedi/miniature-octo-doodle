@@ -244,6 +244,10 @@ def main():
         raw=sys.stdin.buffer.read(350001)
         if len(raw)>350000: raise ValueError('RPC limit')
         request=json.loads(raw)
+        if request.get('action') in ('ongoing_archive','ongoing_archive_history'):
+            import supervisor_archive_operator
+            print(json.dumps(supervisor_archive_operator.run(store,request,config.get('supervisor_archive',{}))))
+            return
         print(json.dumps(store.mutate(lambda s:state.rpc(s,request))));return
     if args.action=='status': print(json.dumps(state.snapshot(store.read()['value'])));return
     bot=telegram.validate_config(telegram.d.private_json(Path(dispatch['telegram_approval_config'])))

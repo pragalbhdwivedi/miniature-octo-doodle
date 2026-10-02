@@ -145,10 +145,16 @@ def _ensure(s, at):
     for job in jobs:
         task_id=board['by_key'].get(job['id'])
         if task_id is None:
-            task_id=_allocate(board)
+            intake=next((i for i in board['intake'] if i['id']==job.get('intake_id')),None)
+            if job.get('intake_id') and (not intake or intake['project']!=_project(job) or intake['state'] not in ('planned','admitted')):
+                raise ValueError('Intake lineage does not match the admitted project')
+            if intake and (intake.get('job_id',job['id'])!=job['id'] or intake['id'] in board['tasks']):
+                raise ValueError('Intake is already bound to another job')
+            task_id=intake['id'] if intake else _allocate(board)
+            if intake:intake.update(state='admitted',job_id=job['id'],updated_at=at)
             board['by_key'][job['id']]=task_id
             meta={'id':task_id,'key':job['id'],'revision':0,'created_at':at,'updated_at':at,
-                  'priority':3,'paused':False,'history':[],'review_state':'not_reviewed'}
+                  'priority':intake['priority'] if intake else 3,'paused':intake['paused'] if intake else False,'history':[],'review_state':'not_reviewed'}
             board['tasks'][task_id]=meta
             _event(board,at,'system',task_id,'registered','Registered existing admitted catalog task.')
         meta=board['tasks'][task_id]
@@ -289,7 +295,7 @@ def action(s, request, now=None):
                 board['intake'].append({'id':task_id,'project':project,'title':_redact(title.strip()),
                     'prompt':text,'state':'planned','created_at':at,'updated_at':at,'priority':3,'paused':False,'owner':'unassigned'})
                 result.update(task_id=task_id,state='planned')
-                detail='Planned intake saved; operator catalog admission is still required.'
+                detail='Task received; the supervisor will select a configured development scope automatically.'
             elif command=='ask':
                 if not(meta or intake): raise ValueError('Unknown task')
                 question={'id':'board-'+_hash(rid)[:24],'kind':'ask','task_id':task_id,'state':'pending','question':text,'timestamp':at}
@@ -305,7 +311,7 @@ def action(s, request, now=None):
                         'state':'rerun_waiting' if safe else 'reconciliation_required',
                         'attempt':job.get('attempt',0),'requested_attempt':job.get('attempt',0)+1 if safe else None,
                         'evidence_digest':meta['history'][-1]['evidence_digest'],
-                        'scope_digest':_hash({k:job.get(k) for k in ('id','owner','repo','repository','project','operation','write_paths','source_sha','prompt')})}
+                        'scope_digest':_hash({k:job.get(k) for k in ('id','owner','repo','repository','project','operation','development_profile','paths','write_paths','test_files','source_sha','prompt')})}
                     board['corrections'].append(correction)
                     meta['review_state']='changes_requested'
                     result.update(correction_id=correction['id'],state=correction['state'])
@@ -375,6 +381,7 @@ def _public(s, now=None, limit=200):
         else:task.update(_execution_projection(job,o,meta['paused'],instant))
         tasks.append(task)
     for item in board.get('intake',[]):
+        if item.get('state')=='admitted':continue
         tasks.append({**copy.deepcopy(item),'key':None,'attempt':0,'coder_model':'unknown','reviewer_model':'unknown',
             'coder_confidence':None,'reviewer_confidence':None,'confidence_reason':'No model observation recorded.',
             'review_state':'not_reviewed','pr_url':'','pr_number':None,'error':''})
@@ -382,7 +389,9 @@ def _public(s, now=None, limit=200):
     events=board.get('events',[])
     policy={k:_safe(v,200) if not isinstance(v,(bool,int)) else v for k,v in o.get('policy',{}).items()
             if k in ('max_active','max_calls_per_day','repairs','publication','routine_decisions','destructive')}
+    from supervisor_archive import history_index
     return {'revision':board.get('revision',0),'enabled':bool(o.get('enabled')),
+            'archived':history_index(s,limit=100),
             'tasks':tasks[:limit] if limit else tasks,'tasks_omitted':max(0,len(tasks)-limit) if limit else 0,
             'events':copy.deepcopy(events[-100:] if limit else events),
             'events_omitted':max(0,len(events)-100) if limit else 0,
@@ -420,4 +429,8 @@ def documents(s):
         for c in data['corrections']) or 'No correction requests.\n')
     output['supervisor_audit.md']='# Supervisor audit\n\nRevision: '+str(data['revision'])+'\n\nConfidence is unknown unless observed; model-reported confidence is uncalibrated. No audit events are omitted from this document.\n\n'+('\n'.join(
         '- '+str(e['sequence'])+' | '+_md(e['timestamp'])+' | '+_md(e['actor'])+' | '+_md(e['task_id'] or 'all')+' | '+_md(e['action'])+' | '+_md(e['detail']) for e in data['events']) or 'No audit events.\n')
+    archived=data.get('archived',{})
+    if archived.get('total'):
+        output['completed_supervisor_tasks.md']+='\n## Verified archived tasks\n\n'+str(archived['total'])+' archived; use the paginated archive history for all summaries and operator archives for full evidence.\n\n'+''.join('- '+_md(t['id'])+' | '+_md(t.get('title'))+' | '+_md(t['state'])+' | '+_md(t.get('pr_url'))+'\n' for t in archived['tasks'])
+        if archived.get('omitted'):output['completed_supervisor_tasks.md']+='\n'+str(archived['omitted'])+' additional archived summaries are available through pagination.\n'
     return output

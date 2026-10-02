@@ -49,11 +49,12 @@ grant itself new credentials. The observer admits at most one new subtask per
 planning cycle, with at most three unfinished jobs and existing daily budgets.
 Completed topic/source pairs are not regenerated just to keep models busy.
 
-The current executable contract remains synthetic unittest additions. Both
-projects are supported (AADI/Dev and GatewayAI/main) with separate clean source
-checkouts, evidence, worktrees and publication ledgers. New free-text task intake
-is recorded as planned; it does not automatically become arbitrary code or
-production authority. Expanding the manifest/test contract is an operator action.
+The executable contract supports bounded source development and regression
+tests. Both projects use separate clean sources, evidence and publication ledgers
+(AADI/Dev and GatewayAI/main). Free-text intake is automatically matched to
+configured development scopes; unmatched requests stay visible as needs_scope.
+This grants no arbitrary shell or production authority. New scope definitions
+remain operator configuration. See [development contract](DEVELOPMENT_TASK_CONTRACT.md).
 When we review PRs, we can add the next approved recipes and corrections; the
 observer refreshes generated future-work records from the same ledger.
 

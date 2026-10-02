@@ -8,9 +8,16 @@ import local_agent
 from pilot_worker import write_json
 
 MODEL='devstral-small-2:24b'
+CODER_MODELS=frozenset({MODEL,'qwen3:4b-instruct'})
 MAX_PROMPT_BYTES=10000
 METHOD_SCHEMA={'type':'object','properties':{k:{'type':'string'} for k in ('summary','proposal','method_source')},
                'required':['summary','proposal','method_source'],'additionalProperties':False}
+DEVELOPMENT_SCHEMA={'type':'object','properties':{
+    'summary':{'type':'string'},'proposal':{'type':'string'},
+    'changes':{'type':'array','minItems':1,'maxItems':4,'items':{'type':'object',
+        'properties':{'path':{'type':'string'},'content':{'type':'string'}},
+        'required':['path','content'],'additionalProperties':False}}},
+    'required':['summary','proposal','changes'],'additionalProperties':False}
 
 
 def apply_method(before,method):
@@ -40,16 +47,17 @@ def proposal(before,value,path):
             'changes':[{'path':path,'content':candidates.pop()}]}
 
 
-def run(prompt,directory,model=MODEL,opener=None):
-    if model!=MODEL or not isinstance(prompt,str) or not prompt.strip() or len(prompt.encode())>MAX_PROMPT_BYTES:
-        raise ValueError('Local lane supports the installed Devstral model and compact tasks only')
+def run(prompt,directory,model=MODEL,opener=None,development=False):
+    maximum=24000 if development else MAX_PROMPT_BYTES
+    if model not in CODER_MODELS or not isinstance(prompt,str) or not prompt.strip() or len(prompt.encode())>maximum:
+        raise ValueError('Local lane supports explicitly configured installed coding models and compact tasks only')
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     if (directory/'local-intent.json').exists():raise ValueError('Local inference already reserved; replay denied')
     route={'model':model,'provider':'ollama_local','cloud_quota_used':False,'api_fallback':False}
     write_json(directory/'local-intent.json',route)
     body={'model':model,'messages':[{'role':'user','content':prompt}],
-          'format':METHOD_SCHEMA,'stream':False,'think':False,'keep_alive':'2m',
-          'options':{'num_ctx':4096,'num_predict':512,'temperature':0}}
+          'format':DEVELOPMENT_SCHEMA if development else METHOD_SCHEMA,'stream':False,'think':False,'keep_alive':'2m',
+          'options':{'num_ctx':8192 if development else 4096,'num_predict':3072 if development else 512,'temperature':0}}
     request=urllib.request.Request(local_agent.OLLAMA_URL,json.dumps(body).encode(),
                                    {'Content-Type':'application/json'},method='POST')
     opener=opener or urllib.request.build_opener(urllib.request.ProxyHandler({}),local_agent.NoRedirect())

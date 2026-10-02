@@ -1,5 +1,48 @@
 # Build Status
 
+## Real development and API review, 2 October 2026
+
+IMPLEMENTED: source-code development tasks with fixed writable files, immutable
+source revisions, read-only acceptance tests and offline baseline/candidate
+checks. Owner intake is automatically matched to configured source scopes;
+requests outside those scopes remain visible with a reason. Distinct coder
+assignments remain the default. The first scopes cover ERP manifest validation,
+mapping freshness and gateway choice validation.
+
+REVIEWED AND MERGED: AADI PRs #27, #29, #31, #32, #33 and #35 into `Dev`;
+GatewayAI PRs #37 and #40 into `main`. Three standalone demonstration PRs
+(#16, #23, #32) were closed without merging. AADI release `main` is separate.
+These source merges do not establish live institution/provider acceptance.
+
+BUDGET: the owner authorized 80 cloud coding/review stages per day, with
+Antigravity preferred for coding and the installed local coder for compact
+fallback tasks. Large local prompts are held for splitting rather than truncated.
+OpenAI review can use the central API gateway instead of ChatGPT subscription
+capacity. A synthetic API review returned 179 tokens (139 input, 40 output).
+The gateway identifies the configured model as GPT-5.4 mini; its response alias
+is recorded separately. Complimentary enrollment is confirmed, but exact free
+model eligibility and zero billing remain unverified. A conservative separate
+API token reservation cap does not measure account-wide free allowance.
+
+VALIDATION: final Linux suite ran 483 tests: 480 passed and three opt-in
+PostgreSQL checks skipped. Repository YAML/security validation and source-hash
+verification passed. All three isolated profile baselines passed (5 ERP, 20 feed,
+17 gateway tests). No image or model download was needed.
+
+DEPLOYED: controller and Windows runtime hashes verified; source development,
+finite roadmap planning, API review and archive maintenance are enabled. The
+API adapter reserves at most 250,000 tokens/day and its dedicated virtual key
+has a $1/day setting; neither proves complimentary billing. A live archive
+no-op retained all six merged tasks. SUP-000007 was automatically matched from
+owner intake; SUP-000008 was derived from the ERP roadmap. Their first coding
+stages are running separately on Gemini and the installed local model. Model
+results and new PR acceptance remain pending until recorded.
+
+See [development tasks](DEVELOPMENT_TASK_CONTRACT.md) and
+[OpenAI API review](OPENAI_API_REVIEW.md). Production data writes, migrations,
+credential changes and unattended base-branch merging are separate operations.
+
+
 ## Continuous task supervision, 2 October 2026
 
 IMPLEMENTED and DEPLOYED: a durable, timestamped task board for AADI and

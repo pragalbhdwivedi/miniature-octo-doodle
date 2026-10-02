@@ -32,7 +32,7 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
-def source(repo, paths, repository=None, branch='Dev'):
+def source(repo, paths, repository=None, branch='Dev', allowed_new_paths=()):
     repository=REPOSITORY if repository is None else repository
     if (repository, branch) not in ((REPOSITORY, 'Dev'), ('https://github.com/pragalbhdwivedi/miniature-octo-doodle', 'main')):
         raise agent.AgentError('Repository/base outside admitted projects')
@@ -47,7 +47,26 @@ def source(repo, paths, repository=None, branch='Dev'):
     remote = agent.git(repo, 'ls-remote', 'origin', 'refs/heads/'+branch).decode().strip()
     if remote != sha+'\trefs/heads/'+branch:
         raise agent.AgentError('AADI Dev advanced; operator must refresh and readmit')
-    return {'sha': sha, 'files': agent.source_files(repo, paths)}
+    if not allowed_new_paths:
+        return {'sha': sha, 'files': agent.source_files(repo, paths)}
+    if not isinstance(paths,list) or not 1 <= len(paths) <= 8 or len(set(paths))!=len(paths):
+        raise agent.AgentError('Select one to eight distinct files')
+    existing=[];created=[]
+    for name in paths:
+        if name not in allowed_new_paths:
+            existing.append(name);continue
+        if (not isinstance(name,str) or len(name)>180 or not re.fullmatch(r'(?:src|gateway|tests)/[A-Za-z0-9_/-]+\.py',name)
+                or any(part in ('','.','..') or part.startswith('.') for part in name.split('/'))):
+            raise agent.AgentError('New file is outside admitted Python source scope')
+        tracked=agent.git(repo,'ls-files','--stage','--',name)
+        if tracked:existing.append(name)
+        elif (repo/name).exists() or (repo/name).is_symlink():
+            raise agent.AgentError('Untracked new-file destination already exists')
+        else:created.append(name)
+    if not existing:raise agent.AgentError('New files need existing source and acceptance context')
+    files=agent.source_files(repo,existing)
+    files.update({name:'' for name in created})
+    return {'sha':sha,'files':files}
 
 
 def candidate(value, files):
@@ -162,6 +181,9 @@ class Coordinator:
     def __init__(self, config, coder=codex_candidate, chat=agent.ollama_chat):
         self.repository=config.get('repository',REPOSITORY)
         self.branch=config.get('branch','Dev')
+        self.allowed_new_paths=config.get('allowed_new_paths',[])
+        if not isinstance(self.allowed_new_paths,list) or len(self.allowed_new_paths)>100:
+            raise agent.AgentError('New file admission exceeds bound')
         self.repo = Path(config['repo']).resolve(strict=True)
         self.root = Path(config['output_root']).resolve()
         local = Path(os.environ['LOCALAPPDATA']).resolve()
@@ -187,7 +209,7 @@ class Coordinator:
 
     def admit(self, task_id, task, paths, owner="dual", write_paths=None, transport="sidecar"):
         if (not isinstance(task_id, str) or not re.fullmatch('[a-z0-9-]{1,64}', task_id)
-                or not isinstance(task, str) or not 1 <= len(task) <= 1000):
+                or not isinstance(task, str) or not 1 <= len(task) <= 4000):
             raise agent.AgentError('Invalid task specification')
         if owner not in ('dual', 'gemini', 'codex', 'local'):
             raise agent.AgentError('Unknown coder owner')
@@ -242,6 +264,8 @@ class Coordinator:
         return {'task_id': task_id, 'state': 'closed', 'publication': False}
 
     def source(self, paths):
+        if self.allowed_new_paths:
+            return source(self.repo,paths,self.repository,self.branch,self.allowed_new_paths)
         if self.repository==REPOSITORY and self.branch=='Dev':
             return source(self.repo,paths)
         return source(self.repo,paths,self.repository,self.branch)
