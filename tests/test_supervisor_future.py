@@ -95,6 +95,29 @@ class FutureTests(unittest.TestCase):
             future.seed(self.s, [self.entry(501)], self.at)
         self.assertEqual(self.s, before)
 
+    def test_generation_requires_full_ten_slots_before_reserving_inference(self):
+        self.seed(491)
+        before = copy.deepcopy(self.s)
+        with self.assertRaisesRegex(ValueError, 'full'):
+            future.request_generation(self.s, 'no-capacity', self.at)
+        self.assertEqual(self.s, before)
+
+    def test_seed_cannot_consume_pending_or_running_generation_reservation(self):
+        self.seed(489)
+        future.request_generation(self.s, 'reserved', self.at)
+        future.seed(self.s, [self.entry(490)], self.at)
+        before = copy.deepcopy(self.s)
+        with self.assertRaisesRegex(ValueError, 'reserved'):
+            future.seed(self.s, [self.entry(491)], self.at)
+        self.assertEqual(self.s, before)
+        future.begin_generation(self.s, 'reserved', self.at)
+        with self.assertRaisesRegex(ValueError, 'reserved'):
+            future.seed(self.s, [self.entry(491)], self.at)
+        proposals = [{k: v for k, v in self.entry(i).items() if k != 'id'} for i in range(491, 501)]
+        result = future.finish_generation(self.s, 'reserved', proposals, 'model', self.at)
+        self.assertEqual(len(result['added']), 10)
+        self.assertEqual(len(self.s['supervision']['future']['tasks']), 500)
+
     def test_promotes_ten_and_repeated_ticks_do_not_overfill(self):
         self.seed(100)
         first = self.promote()
@@ -278,6 +301,28 @@ class FutureTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             future.seed(self.s, [self.entry(1)], '2026-10-02T12:00:00')
         self.assertEqual(self.s, before)
+
+    def test_cancelled_proposal_is_never_repromoted_or_a_completed_dependency(self):
+        future.seed(self.s, [self.entry(1), self.entry(2, dependencies=['FUT-000001'])], self.at)
+        self.promote()
+        future.cancel_task(self.s, 'FUT-000001', 'Factual premise was wrong', self.at)
+        before = copy.deepcopy(self.s)
+        future.cancel_task(self.s, 'FUT-000001', 'Factual premise was wrong', self.later)
+        self.assertEqual(self.s, before)
+        future.request_override(self.s, self.at)
+        self.assertEqual(self.promote(self.later)['ready'], [])
+        self.assertEqual(future.public(self.s, self.at)['tasks'][0]['state'], 'cancelled')
+        self.assertEqual(future.public(self.s, self.at)['tasks'][1]['state'], 'planned')
+
+    def test_cancel_does_not_touch_linked_or_held_work(self):
+        self.seed(2)
+        self.promote()
+        self.admit(1)
+        with self.assertRaises(ValueError):
+            future.cancel_task(self.s, 'FUT-000001', 'Cannot silently cancel live work', self.at)
+        self.s['supervision']['future']['tasks'][1]['state'] = 'needs_owner'
+        with self.assertRaises(ValueError):
+            future.cancel_task(self.s, 'FUT-000002', 'Must not bypass hold', self.at)
 
 
 if __name__ == '__main__':

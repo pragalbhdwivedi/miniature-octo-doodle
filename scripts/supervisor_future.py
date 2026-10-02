@@ -15,6 +15,7 @@ import re
 MAX_TASKS = 500
 MAX_REQUESTS = 500
 MAX_EVENTS = 5000
+MAX_ARCHIVED = 5000
 TASK_ID = r'FUT-[0-9]{6}'
 SCOPE_ID = r'[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}'
 FIELDS = {'project', 'title', 'prompt', 'scope_id', 'priority', 'evidence',
@@ -118,14 +119,17 @@ def _digest(value):
 
 def _duplicate(a, b):
     normal = lambda value: ' '.join(value.casefold().split())
-    return a['project'] == b['project'] and any(
-        normal(a[key]) == normal(b[key]) for key in ('title', 'prompt'))
+    return a['project'] == b['project'] and (
+        normal(a['title']) == normal(b['title']) or
+        _digest(normal(a['prompt'])) == (b['prompt_digest'] if 'prompt_digest' in b else _digest(normal(b['prompt']))))
 
 
-def _dependencies(tasks):
+def _dependencies(tasks, archived=None):
     by_id = {task['id']: task for task in tasks}
     visited, visiting = set(), set()
     def visit(task_id):
+        if task_id in (archived or {}):
+            return
         if task_id not in by_id:
             raise ValueError('Unknown future dependency: '+task_id)
         if task_id in visiting:
@@ -158,17 +162,25 @@ def seed(s, entries, now):
     def change(f, candidate):
         added = []
         for spec in specs:
+            cold = f.get('archived_tasks', {}).get(spec['id'])
+            if cold:
+                if cold['spec_digest'] != _digest(spec):
+                    raise ValueError('Archived future ID has a different specification')
+                continue
             old = next((t for t in f['tasks'] if t['id'] == spec['id']), None)
             if old:
                 original = {k: old[k] for k in FIELDS | {'id', 'not_before'} if k in old}
                 if original != spec:
                     raise ValueError('Existing future ID has a different specification')
                 continue
-            if any(_duplicate(spec, t) for t in f['tasks']):
+            if any(_duplicate(spec, t) for t in f['tasks'] + list(f.get('archived_tasks', {}).values())):
                 raise ValueError('Duplicate future task under a different ID')
+            reservation = 10 if f['generation']['state'] in ('pending', 'running') else 0
+            if reservation and len(f['tasks']) >= MAX_TASKS-reservation:
+                raise ValueError('Future capacity is reserved for pending generation')
             _append(f, spec, at, 'operator_seed')
             added.append(spec['id'])
-        _dependencies(f['tasks'])
+        _dependencies(f['tasks'], f.get('archived_tasks'))
         if added:
             _event(f, at, 'seeded', task_ids=added)
         return {'ok': True, 'added': added, 'total': len(f['tasks'])}
@@ -186,12 +198,13 @@ def public(s, now):
             'generation': copy.deepcopy(f['generation']), 'total': len(f['tasks']),
             'next_batch_size': f['batch_size'], 'interval_minutes': f['interval_minutes'],
             'next_batch_at': f['next_batch_at'], 'override_pending': f['override_pending'],
-            'observed_at': at}
+            'archived_total': len(f.get('archived_tasks', {})), 'observed_at': at}
 
 
 def _request(f, request_id):
     _identifier(request_id, r'[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}', 'request ID')
-    return next((r for r in f['requests'] if r['request_id'] == request_id), None)
+    return next((r for r in f['requests'] if r['request_id'] == request_id),
+                f.get('archived_requests', {}).get(request_id))
 
 
 def request_generation(s, request_id, now):
@@ -202,7 +215,7 @@ def request_generation(s, request_id, now):
             return copy.deepcopy(old)
         if f['generation']['state'] in ('pending', 'running'):
             raise ValueError('A generation request is already pending or running')
-        if len(f['requests']) >= MAX_REQUESTS or len(f['tasks']) >= MAX_TASKS:
+        if len(f['requests']) >= MAX_REQUESTS or len(f['tasks']) > MAX_TASKS-10:
             raise ValueError('Future storage is full; explicit archival is required')
         request = {'request_id': request_id, 'state': 'pending', 'requested_at': at}
         f['requests'].append(request)
@@ -245,7 +258,7 @@ def finish_generation(s, request_id, proposals, model, now):
             raise ValueError('Generation is not running or result conflicts with saved receipt')
         added, duplicates = [], []
         for index, spec in enumerate(specs):
-            match = next((t for t in f['tasks'] if _duplicate(spec, t)), None)
+            match = next((t for t in f['tasks'] + list(f.get('archived_tasks', {}).values()) if _duplicate(spec, t)), None)
             if match:
                 duplicates.append({'index': index, 'existing_id': match['id']})
                 continue
@@ -254,7 +267,7 @@ def finish_generation(s, request_id, proposals, model, now):
             task_id = 'FUT-'+str(f['next_id']).zfill(6)
             _append(f, {'id': task_id, **spec}, at, 'model_proposal')
             added.append(task_id)
-        _dependencies(f['tasks'])
+        _dependencies(f['tasks'], f.get('archived_tasks'))
         request.update(state='completed', finished_at=at, model=model,
                        result_digest=digest, added=added, duplicates=duplicates)
         f['generation'] = copy.deepcopy(request)
@@ -290,12 +303,12 @@ def promote(s, scope_ids, now):
     def change(f, candidate):
         if candidate.get('ongoing', {}).get('enabled') is not True:
             return {'state': 'paused', 'ready': [], 'ready_ids': [], 'next_batch_at': f['next_batch_at']}
-        completed = {t['id'] for t in f['tasks'] if t['state'] == 'completed'}
+        completed = {t['id'] for t in f['tasks'] if t['state'] == 'completed'} | set(f.get('archived_tasks', {}))
         slots = max(0, f['batch_size']-sum(t['state'] in OUTSTANDING for t in f['tasks']))
         cadence = f['override_pending'] or f['next_batch_at'] is None or at >= f['next_batch_at']
         selected = []
         for task in sorted(f['tasks'], key=lambda t: (-t['priority'], t['id'])):
-            if task['state'] in OUTSTANDING | {'completed', 'review_ready'} or task.get('intake_id'):
+            if task['state'] in OUTSTANDING | {'completed', 'review_ready', 'cancelled'} or task.get('intake_id'):
                 continue
             if task['risk'] == 'needs_owner':
                 state, reason = 'needs_owner', 'Owner review required'
@@ -398,3 +411,21 @@ def mark_review_ready(s, future_id, now):
 
 def mark_completed(s, future_id, now):
     return _transition(s, future_id, None, 'completed', {'admitted', 'review_ready'}, now)
+
+
+def cancel_task(s, future_id, reason, now):
+    """Reject an unlinked proposal; never cancel running work or complete a dependency."""
+    at = _at(now)
+    _text(reason, 1000, 'cancellation reason')
+    def change(f, candidate):
+        task = _task(f, future_id)
+        if task.get('intake_id'):
+            raise ValueError('Linked work must use the existing operator control workflow')
+        if task['state'] == 'cancelled' and task.get('reason') == reason:
+            return copy.deepcopy(task)
+        if task['state'] not in {'planned', 'ready', 'scheduled', 'needs_scope'}:
+            raise ValueError('Only an unlinked future proposal can be cancelled')
+        task.update(state='cancelled', reason=reason, cancelled_at=at, updated_at=at)
+        _event(f, at, 'cancelled', task_id=future_id, reason=reason)
+        return copy.deepcopy(task)
+    return _change(s, change)
