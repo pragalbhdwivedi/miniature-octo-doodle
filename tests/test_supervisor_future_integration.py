@@ -71,11 +71,15 @@ class FutureIntegrationTests(unittest.TestCase):
     def test_http_controls_do_not_accept_operator_seed(self):
         with self.assertRaises(ValueError):self.command('ongoing_future_seed')
 
-    def test_committed_backlog_has_at_least_100_valid_distinct_tasks(self):
+    def test_retained_seed_contains_only_completed_or_linked_identities(self):
         import supervisor_future as f
         rows=json.loads((Path(__file__).resolve().parents[1]/'config/supervisor/future_tasks.json').read_text())
         result=f.seed(self.s,rows,'2026-10-02T15:00:00+00:00')
-        self.assertGreaterEqual(result['total'],100)
+        self.assertEqual({row['id'] for row in rows}, {
+            'FUT-000001', 'FUT-000002', 'FUT-000004', 'FUT-000005',
+            'FUT-000006', 'FUT-000007', 'FUT-000008', 'FUT-000010',
+        })
+        self.assertEqual(result['total'],8)
         self.assertEqual(len(result['added']),len(rows))
         self.assertEqual(f.seed(self.s,rows,'2026-10-02T15:01:00+00:00')['added'],[])
 

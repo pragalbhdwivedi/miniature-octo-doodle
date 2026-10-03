@@ -320,9 +320,19 @@ class FutureTests(unittest.TestCase):
         self.admit(1)
         with self.assertRaises(ValueError):
             future.cancel_task(self.s, 'FUT-000001', 'Cannot silently cancel live work', self.at)
-        self.s['supervision']['future']['tasks'][1]['state'] = 'needs_owner'
+        self.s['supervision']['future']['tasks'][1]['state'] = 'blocked'
+        self.s['supervision']['future']['tasks'][1]['intake_id'] = 'SUP-000002'
         with self.assertRaises(ValueError):
             future.cancel_task(self.s, 'FUT-000002', 'Must not bypass hold', self.at)
+
+    def test_owner_can_retire_an_unlinked_owner_gated_proposal(self):
+        proposal = self.entry(1)
+        proposal['risk'] = 'needs_owner'
+        future.seed(self.s, [proposal], self.at)
+        self.promote()
+        self.assertEqual(future.public(self.s, self.at)['tasks'][0]['state'], 'needs_owner')
+        future.cancel_task(self.s, 'FUT-000001', 'Owner retired the old catalogue', self.later)
+        self.assertEqual(future.public(self.s, self.later)['tasks'][0]['state'], 'cancelled')
 
 
 if __name__ == '__main__':
