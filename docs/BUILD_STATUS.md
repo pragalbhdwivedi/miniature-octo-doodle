@@ -1,5 +1,25 @@
 # Build Status
 
+## Mac-backed local coding test preparation - 3 October 2026
+
+- Refreshed GitHub main at `833cc59`; isolated branch/worktree preserves the
+  original Phase 6 checkout and untracked dashboard files.
+- Implemented a Mac-only 9B download/preflight script, strict host-pinned reverse
+  tunnel on a separate port, additive local-route renderer, and fixed synthetic
+  gateway test. The test validates a narrow arithmetic AST before 14 independent
+  cases; it is not an unrestricted coding agent or private-source route.
+- Seven offline regression tests pass, covering incorrect arithmetic, malicious
+  generated syntax, route preservation/no fallback, invalid connection targets,
+  required VPN routing, policy denial, and no-overwrite state handling. Together
+  with existing local-route/policy regressions, 26 targeted tests pass.
+- Restricted public-key-only SSH account and fixed-command scripts are staged
+  on the gateway. SSH syntax validation and service-health readback pass;
+  its authorized_keys remains empty. Live route/key activation is pending.
+- Trusted bastion SSH reached the live gateway; Mac inbound SSH was unreachable.
+  No model was downloaded on Windows or the VM. Mac enrollment, download, actual
+  inference, gateway route activation and outage/provenance tests remain pending.
+  See [Mac gateway test](MAC_GATEWAY_TEST.md).
+
 ## Future development backlog, 2 October 2026
 
 IMPLEMENTED: 110 repository-grounded future tasks (52 AADI, 58 GatewayAI),

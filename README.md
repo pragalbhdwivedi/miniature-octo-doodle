@@ -1,5 +1,9 @@
 # miniature-octo-doodle
 
+An optional [Mac-backed coding test](docs/MAC_GATEWAY_TEST.md) prepares a separate
+9B Ollama backend through the central gateway. Mac enrollment and live acceptance
+are tracked separately from the existing Windows local-model routes.
+
 [Future task scheduling](docs/FUTURE_TASK_SCHEDULING.md) adds a repository-grounded
 backlog, a rolling ten-task queue, higher-model planning requests and explicit
 idle/paused status on the bounded control board.

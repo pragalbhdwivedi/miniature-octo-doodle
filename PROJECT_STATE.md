@@ -1,5 +1,13 @@
 # Project State
 
+## Mac-backed local coding test, 3 October 2026
+
+PREPARED: separate 9B Mac model bootstrap, restricted outbound SSH transport,
+additive local-only gateway route renderer and fixed synthetic coding acceptance.
+The 16 GiB Mac remains the inference host; existing Windows routes and accepted
+Mac 4B setup are preserved. Download/runtime acceptance requires the Mac session.
+See [Mac gateway test](docs/MAC_GATEWAY_TEST.md) for enrollment and live gates.
+
 ## Future development backlog, 2 October 2026
 
 IMPLEMENTED: 110 repository-grounded future tasks (52 AADI, 58 GatewayAI),
