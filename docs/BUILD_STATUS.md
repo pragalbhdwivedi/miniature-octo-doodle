@@ -1,6 +1,15 @@
 # Build Status
 
-## Mac-backed local coding test preparation - 3 October 2026
+## Mac-backed gateway coding acceptance - 3 October 2026
+
+LIVE PASS for the bounded synthetic test after Mac reconnect: 14 independent
+calculator cases, 9.67 seconds; operator source/hash recheck passed. Durable
+admission matched one accepted Ollama9B attempt, zero cloud attempts and released
+admission. Native model digest matched; loaded allocation5.97GB entirely GPU,
+context16384. Existing services remain healthy. Real-project agent capability,
+Mac pressure/swap, controlled outage cycle and boot persistence are unverified.
+
+### Earlier preparation and first disconnected probe
 
 LIVE PARTIAL: Mac model discovery passed from GatewayAI host and container; dedicated
 route/proxy/key activated with existing aliases preserved and services healthy.

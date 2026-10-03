@@ -7,9 +7,11 @@ additive local-only gateway route renderer and fixed synthetic coding acceptance
 The 16 GiB Mac remains the inference host; existing Windows routes and accepted
 Mac 4B setup are preserved. Download/runtime acceptance requires the Mac session.
 The supplied SSH key is enrolled; dynamic VPN addresses are discovered per link.
-Authenticated Mac connectivity and model discovery passed. Dedicated gateway route
-and restricted key are active, but the tunnel dropped during the first inference;
-coding acceptance awaits reconnect.
+LIVE PASS for the bounded synthetic gateway test after reconnect: 14 independent
+calculator checks in9.67s, saved-source recheck, one accepted local Ollama attempt
+and no cloud fallback. Ollama reports the9B variant fully allocated to GPU with
+16384context. Autonomous real-project coding, memory-pressure/swap and boot
+persistence are separate unverified boundaries.
 See [Mac gateway test](docs/MAC_GATEWAY_TEST.md) for enrollment and live gates.
 
 ## Future development backlog, 2 October 2026

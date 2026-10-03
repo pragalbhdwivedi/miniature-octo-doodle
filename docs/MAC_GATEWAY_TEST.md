@@ -135,8 +135,17 @@ The first synthetic gateway request failed HTTP502 when the Mac reverse tunnel
 disconnected. Its durable ledger shows exactly one Ollama attempt, no cloud attempt,
 zero model prices and a released admission. This is observed failure isolation,
 not a successful coding test or a complete reconnect/outage acceptance cycle.
-The model-generation test and Mac runtime performance remain pending reconnect.
-Reboot persistence remains unvalidated.
+After reconnect, the fixed test passed all 14 arithmetic cases in 9.67 seconds.
+An operator independently rechecked the saved source/hash and correlated the
+admission with exactly one accepted `ollama/mac-coder-9b:latest` attempt, no cloud
+attempt and a released admission. The live model digest matched the discovered
+9B variant. Ollama reported 5,968,840,620 loaded bytes, all allocated to GPU,
+and a 16,384-token context. Core containers remained healthy.
+
+This accepts the bounded synthetic gateway coding test and observed recovery
+following the disconnect. It does not establish autonomous-agent/real-project
+coding capability. Mac memory-pressure/swap measurement, a deliberately controlled
+outage cycle, and reboot persistence remain unvalidated.
 
 The Mac screenshot reported an SSH known-hosts path-quoting issue. The repository
 now quotes the Application Support path as an SSH option value; the existing Mac
