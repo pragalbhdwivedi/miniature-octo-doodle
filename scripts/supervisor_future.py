@@ -313,7 +313,7 @@ def promote(s, scope_ids, now):
             if task['risk'] == 'needs_owner':
                 state, reason = 'needs_owner', 'Owner review required'
             elif task['scope_id'] not in scopes:
-                state, reason = 'needs_scope', 'Scope suggestion is not registered'
+                state, reason = 'needs_scope', 'Planned proposal: a bounded coding scope and isolated tests are not registered yet'
             elif not set(task['dependencies']) <= completed:
                 state, reason = 'planned', 'Waiting for completed dependencies'
             elif task.get('not_before') and at < task['not_before']:

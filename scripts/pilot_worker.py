@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -699,11 +700,39 @@ class Worker:
                 return {'state': 'blocked', 'stage': action, 'batch_id': batch}
 
 
+def configure_tool_path(config):
+    """Resolve operator-pinned tools before reserving any worker stage.
+
+    Desktop schedulers can inherit a different PATH from an interactive shell.
+    Only local operator configuration supplies these directories, never a task.
+    """
+    directories = config.get('tool_directories')
+    if directories is None:
+        return
+    if not isinstance(directories, list) or not 1 <= len(directories) <= 8:
+        raise WorkerError('tool_directories must contain one to eight existing absolute directories')
+    checked = []
+    for value in directories:
+        if not isinstance(value, str) or not value or os.pathsep in value:
+            raise WorkerError('Invalid operator tool directory')
+        path = Path(value)
+        if not path.is_absolute() or not path.is_dir():
+            raise WorkerError('Operator tool directory is unavailable')
+        checked.append(str(path.resolve()))
+    search = os.pathsep.join(checked + [os.environ.get('PATH', '')])
+    for tool in ('git', 'docker', 'ssh'):
+        if shutil.which(tool, path=search) is None:
+            raise WorkerError('Required worker executable is unavailable: ' + tool)
+    os.environ['PATH'] = search
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, required=True)
     args = parser.parse_args()
-    worker = Worker(read_json(args.config))
+    config = read_json(args.config)
+    configure_tool_path(config)
+    worker = Worker(config)
     result = worker.tick()
     if result.get('state')=='idle' and worker.config.get('ongoing_enabled'):
         from ongoing_worker import Worker as OngoingWorker

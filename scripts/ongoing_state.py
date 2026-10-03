@@ -105,7 +105,7 @@ def finish(s, request):
     result=request.get('result',{});stage=lease['stage']
     j=next((j for j in o['jobs'] if j['id']==lease['job_id']),None)
     if request['action']=='ongoing_fail':
-        if j:j.update(state='blocked',error=result.get('error','Stage failed; retained for reconciliation'))
+        if j:j.update(state='blocked',blocked_stage=stage,error=result.get('error','Stage failed; retained for reconciliation'))
         elif stage=='parallel_code':
             for task in o['jobs']:
                 if task['id'] in lease['job_ids']:task.update(state='blocked',error='Parallel stage interrupted; reconcile saved claims before any retry.')
@@ -118,6 +118,7 @@ def finish(s, request):
     elif stage=='admit':
         next_state=('local_ready' if j['owner']=='local' else 'codex_ready' if j['owner']=='codex' else ('antigravity_ready' if j.get('transport')=='cli' else 'coding'))
         j.update(state=next_state,child_id=result['child_id'],issue=result['issue'])
+        j.pop('recovery',None)
         notify(s,j,j['owner'].capitalize()+' assigned: '+j['title']+'. '+result['issue'].get('url',''))
     elif stage in ('codex','antigravity','local','local_fallback'):
         if stage=='antigravity' and result.get('state')=='quota_wait':quota_wait(s,j,result)
@@ -225,7 +226,7 @@ def rpc(s,r):
                 or result.get('state')!='human_review_required'
                 or result.get('task_id')!=j['child_id'] or result.get('source_sha')!=j['source_sha']
                 or result.get('owner')!=j['owner'] or result.get('model_replayed') is not False
-                or result.get('operator_correction')!='summary_shortened_to_contract'):
+                or result.get('operator_correction') not in ('summary_shortened_to_contract','metadata_shortened_to_contract')):
             raise ValueError('Recovered candidate provenance mismatch')
         j.update(state='ready_test',coding=copy.deepcopy(result))
         j.pop('error',None)
@@ -233,6 +234,21 @@ def rpc(s,r):
                ' without another model call. Isolated tests and independent review will continue; other queued work remains active.')
         pilot.event(s,'Recovered saved assigned candidate for '+j['id']+' without model replay')
         return {'ok':True,'state':'ready_test'}
+    if r['action']=='ongoing_requeue_preinference':
+        o=s['ongoing']
+        j=next((x for x in o['jobs'] if x['id']==r.get('job_id')),None)
+        if (o.get('lease') or not j or j.get('state')!='blocked' or
+                j.get('blocked_stage','admit')!='admit' or j.get('child_id') or
+                j.get('attempt')!=0 or any(j.get(k) for k in ('coding','tests','review','publication')) or
+                r.get('source_sha')!=j.get('source_sha') or
+                r.get('coordinator_child_absent') is not True):
+            raise ValueError('Only an evidenced pre-inference admission hold can be requeued')
+        j.update(state='queued',recovery='Pre-inference admission requeued after coordinator check')
+        j.pop('error',None)
+        j.pop('blocked_stage',None)
+        notify(s,j,'Admission recovered for '+j['title']+'. No coder model ran; the exact task will be retried.')
+        pilot.event(s,'Pre-inference admission requeued for '+j['id'])
+        return {'ok':True,'state':'queued','job_id':j['id']}
     raise ValueError('Unknown ongoing RPC')
 
 

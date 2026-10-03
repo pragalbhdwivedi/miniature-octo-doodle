@@ -95,6 +95,15 @@ while enabled work remains active; completions and blockers are immediate.
 
 ## Operation and recovery
 
+Windows scheduler processes may not inherit the interactive terminal's tool
+PATH. The protected worker config can supply `tool_directories`, a list of one
+to eight existing absolute directories for installed Git, Docker and SSH tools.
+The worker validates this operator-only list and resolves all three executables
+before constructing the worker or reserving work. It changes only its own process
+PATH; it installs nothing and does not accept paths from model/task output.
+An unavailable directory or executable stops startup before a task can be blocked
+by a missing-process error. Keep machine-specific paths in protected local config.
+
 `scripts/deploy-supervisor-control.py` deploys into the existing controller and
 NPM without downloading an image. It backs up scripts/assets/route/units, preserves
 other dashboard cards, enables the loopback service and adds only the dedicated

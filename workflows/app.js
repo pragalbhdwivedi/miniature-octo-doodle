@@ -9,7 +9,9 @@ const STAGES = [
   ['changes', 'Changes requested', 'No changes are waiting.'],
   ['reviewed', 'Reviewed', 'Reviewed work will appear here.'],
   ['merged', 'Merged', 'Merged work will appear here.'],
+  ['scope', 'Awaiting scope', 'Tasks outside the configured coding scopes will appear here.'],
   ['blocked', 'Blocked', 'Nothing needs attention here.'],
+  ['closed', 'Closed', 'Closed or cancelled tasks will appear here.'],
 ];
 const STAGE_TITLES = Object.fromEntries(STAGES.map(([key, title]) => [key, title]));
 const state = {data: null, connected: false, loading: false, posting: false,
@@ -30,8 +32,9 @@ function stageOf(task) {
   const review = value(task.review_state).toLowerCase();
   if (review === 'merged' || status === 'merged') return 'merged';
   if (task.execution) return 'working';
-  if (['closed', 'blocked', 'needs_owner', 'waiting_quota', 'waiting_budget', 'reconciliation_required'].includes(status)
-      || review === 'closed') return 'blocked';
+  if (['closed', 'cancelled'].includes(status) || review === 'closed') return 'closed';
+  if (status === 'needs_scope') return 'scope';
+  if (['blocked', 'needs_owner', 'waiting_quota', 'waiting_budget', 'reconciliation_required'].includes(status)) return 'blocked';
   if (['changes_requested', 'rerun_waiting'].includes(status) || review === 'changes_requested') return 'changes';
   if (review === 'reviewed' || status === 'reviewed') return 'reviewed';
   if (['draft_ready', 'pr_review_ready', 'review_ready'].includes(status)) return 'review';
@@ -44,6 +47,7 @@ function statusHint(task) {
   if (task.wait_reason) return value(task.wait_reason);
   if (isPaused(task)) return 'Paused by you';
   const hints = {planned: 'Waiting for scope checks', queued: 'Waiting to start',
+    needs_scope: 'A coding scope and its tests must be registered', cancelled: 'Cancelled',
     codex_ready: 'Waiting for Codex', antigravity_ready: 'Waiting for Gemini', local_ready: 'Waiting for the local coder',
     coding: 'A coder is working', ready_test: 'Tests are next', testing: 'Running checks',
     ready_review: 'Verification is next', reviewing: 'Checking the result', ready_publish: 'Preparing a pull request',
@@ -158,8 +162,8 @@ function futureView() {
 function renderFuture() {
   const {future, entries, size, next, matching, visible} = futureView();
   const labels = {ready: 'Ready', queued: 'Queued for admission', planned: 'Planned', scheduled: 'Scheduled', admitted: 'Admitted',
-    needs_scope: 'Needs scope', needs_owner: 'Needs your input', blocked: 'Held for recovery',
-    review_ready: 'PR review ready', completed: 'Completed'};
+    needs_scope: 'Awaiting coding scope', needs_owner: 'Needs your input', blocked: 'Held for recovery',
+    review_ready: 'PR review ready', completed: 'Completed', cancelled: 'Cancelled'};
   $('futureCount').textContent = entries.length;
   const interval = Number.isInteger(future.interval_minutes) && future.interval_minutes > 0 ? future.interval_minutes : 5;
   $('futureCadence').textContent = `Up to ${size} tasks in the next batch · checked every ${interval} minutes`;
@@ -189,7 +193,9 @@ function renderFuture() {
     summary.append(title, badges); row.append(summary);
     const body = node('div', 'future-task-body');
     body.append(node('p', 'prompt-text', value(task.prompt, 'Instructions are not recorded yet.')));
-    if (task.reason) body.append(node('p', 'future-reason', value(task.reason)));
+    if (task.state === 'needs_scope' && !task.scope_id && task.reason === 'Scope suggestion is not registered')
+      body.append(node('p', 'future-reason', 'Planned proposal. A bounded coding scope and isolated tests must be registered before it can start.'));
+    else if (task.reason) body.append(node('p', 'future-reason', value(task.reason)));
     body.append(node('p', 'field-help', `Created ${fullDate(task.created_at)}`));
     if (task.not_before) body.append(node('p', 'field-help', `Scheduled no earlier than ${fullDate(task.not_before)}`));
     if (task.scope_id) body.append(node('p', 'field-help', `Scope: ${task.scope_id}`));

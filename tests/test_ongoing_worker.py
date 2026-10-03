@@ -72,6 +72,19 @@ class OngoingWorkerTests(unittest.TestCase):
         (self.evidence/'codex.json').write_text(json.dumps(self.value),encoding='utf-8')
         (self.evidence/'result.json').write_text(json.dumps(self.result),encoding='utf-8')
 
+    def test_preinference_retry_keeps_prior_directory_and_uses_new_receipt(self):
+        self.w.root=self.root/'ongoing';self.w.root.mkdir()
+        old=self.w.root/'synthetic'/'0'/'admit';old.mkdir(parents=True)
+        (old/'failure.json').write_text('original failure')
+        job={**self.job,'recovery':'Pre-inference admission requeued after coordinator check'}
+        work={'action':'admit','job':job,'token':'abc123'}
+        self.w.remote=Mock(side_effect=lambda r: work if r['action']=='ongoing_work' else {'ok':True})
+        self.w.for_job=Mock(return_value=self.w)
+        self.w.admit=Mock(return_value={'child_id':'new-child','issue':{}})
+        self.assertEqual(self.w.tick(),{'state':'finished','stage':'admit'})
+        self.assertEqual((old/'failure.json').read_text(),'original failure')
+        self.assertTrue((old.with_name('admit-recovery-abc123')/'result.json').exists())
+
     def test_api_review_binds_candidate_and_preserves_usage(self):
         self.w.config['openai_api_review']={'enabled':True,'ssh_host':'gatewayai-direct',
             'remote_script':'/opt/gatewayai-pilot/scripts/ongoing_api_review.py',
