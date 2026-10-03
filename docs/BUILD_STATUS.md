@@ -1,5 +1,14 @@
 # Build Status
 
+## Automatic startup preparation - 3 October 2026
+
+Prepared a Mac per-user LaunchAgent installer with strict VPN/Ollama prerequisites,
+30-second reconnect retries, bounded logs, quoted stable paths and existing key
+preservation. OpenVPN Connect startup settings use supported CLI keys with backup
+and readback. Thirteen focused tests passed in Linux/WSL; Python compilation passed.
+Gateway Docker/socket startup and LiteLLM restart policy read back enabled. Mac
+installation, process recovery and actual login/reboot acceptance remain pending.
+
 ## Mac-backed gateway coding acceptance - 3 October 2026
 
 LIVE PASS for the bounded synthetic test after Mac reconnect: 14 independent

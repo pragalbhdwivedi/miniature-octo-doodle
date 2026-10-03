@@ -12,6 +12,8 @@ calculator checks in9.67s, saved-source recheck, one accepted local Ollama attem
 and no cloud fallback. Ollama reports the9B variant fully allocated to GPU with
 16384context. Autonomous real-project coding, memory-pressure/swap and boot
 persistence are separate unverified boundaries.
+Automatic startup installer prepared and tested; gateway startup settings verified.
+Mac installation and login/reboot acceptance remain pending.
 See [Mac gateway test](docs/MAC_GATEWAY_TEST.md) for enrollment and live gates.
 
 ## Future development backlog, 2 October 2026

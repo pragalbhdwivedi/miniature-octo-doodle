@@ -160,3 +160,56 @@ keys, live gateway ledger or later configuration changes.
 References checked: [Ollama model](https://ollama.com/library/qwen3.5:9b),
 [Ollama macOS configuration](https://docs.ollama.com/faq),
 [LiteLLM Ollama provider](https://docs.litellm.ai/docs/providers/ollama).
+
+## Automatic startup package - 3 October 2026
+
+The owner requested automatic startup after the successful gateway test. Gateway
+Docker and both loopback/provider socket services are already enabled; LiteLLM
+uses `unless-stopped`. These settings were read back, not reboot-tested.
+
+`scripts/mac_gateway_autostart.py install --connection connection.json` installs
+`org.gatewayai.mac-tunnel` in the signed-in Mac user's LaunchAgents. Its code and
+connection record are copied to Application Support/GatewayAI/mac-test/startup,
+so Documents privacy and the extracted package location do not own persistence.
+It preserves the existing task SSH key and host pin, and changes no models.
+The runner reapplies approved Ollama environment settings, opens the native app
+if its local API is absent, and retries the existing strict `link` action after
+30 seconds. SSH keepalive failures terminate a stale connection; the next attempt
+rediscovers the current OpenVPN address. Logs rotate at1MiB with two backups.
+
+When OpenVPN Connect's documented CLI exposes `launch-at-startup` and
+`connect-on-launch`, installation backs up those two values, sets them to true,
+and reads them back. Other VPN clients or unsupported settings require their
+native startup/reconnect controls. No credentials, profiles, security levels or
+TLS options are changed. Password/MFA/keychain prompts remain governed by the
+existing profile; configuration alone cannot prove unattended reconnection.
+
+Mac handoff: inspect current Ollama login behavior and the existing
+`local.ollama.environment` job. Avoid duplicate independent Ollama startup paths
+that can launch before environment variables are applied. If stale environment
+is detected, the runner refuses to tunnel rather than killing a running server.
+The Mac operator should resolve that ordering using the existing app settings,
+preserving the accepted4B launcher and recording any changed login preference.
+Stop only the old foreground Mac tunnel before installing; never terminate all
+SSH processes. Verify `plutil -lint`, `launchctl print`, tunnel recovery and the
+fixed14-case test. Test automatic service recovery by stopping only its managed
+SSH child, then observing reconnection and a new successful fixed test. Logout/
+login and actual reboot acceptance remain separate; do not reboot an actively
+used Mac without coordination.
+
+This is **after-login startup**, not execution before FileVault unlock, while
+logged out, or during sleep. No sleep/battery/security settings are changed.
+Mac installation and restart acceptance are pending;13 focused offline tests
+pass, including space-bearing plist arguments, settings readback and symlink
+preservation. We have no Mac shell through the inference tunnel.
+
+Use `mac_gateway_autostart.py status` for status and `remove` to boot out/remove
+only its LaunchAgent. Runtime, models and keys remain. Restore OpenVPN's two
+settings from `startup/openvpn-settings-before.json` through its native CLI/UI
+if rolling back that client change; `remove` deliberately does not reset app
+preferences. Earlier LaunchAgent files, if any, are retained as timestamped
+backups in the private startup directory.
+
+References: [Apple launchd user agents](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html),
+[OpenVPN Connect CLI settings](https://openvpn.net/connect-docs/command-line-functionality-macos.html),
+[OpenVPN launch behavior](https://openvpn.net/connect-docs/tutorials/tutorial--set-launch-options--windows-and-macos-.html).
