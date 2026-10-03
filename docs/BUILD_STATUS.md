@@ -1,5 +1,15 @@
 # Build Status
 
+## Scheduler tool-path recovery, 3 October 2026
+
+Reproduced WinError 2 launching Git under the persisted Windows PATH. The Codex
+terminal could resolve Git, but the persisted scheduler environment could not.
+Added operator-only tool_directories startup validation before worker construction
+or task reservation. Existing installed Git, Docker and SSH commands passed with
+the sparse PATH after applying the local configuration; no tools were installed.
+Full Linux suite: 598 tests, three opt-in skips, no failures. Runtime deployment,
+recovered task acceptance and source merge remain separately recorded operations.
+
 ## Future development backlog, 2 October 2026
 
 IMPLEMENTED: 110 repository-grounded future tasks (52 AADI, 58 GatewayAI),
