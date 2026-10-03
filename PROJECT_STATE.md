@@ -1,5 +1,15 @@
 # Project State
 
+## Policy task recovery, 3 October 2026
+
+Implemented route-catalogue validation for issues #49/#51: both choice entrypoints
+reject malformed catalogues deterministically, and Policy construction rejects
+missing, boolean, non-integer or nonpositive capacity limits. The retained catalogue
+candidate was compared against current main before recovery; the writable baseline
+files matched. Added public-entrypoint boundary and no-generator-consumption tests.
+Full Linux suite: 596 tests, three opt-in skips, no failures. Merge and deployment
+are separate; no live gateway configuration or provider calls changed.
+
 ## Scheduler tool-path recovery, 3 October 2026
 
 Reproduced WinError 2 launching Git under the persisted Windows PATH. The Codex

@@ -12,11 +12,29 @@ def validate_disabled_config(config):
         raise ValueError("Only deterministic routing with Jev explicitly disabled is supported")
 
 
+def validate_catalogue(allowed):
+    """Validate route catalogue: nonempty list/tuple/set/frozenset of unique nonempty string IDs <= 128 chars, max 64 IDs."""
+    if type(allowed) not in (list, tuple, set, frozenset):
+        return False
+    if not (1 <= len(allowed) <= 64):
+        return False
+    seen = set()
+    for item in allowed:
+        if type(item) is not str or not (1 <= len(item) <= 128):
+            return False
+        if item in seen:
+            return False
+        seen.add(item)
+    return True
+
+
 def normalize_choice(response, allowed, *, in_domain=False):
     """Validate the documented TypeSafe Choice wire response, fail to None.
 
     in_domain comes from the evaluator's labelled domain, never the model.
     """
+    if not validate_catalogue(allowed):
+        return None
     try:
         answer = response["answers"]["route"]
         probabilities = answer["probabilities"]
@@ -35,6 +53,8 @@ def normalize_choice(response, allowed, *, in_domain=False):
 
 
 def select_route(decision, allowed, deterministic, *, calibrated=False, threshold=0.9):
+    if not validate_catalogue(allowed):
+        raise ValueError("Catalogue must be a nonempty list/tuple/set/frozenset of unique nonempty string IDs")
     if deterministic not in allowed:
         raise ValueError("Deterministic route must already be allowed")
     if not calibrated:
