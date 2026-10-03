@@ -423,7 +423,7 @@ def cancel_task(s, future_id, reason, now):
             raise ValueError('Linked work must use the existing operator control workflow')
         if task['state'] == 'cancelled' and task.get('reason') == reason:
             return copy.deepcopy(task)
-        if task['state'] not in {'planned', 'ready', 'scheduled', 'needs_scope'}:
+        if task['state'] not in {'planned', 'ready', 'scheduled', 'needs_scope', 'needs_owner'}:
             raise ValueError('Only an unlinked future proposal can be cancelled')
         task.update(state='cancelled', reason=reason, cancelled_at=at, updated_at=at)
         _event(f, at, 'cancelled', task_id=future_id, reason=reason)

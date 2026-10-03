@@ -4,8 +4,8 @@ The supervisor distinguishes **paused** (scheduling disabled) from **idle**
 (enabled, no eligible task). Finishing a finite recipe list previously left an
 empty future view even though the worker remained enabled.
 
-The repository seed is `config/supervisor/future_tasks.json`; its rationale is
-in [the development backlog](FUTURE_DEVELOPMENT_BACKLOG.md). FUT identifiers are
+The repository seed is `config/supervisor/future_tasks.json`; its current retained identities are
+in [the development backlog](FUTURE_DEVELOPMENT_BACKLOG.md). The original broad catalogue was superseded on 4 October 2026; the live ledger retains its cancelled proposals and audit trail. FUT identifiers are
 monotonic planning identities. An admitted task also receives a SUP identity,
 retaining the FUT link, timestamped events and its eventual PR evidence.
 
