@@ -270,6 +270,26 @@ class AssignedCoderTests(unittest.TestCase):
         self.assertEqual([x['state'] for x in self.coordinator.status()['tasks']],
                          ['blocked','queued'])
 
+    def test_oversized_proposal_recovery_preserves_code_and_receipt(self):
+        self.coordinator.admit('long-proposal','Synthetic CLI task',self.paths,
+            owner='gemini',write_paths=['example.py'],transport='cli')
+        value={**self.value,'proposal':'Context explanation. '*2000}
+        def generate(prompt,directory):
+            self.calls.append('gemini-cli')
+            (directory/'antigravity-result.json').write_text(json.dumps({'candidate':value}))
+            return value
+        with self.assertRaises(c.agent.AgentError):
+            self.coordinator.run_gemini('long-proposal',generate)
+        result=self.coordinator.recover_assigned('long-proposal','Shorten only the saved explanation before acceptance')
+        saved=json.loads((self.coordinator.root/'long-proposal'/'gemini.json').read_text())
+        self.assertEqual(self.calls,['gemini-cli'])
+        self.assertEqual(saved['changes'],value['changes'])
+        self.assertEqual(saved['summary'],value['summary'])
+        self.assertLessEqual(len(saved['proposal']),8192)
+        self.assertEqual(result['operator_correction'],'metadata_shortened_to_contract')
+        receipt=json.loads((self.coordinator.root/'long-proposal'/'antigravity-result.json').read_text())
+        self.assertEqual(receipt['candidate'],value)
+
     def test_cli_runner_cannot_take_sidecar_or_other_coder_task(self):
         self.admit('sidecar-gemini','gemini','example.py')
         self.admit('codex-task','codex','second.py')

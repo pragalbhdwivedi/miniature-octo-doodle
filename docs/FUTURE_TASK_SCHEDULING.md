@@ -77,6 +77,10 @@ packet as blocked rather than leaving it queued with a coder claim. An operator
 can requeue a failed admission only when the controller has no child or model
 result, the exact source SHA still matches, and the coordinator confirms no child
 packet exists. The old blocked task and its evidence remain on the board.
+Admission retries use a new receipt directory so a retained failed directory
+cannot overwrite evidence or stop the retry. Saved candidates may normalize
+oversized summary/proposal text within bounded limits; their code and original
+provider receipts remain unchanged and still require isolated acceptance.
 
 Complete
 assigned output that failed only an envelope limit is normalized deterministically

@@ -486,7 +486,7 @@ class Coordinator:
         """Recover a complete assigned result after an envelope-only failure.
 
         This never invokes a model. The original provider receipt remains
-        immutable; only an oversized summary is deterministically shortened.
+        immutable; only oversized explanatory metadata is shortened.
         """
         if not isinstance(reason,str) or not 10<=len(reason)<=1000:
             raise agent.AgentError('Explicit bounded recovery reason required')
@@ -509,10 +509,15 @@ class Coordinator:
         saved=json.loads((folder/receipt).read_text(encoding='utf-8'))
         value=saved.get('candidate') if owner in ('gemini','local') else saved
         if (not isinstance(value,dict) or set(value)!={'summary','proposal','changes'}
-                or not isinstance(value['summary'],str) or not 512<len(value['summary'])<=2000):
-            raise agent.AgentError('Saved candidate is not recoverable by bounded summary normalization')
+                or not isinstance(value['summary'],str) or not 1<=len(value['summary'])<=2000
+                or not isinstance(value['proposal'],str) or not 1<=len(value['proposal'])<=65536
+                or (len(value['summary'])<=512 and len(value['proposal'])<=8192)):
+            raise agent.AgentError('Saved candidate is not recoverable by bounded metadata normalization')
         normalized=copy.deepcopy(value)
-        normalized['summary']=value['summary'][:509].rstrip()+'...'
+        if len(value['summary'])>512:
+            normalized['summary']=value['summary'][:509].rstrip()+'...'
+        if len(value['proposal'])>8192:
+            normalized['proposal']=value['proposal'][:8189].rstrip()+'...'
         # Re-run every ordinary schema, path, size and patch check after changing
         # the presentation-only field. Any other defect remains blocked.
         normalized,_=candidate(normalized,self.writable(packet))
@@ -522,6 +527,8 @@ class Coordinator:
                   'normalized_candidate_sha256':normalized_sha,
                   'original_summary_length':len(value['summary']),
                   'normalized_summary_length':len(normalized['summary']),
+                  'original_proposal_length':len(value['proposal']),
+                  'normalized_proposal_length':len(normalized['proposal']),
                   'model_replayed':False,'source_writes':False}
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
@@ -540,7 +547,9 @@ class Coordinator:
                 db.execute('UPDATE tasks SET state="blocked",error=? WHERE id=? AND state="running"',
                            ('Assigned recovery stopped; saved evidence retained; no model replay.',task_id))
             raise
-        result.update(operator_correction='summary_shortened_to_contract',
+        correction=('metadata_shortened_to_contract' if len(value['proposal'])>8192
+                    else 'summary_shortened_to_contract')
+        result.update(operator_correction=correction,
                       original_candidate_sha256=original_sha,
                       model_replayed=False,recovery_reason=reason)
         if owner in ('gemini','local') and isinstance(saved.get('route'),dict):
@@ -548,7 +557,7 @@ class Coordinator:
             result['usage']=copy.deepcopy(saved.get('usage',{'status':'unavailable'}))
         with self.connect() as db:
             db.execute('UPDATE tasks SET result=?,error=? WHERE id=? AND state="human_review_required"',
-                       (json.dumps(result),'Operator normalized only the retained summary; independent acceptance required.',task_id))
+                       (json.dumps(result),'Operator normalized only retained explanatory metadata; independent acceptance required.',task_id))
         (folder/'result.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
         return result
 

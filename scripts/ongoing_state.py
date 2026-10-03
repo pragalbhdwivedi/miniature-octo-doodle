@@ -118,6 +118,7 @@ def finish(s, request):
     elif stage=='admit':
         next_state=('local_ready' if j['owner']=='local' else 'codex_ready' if j['owner']=='codex' else ('antigravity_ready' if j.get('transport')=='cli' else 'coding'))
         j.update(state=next_state,child_id=result['child_id'],issue=result['issue'])
+        j.pop('recovery',None)
         notify(s,j,j['owner'].capitalize()+' assigned: '+j['title']+'. '+result['issue'].get('url',''))
     elif stage in ('codex','antigravity','local','local_fallback'):
         if stage=='antigravity' and result.get('state')=='quota_wait':quota_wait(s,j,result)
@@ -225,7 +226,7 @@ def rpc(s,r):
                 or result.get('state')!='human_review_required'
                 or result.get('task_id')!=j['child_id'] or result.get('source_sha')!=j['source_sha']
                 or result.get('owner')!=j['owner'] or result.get('model_replayed') is not False
-                or result.get('operator_correction')!='summary_shortened_to_contract'):
+                or result.get('operator_correction') not in ('summary_shortened_to_contract','metadata_shortened_to_contract')):
             raise ValueError('Recovered candidate provenance mismatch')
         j.update(state='ready_test',coding=copy.deepcopy(result))
         j.pop('error',None)
