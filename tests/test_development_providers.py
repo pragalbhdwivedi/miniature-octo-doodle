@@ -26,6 +26,27 @@ class DevelopmentProviderTests(unittest.TestCase):
     def admit(self, request=None, key=None):
         return self.policy.admit(dict(self.body, metadata=request or {}), key)
 
+    def test_capacity_limits_reject_missing_and_malformed_configuration(self):
+        for name in ('max_input_bytes', 'max_output_tokens'):
+            missing = dict(self.config)
+            del missing[name]
+            with self.subTest(name=name, missing=True), self.assertRaisesRegex(ValueError, name):
+                Policy(missing, self.ledger)
+            for value in (None, True, False, 0, -1, 1.0, float('nan'),
+                          float('inf'), '100', [], {}):
+                with self.subTest(name=name, value=value), self.assertRaisesRegex(ValueError, name):
+                    Policy(dict(self.config, **{name: value}), self.ledger)
+
+    def test_positive_integer_capacity_limits_preserve_config_and_admission(self):
+        for name in ('max_input_bytes', 'max_output_tokens'):
+            config = dict(self.config, **{name: 1})
+            policy = Policy(config, self.ledger)
+            self.assertIs(policy.config, config)
+            self.assertEqual(config[name], 1)
+        request_id, candidates, _ = self.admit()
+        self.assertEqual(candidates, self.candidates)
+        self.ledger.release(request_id)
+
     def test_narrow_request_does_not_invalidate_broader_key(self):
         for provider in ('openai', 'gemini'):
             with self.subTest(provider=provider):

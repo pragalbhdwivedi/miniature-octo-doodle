@@ -126,6 +126,10 @@ class Policy:
 
     def __init__(self, config, ledger):
         validate_disabled_config(config.get("decision_plane"))
+        for name in ("max_input_bytes", "max_output_tokens"):
+            value = config.get(name)
+            if type(value) is not int or value <= 0:
+                raise ValueError(name + " must be a positive integer")
         self.config, self.ledger = config, ledger
 
     def admit(self, body, key_metadata=None):

@@ -1,5 +1,15 @@
 # Build Status
 
+## Policy task recovery, 3 October 2026
+
+Implemented route-catalogue validation for issues #49/#51: both choice entrypoints
+reject malformed catalogues deterministically, and Policy construction rejects
+missing, boolean, non-integer or nonpositive capacity limits. The retained catalogue
+candidate was compared against current main before recovery; the writable baseline
+files matched. Added public-entrypoint boundary and no-generator-consumption tests.
+Full Linux suite: 596 tests, three opt-in skips, no failures. Merge and deployment
+are separate; no live gateway configuration or provider calls changed.
+
 ## Future development backlog, 2 October 2026
 
 IMPLEMENTED: 110 repository-grounded future tasks (52 AADI, 58 GatewayAI),
