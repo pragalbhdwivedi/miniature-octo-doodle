@@ -154,7 +154,8 @@ function futureView() {
   const next = new Set(entries.filter((task) => ['ready', 'queued'].includes(task.state)).slice(0, size).map((task) => task.id));
   const needle = $('futureSearch').value.trim().toLowerCase();
   const filter = $('futureFilter').value;
-  const matching = entries.filter((task) => (filter === 'all' || filter === task.state || (filter === 'next' && next.has(task.id)))
+  const matching = entries.filter((task) => (filter === 'all' || (filter === 'active' && !['completed', 'cancelled'].includes(task.state))
+    || filter === task.state || (filter === 'next' && next.has(task.id)))
     && (!needle || [task.id, task.title, task.project, task.prompt, task.scope_id, task.reason]
       .some((field) => typeof field === 'string' && field.toLowerCase().includes(needle))));
   return {future, entries, size, next, matching, visible: matching.slice(0, 100)};
@@ -164,7 +165,8 @@ function renderFuture() {
   const labels = {ready: 'Ready', queued: 'Queued for admission', planned: 'Planned', scheduled: 'Scheduled', admitted: 'Admitted',
     needs_scope: 'Awaiting coding scope', needs_owner: 'Needs your input', blocked: 'Held for recovery',
     review_ready: 'PR review ready', completed: 'Completed', cancelled: 'Cancelled'};
-  $('futureCount').textContent = entries.length;
+  const activeCount = entries.filter((task) => !['completed', 'cancelled'].includes(task.state)).length;
+  $('futureCount').textContent = activeCount;
   const interval = Number.isInteger(future.interval_minutes) && future.interval_minutes > 0 ? future.interval_minutes : 5;
   $('futureCadence').textContent = `Up to ${size} tasks in the next batch · checked every ${interval} minutes`;
   const generation = future.generation || {};
@@ -175,7 +177,7 @@ function renderFuture() {
   const generationText = generationLabels[generation.state] || (state.data?.future ? 'Future-task record is up to date.' : 'Future-task generation is not available yet.');
   $('generationStatus').textContent = [generationText, generation.model ? `Model: ${generation.model}` : '',
     generation.requested_at ? `Requested ${fullDate(generation.requested_at)}` : '', value(generation.error)].filter(Boolean).join(' · ');
-  $('futureSummary').textContent = `${visible.length} shown · ${matching.length} match · ${entries.length} total in this snapshot. ${next.size} ready or queued candidates for the next batch.`;
+  $('futureSummary').textContent = `${visible.length} shown · ${matching.length} match · ${activeCount} active · ${entries.length} retained in this snapshot. ${next.size} ready or queued candidates for the next batch.`;
   const list = $('futureList');
   const scroll = list.scrollTop;
   const openIds = new Set(Array.from(list.querySelectorAll('details[open]')).map((row) => row.dataset.futureId));
