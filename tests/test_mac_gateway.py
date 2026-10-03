@@ -116,6 +116,16 @@ class MacGatewayTests(unittest.TestCase):
             with self.assertRaisesRegex(Denied, 'local_provider_unavailable'):
                 guard.admit(dict(body, metadata={'data_class': 'local-private'}))
 
+    def test_ssh_known_hosts_quotes_application_support_path(self):
+        cfg = {'host': '10.0.0.1', 'user': 'gatewayai-mac-test', 'host_key': 'ssh-ed25519 AAAA'}
+        with tempfile.TemporaryDirectory(prefix='Mac Application Support ') as folder:
+            state = Path(folder)
+            (state / 'id_ed25519').write_text('test fixture, not a real key')
+            (state / 'known_hosts').write_text('10.0.0.1 ssh-ed25519 AAAA\n')
+            with patch.object(setup, 'STATE', state):
+                args = setup.ssh_args(cfg)
+            self.assertIn('UserKnownHostsFile="' + str(state / 'known_hosts').replace('\\', '\\\\') + '"', args)
+
     def test_writes_do_not_overwrite_changes(self):
         with tempfile.TemporaryDirectory() as folder:
             target = Path(folder) / 'note'

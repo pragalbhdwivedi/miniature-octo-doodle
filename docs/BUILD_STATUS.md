@@ -2,6 +2,14 @@
 
 ## Mac-backed local coding test preparation - 3 October 2026
 
+LIVE PARTIAL: Mac model discovery passed from GatewayAI host and container; dedicated
+route/proxy/key activated with existing aliases preserved and services healthy.
+Restricted-key admin/other-model requests both denied403. First inference failed502
+when the Mac tunnel disconnected; ledger verified one local attempt, no cloud
+fallback and released admission. Coding/performance and reconnect acceptance remain
+pending. SSH path quoting corrected; nine focused tests pass.
+
+
 - Refreshed GitHub main at `833cc59`; isolated branch/worktree preserves the
   original Phase 6 checkout and untracked dashboard files.
 - Implemented a Mac-only 9B download/preflight script, strict host-pinned reverse

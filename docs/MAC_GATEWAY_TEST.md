@@ -123,12 +123,24 @@ until their evidence is recorded; offline tests are not substitutes.
 
 ## Status and rollback
 
-Prepared: Mac bootstrap, additive renderer, restricted fixed test, handoff.
-Staged on the gateway: dedicated account with the owner-supplied public key enrolled, forced-command
-scripts, and a protected candidate configuration. SSH validation and live container
-health readback passed. No live gateway alias/key or socket proxy was activated.
-Not yet accepted: Mac download, authenticated Mac connection/tunnel, live Mac alias/key,
-9B performance, gateway provenance/outage tests, or reboot persistence.
+Activated on 3 October: dedicated SSH key, Docker-bridge proxy, additive
+`mac-coding-test` route and fixed-test inference key. Mac Ollama model discovery
+passed through the tunnel from the gateway host and LiteLLM container. The 9B
+variant and base model were present. Existing aliases/configuration were preserved;
+source hashes and an idle admission ledger were checked before a controlled
+LiteLLM restart. Core services returned healthy. Administrator endpoint and
+other-model requests with the test key returned HTTP403.
+
+The first synthetic gateway request failed HTTP502 when the Mac reverse tunnel
+disconnected. Its durable ledger shows exactly one Ollama attempt, no cloud attempt,
+zero model prices and a released admission. This is observed failure isolation,
+not a successful coding test or a complete reconnect/outage acceptance cycle.
+The model-generation test and Mac runtime performance remain pending reconnect.
+Reboot persistence remains unvalidated.
+
+The Mac screenshot reported an SSH known-hosts path-quoting issue. The repository
+now quotes the Application Support path as an SSH option value; the existing Mac
+agent had already corrected its running copy. Nine focused regression tests pass.
 
 Rollback the new alias/key, dedicated account authorization and Mac-specific
 socket/service only after checking for active tests. Stop the Mac foreground

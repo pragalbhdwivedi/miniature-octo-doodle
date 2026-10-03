@@ -192,7 +192,8 @@ def ssh_args(cfg):
         raise ValueError('Host pin does not match the supplied connection record')
     return ['ssh', '-F', '/dev/null', '-i', str(key), '-o', 'IdentitiesOnly=yes',
             '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes',
-            '-o', 'UserKnownHostsFile=' + str(pins), '-o', 'GlobalKnownHostsFile=/dev/null',
+            '-o', 'UserKnownHostsFile="' + str(pins).replace('\\', '\\\\').replace('"', '\\"') + '"',
+            '-o', 'GlobalKnownHostsFile=/dev/null',
             '-o', 'ConnectTimeout=8', '-o', 'ServerAliveInterval=15',
             '-o', 'ServerAliveCountMax=3', '-o', 'ExitOnForwardFailure=yes',
             '-o', 'ForwardAgent=no', '-T', cfg['user'] + '@' + cfg['host']]

@@ -7,7 +7,9 @@ additive local-only gateway route renderer and fixed synthetic coding acceptance
 The 16 GiB Mac remains the inference host; existing Windows routes and accepted
 Mac 4B setup are preserved. Download/runtime acceptance requires the Mac session.
 The supplied SSH key is enrolled; dynamic VPN addresses are discovered per link.
-Authenticated Mac connectivity remains unverified.
+Authenticated Mac connectivity and model discovery passed. Dedicated gateway route
+and restricted key are active, but the tunnel dropped during the first inference;
+coding acceptance awaits reconnect.
 See [Mac gateway test](docs/MAC_GATEWAY_TEST.md) for enrollment and live gates.
 
 ## Future development backlog, 2 October 2026
