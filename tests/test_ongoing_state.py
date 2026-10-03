@@ -46,6 +46,16 @@ class OngoingStateTests(unittest.TestCase):
         self.assertIn('Ongoing assigned work',report)
         self.assertNotIn('PRIVATE-LEASE-MUST-NOT-APPEAR',report)
 
+    def test_only_childless_preinference_admission_can_be_requeued(self):
+        j=self.s['ongoing']['jobs'][0]
+        j.update(state='blocked',blocked_stage='admit',error='Pre-inference failure')
+        request={'action':'ongoing_requeue_preinference','job_id':j['id'],
+                 'source_sha':j['source_sha'],'coordinator_child_absent':True}
+        self.assertEqual(state.rpc(self.s,request)['state'],'queued')
+        with self.assertRaises(ValueError):state.rpc(self.s,request)
+        j.update(state='blocked',blocked_stage='antigravity',child_id='claimed')
+        with self.assertRaises(ValueError):state.rpc(self.s,request)
+
     def test_catalog_sync_admits_once_and_preserves_existing_claims(self):
         original=copy.deepcopy(self.s['ongoing']['jobs'])
         extra=job('local-tests','local','tests/test_three.py')

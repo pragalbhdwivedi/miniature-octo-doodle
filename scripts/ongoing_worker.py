@@ -187,7 +187,7 @@ class Worker:
         if (child and child.get('state')=='human_review_required'
                 and isinstance(child.get('result'),dict)
                 and child['result'].get('model_replayed') is False
-                and child['result'].get('operator_correction')=='summary_shortened_to_contract'):
+                and child['result'].get('operator_correction') in ('summary_shortened_to_contract','metadata_shortened_to_contract')):
             # The local commit may have succeeded before the controller receipt
             # was lost. Re-send the exact saved result; never replay recovery.
             result=child['result']
@@ -470,6 +470,8 @@ class Worker:
                 return {'state':'observed','model_calls':0}
             if stage not in ('plan','admit','codex','antigravity','local','local_fallback','parallel_code','test','review','publish'):raise ValueError('Unknown stage')
             j=work.get('job');directory=self.root/(j['id'] if j else 'planning')/(str(j['attempt']) if j else '0')/stage
+            if stage=='admit' and j.get('recovery'):
+                directory=directory.with_name('admit-recovery-'+work['token'])
             if stage=='parallel_code':directory=self.root/'parallel'/work['token']
             if directory.exists() and (directory/'result.json').exists() and pilot.read_json(directory/'result.json').get('state')=='quota_wait':
                 directory=directory.with_name(stage+'-quota-'+work['token'])

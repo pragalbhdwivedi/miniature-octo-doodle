@@ -22,6 +22,11 @@ limit. Verified merged tasks can be archived automatically when the retained que
 `needs_scope`; proposed paths do not create execution authority. Destructive or
 production work remains a separate owner decision. Fixed scope manifests and
 protected offline acceptance tests remain authoritative at coding admission.
+The work board shows awaiting-scope proposals separately from blocked execution
+and cancelled work. An empty scope hint on a seeded task means it is retained as
+a roadmap proposal, not registered as executable coding work. Registering a
+bounded scope requires repository paths, an isolated test profile and independent
+admission; generating another task does not grant that authority.
 
 ## Controls
 
@@ -65,7 +70,19 @@ Confidence remains an uncalibrated model report, recorded when coding/review
 actually returns evidence. A planning task has no fabricated confidence score.
 
 A blocked task retains its evidence, dependency identity and exact writable-path
-claim, but releases its coder slot so unrelated queued tasks continue. Complete
+claim, but releases its coder slot so unrelated queued tasks continue, including
+tasks for the same coder in another repository.
+A source check that fails before assigned inference now holds the coordinator
+packet as blocked rather than leaving it queued with a coder claim. An operator
+can requeue a failed admission only when the controller has no child or model
+result, the exact source SHA still matches, and the coordinator confirms no child
+packet exists. The old blocked task and its evidence remain on the board.
+Admission retries use a new receipt directory so a retained failed directory
+cannot overwrite evidence or stop the retry. Saved candidates may normalize
+oversized summary/proposal text within bounded limits; their code and original
+provider receipts remain unchanged and still require isolated acceptance.
+
+Complete
 assigned output that failed only an envelope limit is normalized deterministically
 and returned to isolated testing without another model call; the original provider
 receipt remains unchanged. Reproducible test or review failures use the permitted
