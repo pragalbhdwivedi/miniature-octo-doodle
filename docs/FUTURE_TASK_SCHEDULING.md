@@ -50,8 +50,10 @@ OpenAI API capacity for planning. Coding retains the existing configured local
 fallback. Daily reservations are conservative capacity accounting, not invoices.
 
 The future section is separate from the bounded, independently scrollable work
-board. Search and state filters limit rendering to 100 results at a time and
-report additional matches. The generated future Markdown includes the backlog.
+board. It opens on active tasks; completed and cancelled proposals remain
+available through the All statuses and individual state filters. Search and
+state filters limit rendering to 100 results at a time and report additional
+matches. The generated future Markdown includes the backlog.
 HTTP controls retain revision checks, request deduplication, CSRF and internal
 network restrictions. No individual login or arbitrary host command is added.
 
