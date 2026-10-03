@@ -31,14 +31,22 @@ fixed synthetic test -> authenticated LiteLLM mac-coding-test route
   -> gateway loopback :11436 -> SSH reverse tunnel -> Mac loopback Ollama :11434
 ```
 
-WireGuard is the required primary connection, per the owner's latest instruction.
-Before setup, linking or testing, the Mac checks that the route to the gateway
-uses a `utun` interface carrying its assigned WireGuard address. SSH also binds
-that source address. No direct-LAN/public fallback is configured; interruption
-requires reconnecting over WireGuard. Interface/address checks plus successful
-SSH demonstrate the routed path; they are not a separate WireGuard handshake audit.
+OpenVPN is the required primary connection, per the owner's correction on
+3 October. Its assigned Mac address may change after every connection. Set
+`vpn_type` to `OpenVPN` and `vpn_address` to `auto` in the connection record.
+The Mac resolves the gateway route's `utun`/`tun` interface and requires exactly
+one private IPv4 address on it, then binds SSH to that address. Each new link
+repeats discovery; no fixed client IP enrollment is needed. Activate the intended
+OpenVPN client first. The route/interface check does not identify VPN software
+or independently audit its handshake. No direct-LAN/public fallback is used.
+Existing WireGuard connection records remain compatible when explicitly wanted.
 
-The Mac initiates the SSH tunnel inside WireGuard. It needs no inbound Mac
+The enrolled SSH public key is not restricted to a single source address. Existing
+network firewall/routing policy remains unchanged; the account still has only the
+fixed test command and loopback reverse-forward permission. VPN subnet access
+must be validated from the Mac before claiming connectivity.
+
+The Mac initiates the SSH tunnel inside OpenVPN. It needs no inbound Mac
 SSH or exposed Ollama port. Port 11435 belongs to the existing Windows model
 tunnel and must remain unchanged. Use a distinct `gatewayai-mac-test` account:
 public-key-only authentication; no PTY, agent forwarding, X11 or local forwarding;
@@ -48,8 +56,9 @@ remote forwarding restricted to `127.0.0.1:11436`; force the root-owned
 The account has no sudo or Docker group membership.
 
 The deployment operator obtains the gateway ED25519 host public key through an
-existing trusted connection and supplies a local `connection.json` with exactly
-`host`, `port` (22), `user` (`gatewayai-mac-test`), `host_key`, and `vpn_address` fields. Keep
+existing trusted connection and supplies a local `connection.json` with
+`host`, `port` (22), `user` (`gatewayai-mac-test`), `host_key`, `vpn_address` (`auto`),
+and `vpn_type` (`OpenVPN`) fields. Keep
 host-specific connection records and generated public-key handoff outside Git.
 The Mac script uses strict host pinning, no agent forwarding and one task key.
 It never runs ssh-keyscan as a substitute for identity verification.
@@ -115,10 +124,10 @@ until their evidence is recorded; offline tests are not substitutes.
 ## Status and rollback
 
 Prepared: Mac bootstrap, additive renderer, restricted fixed test, handoff.
-Staged on the gateway: dedicated account with empty authorized_keys, forced-command
+Staged on the gateway: dedicated account with the owner-supplied public key enrolled, forced-command
 scripts, and a protected candidate configuration. SSH validation and live container
 health readback passed. No live gateway alias/key or socket proxy was activated.
-Not yet accepted: Mac download, SSH key enrollment, tunnel, live Mac alias/key,
+Not yet accepted: Mac download, authenticated Mac connection/tunnel, live Mac alias/key,
 9B performance, gateway provenance/outage tests, or reboot persistence.
 
 Rollback the new alias/key, dedicated account authorization and Mac-specific

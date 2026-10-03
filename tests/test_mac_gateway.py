@@ -63,6 +63,9 @@ class MacGatewayTests(unittest.TestCase):
             path = Path(folder) / 'connection.json'
             path.write_text(json.dumps(cfg))
             self.assertEqual(setup.load_connection(path), cfg)
+            auto_cfg = dict(cfg, vpn_type='OpenVPN', vpn_address='auto')
+            path.write_text(json.dumps(auto_cfg))
+            self.assertEqual(setup.load_connection(path), auto_cfg)
             for patch in [{'host': '8.8.8.8'}, {'user': 'root'}, {'port': 7000},
                           {'host_key': 'ssh-ed25519 ABC\nHost *'}, {'password': 'example'}]:
                 path.write_text(json.dumps(dict(cfg, **patch)))
@@ -72,13 +75,24 @@ class MacGatewayTests(unittest.TestCase):
     def test_wireguard_is_required_not_a_lan_or_other_vpn(self):
         cfg = {'host': '10.0.0.1', 'vpn_address': '10.1.0.2'}
         with patch.object(setup, 'output', side_effect=[' interface: utun8\n', ' inet 10.1.0.2 --> 10.1.0.2 ']):
-            self.assertEqual(setup.wireguard_preflight(cfg), 'utun8')
+            self.assertEqual(setup.vpn_preflight(cfg), 'utun8')
         with patch.object(setup, 'output', return_value=' interface: en0\n'):
             with self.assertRaises(ValueError):
-                setup.wireguard_preflight(cfg)
+                setup.vpn_preflight(cfg)
         with patch.object(setup, 'output', side_effect=[' interface: utun4\n', ' inet 10.2.0.2 --> 10.2.0.2 ']):
             with self.assertRaises(ValueError):
-                setup.wireguard_preflight(cfg)
+                setup.vpn_preflight(cfg)
+
+    def test_openvpn_address_discovery_and_ambiguous_rejection(self):
+        cfg = {'host': '10.0.0.1', 'vpn_type': 'OpenVPN', 'vpn_address': 'auto'}
+        with patch.object(setup, 'output', side_effect=[' interface: utun6\n', ' inet 10.8.0.7 --> 10.8.0.7 ']):
+            self.assertEqual(setup.vpn_preflight(cfg), 'utun6')
+            self.assertEqual(cfg['vpn_address'], '10.8.0.7')
+        for details in [' inet 8.8.8.8 --> 8.8.8.8 ', ' inet 10.8.0.7 x inet 10.8.0.8 x', '']:
+            cfg['vpn_address'] = 'auto'
+            with patch.object(setup, 'output', side_effect=[' interface: tun0\n', details]):
+                with self.assertRaises(ValueError):
+                    setup.vpn_preflight(cfg)
 
     def test_real_policy_keeps_local_candidate_and_denies_tools(self):
         cfg = {'model_list': []}

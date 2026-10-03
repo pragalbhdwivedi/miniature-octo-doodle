@@ -53,33 +53,44 @@ def write_new(path, data):
 
 def load_connection(path):
     cfg = json.loads(path.read_text())
-    if set(cfg) != {'host', 'port', 'user', 'host_key', 'vpn_address'}:
+    required = {'host', 'port', 'user', 'host_key', 'vpn_address'}
+    if set(cfg) not in (required, required | {'vpn_type'}):
         raise ValueError('Unexpected connection fields')
+    if cfg.get('vpn_type', 'WireGuard') not in ('WireGuard', 'OpenVPN'):
+        raise ValueError('Unsupported VPN type')
     ip = ipaddress.ip_address(cfg['host'])
     if ip.version != 4 or not any(ip in ipaddress.ip_network(n) for n in
             ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16')):
         raise ValueError('Gateway must have an approved private IPv4 address')
     if cfg['port'] != 22 or cfg['user'] != 'gatewayai-mac-test':
         raise ValueError('Only the restricted gateway test account is supported')
-    vpn = ipaddress.ip_address(cfg['vpn_address'])
-    if vpn.version != 4 or not any(vpn in ipaddress.ip_network(n) for n in
-            ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16')):
-        raise ValueError('Expected the assigned private WireGuard IPv4 address')
+    auto = cfg.get('vpn_type') == 'OpenVPN' and cfg['vpn_address'] == 'auto'
+    vpn = None if auto else ipaddress.ip_address(cfg['vpn_address'])
+    if not auto and (vpn.version != 4 or not any(vpn in ipaddress.ip_network(n) for n in
+            ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'))):
+        raise ValueError('Expected the assigned private VPN IPv4 address')
     if not re.fullmatch(r'ssh-ed25519 [A-Za-z0-9+/]+={0,2}', cfg['host_key']):
         raise ValueError('Expected a verified ED25519 host key')
     return cfg
 
 
-def wireguard_preflight(cfg):
+def vpn_preflight(cfg):
+    label = cfg.get('vpn_type', 'WireGuard')
     route = output(['/sbin/route', '-n', 'get', cfg['host']])
-    match = re.search(r'^\s*interface:\s*(utun[0-9]+)\s*$', route, re.MULTILINE)
+    match = re.search(r'^\s*interface:\s*((?:utun|tun)[0-9]+)\s*$', route, re.MULTILINE)
     if not match:
-        raise ValueError('Gateway route must use WireGuard; activate the tunnel and its target-subnet route')
+        raise ValueError('Gateway route must use ' + label + '; activate the tunnel and its target-subnet route')
     interface = match.group(1)
     details = output(['/sbin/ifconfig', interface])
+    if cfg.get('vpn_type') == 'OpenVPN' and cfg['vpn_address'] == 'auto':
+        addresses = re.findall(r'\binet\s+([0-9.]+)\s', details)
+        if len(addresses) != 1 or not any(ipaddress.ip_address(addresses[0]) in ipaddress.ip_network(n)
+                for n in ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16')):
+            raise ValueError('VPN interface must have one unambiguous private IPv4 address')
+        cfg['vpn_address'] = addresses[0]
     if not re.search(r'\binet\s+' + re.escape(cfg['vpn_address']) + r'\s', details):
-        raise ValueError('Gateway route uses a different VPN interface/address; inspect WireGuard AllowedIPs')
-    print('WireGuard route verified:', interface, cfg['vpn_address'], '->', cfg['host'])
+        raise ValueError('Gateway route uses a different VPN interface/address; inspect VPN routes')
+    print(label + ' route interface/address verified:', interface, cfg['vpn_address'], '->', cfg['host'])
     return interface
 
 
@@ -152,7 +163,7 @@ def prepare(cfg):
     write_new(STATE / 'known_hosts', cfg['host'] + ' ' + cfg['host_key'] + '\n')
     print('PUBLIC KEY FOR GATEWAY ENROLLMENT (safe to share):\n' + public)
     print('Private key remains in macOS Application Support; do not upload it.')
-    wireguard_preflight(cfg)
+    vpn_preflight(cfg)
     store = ollama_preflight(min_free_gib=25)
     names = {m['name'] for m in api('/api/tags')['models']}
     if BASE_MODEL not in names:
@@ -200,7 +211,7 @@ def main():
     elif args.action == 'public-key':
         print(output(['ssh-keygen', '-y', '-f', str(STATE / 'id_ed25519')]))
     elif args.action == 'link':
-        wireguard_preflight(cfg)
+        vpn_preflight(cfg)
         ollama_preflight()
         with socket.create_connection((cfg['host'], cfg['port']), timeout=5):
             pass
@@ -210,7 +221,7 @@ def main():
         os.execvp('ssh', base[:-1] + ['-b', cfg['vpn_address'], '-N', '-R',
                   '127.0.0.1:11436:127.0.0.1:11434', base[-1]])
     else:
-        wireguard_preflight(cfg)
+        vpn_preflight(cfg)
         # Forced gateway command performs only a fixed synthetic inference/test.
         base = ssh_args(cfg)
         run(base[:-1] + ['-b', cfg['vpn_address'], base[-1], 'mac-gateway-test'])

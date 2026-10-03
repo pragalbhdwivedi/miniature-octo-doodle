@@ -8,15 +8,17 @@
   tunnel on a separate port, additive local-route renderer, and fixed synthetic
   gateway test. The test validates a narrow arithmetic AST before 14 independent
   cases; it is not an unrestricted coding agent or private-source route.
-- Seven offline regression tests pass, covering incorrect arithmetic, malicious
+- Eight offline regression tests pass, covering incorrect arithmetic, malicious
   generated syntax, route preservation/no fallback, invalid connection targets,
   required VPN routing, policy denial, and no-overwrite state handling. Together
-  with existing local-route/policy regressions, 26 targeted tests pass.
+  with existing local-route/policy regressions, 27 targeted tests pass.
 - Restricted public-key-only SSH account and fixed-command scripts are staged
   on the gateway. SSH syntax validation and service-health readback pass;
-  its authorized_keys remains empty. Live route/key activation is pending.
+  the owner-supplied Mac public key is enrolled without a fixed source IP.
+  OpenVPN address discovery supports changing client leases; eight focused tests
+  pass after this update. Live route/key activation is pending.
 - Trusted bastion SSH reached the live gateway; Mac inbound SSH was unreachable.
-  No model was downloaded on Windows or the VM. Mac enrollment, download, actual
+  No model was downloaded on Windows or the VM. Mac authentication, download, actual
   inference, gateway route activation and outage/provenance tests remain pending.
   See [Mac gateway test](MAC_GATEWAY_TEST.md).
 
