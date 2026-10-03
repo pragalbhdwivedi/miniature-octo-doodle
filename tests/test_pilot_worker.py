@@ -105,6 +105,31 @@ class FakeCoordinator:
         return {'task_id': child, 'source_sha': 'a'*40}
 
 
+class ToolPathTests(unittest.TestCase):
+    def test_operator_paths_repair_sparse_scheduler_environment(self):
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {'PATH': ''}):
+            with patch.object(w.shutil, 'which', return_value='/installed/tool') as lookup:
+                w.configure_tool_path({'tool_directories': [directory]})
+            self.assertEqual(os.environ['PATH'], str(Path(directory).resolve()) + os.pathsep)
+            self.assertEqual([call.args[0] for call in lookup.call_args_list], ['git', 'docker', 'ssh'])
+            self.assertTrue(all(call.kwargs['path'] == os.environ['PATH'] for call in lookup.call_args_list))
+
+    def test_missing_tools_fail_before_changing_environment(self):
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {'PATH': 'original'}):
+            with patch.object(w.shutil, 'which', return_value=None):
+                with self.assertRaisesRegex(w.WorkerError, 'git'):
+                    w.configure_tool_path({'tool_directories': [directory]})
+            self.assertEqual(os.environ['PATH'], 'original')
+
+    def test_invalid_directories_and_optional_configuration(self):
+        with patch.dict(os.environ, {'PATH': 'original'}):
+            w.configure_tool_path({})
+            for value in ([], 'relative', ['relative'], [None], ['bad' + os.pathsep + 'path']):
+                with self.subTest(value=value), self.assertRaises(w.WorkerError):
+                    w.configure_tool_path({'tool_directories': value})
+            self.assertEqual(os.environ['PATH'], 'original')
+
+
 class WorkerTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()

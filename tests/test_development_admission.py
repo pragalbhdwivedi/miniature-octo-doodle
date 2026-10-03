@@ -93,6 +93,23 @@ class DevelopmentAdmissionTests(unittest.TestCase):
         self.assertEqual(self.admit()['state'],'no_intake');self.chat.assert_called_once()
         self.assertEqual(json.loads(self.catalog.read_text()),[])
 
+    def test_held_gemini_attempt_does_not_reserve_coder_across_projects(self):
+        snapshot=self.data()
+        snapshot['jobs'].append({'id':'held-gateway','state':'blocked','child_id':'claim',
+            'repository':'pragalbhdwivedi/miniature-octo-doodle','owner':'gemini',
+            'write_paths':['gateway/jev.py']})
+        result=admission.admit_intake(self.observer,snapshot,{},self.now)
+        self.assertEqual(result['state'],'admitted')
+        self.assertEqual(self.state['ongoing']['jobs'][0]['intake_id'],self.task_id)
+
+    def test_held_write_paths_still_prevent_conflicting_admission(self):
+        snapshot=self.data()
+        snapshot['jobs'].append({'id':'held-aadi','state':'blocked','child_id':'claim',
+            'repository':'pragalbhdwivedi/aadi','owner':'gemini',
+            'write_paths':['src/app.py']})
+        self.assertEqual(admission.admit_intake(self.observer,snapshot,{},self.now)['state'],'no_intake')
+        self.assertEqual(json.loads(self.catalog.read_text()),[])
+
     def test_pause_skips_classification_and_priority_survives_admission(self):
         item=self.state['supervision']['intake'][0];item.update(paused=True,priority=5)
         self.assertEqual(self.admit()['state'],'no_intake');self.chat.assert_not_called()
