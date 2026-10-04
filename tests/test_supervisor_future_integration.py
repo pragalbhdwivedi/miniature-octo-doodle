@@ -78,8 +78,9 @@ class FutureIntegrationTests(unittest.TestCase):
         self.assertEqual({row['id'] for row in rows}, {
             'FUT-000001', 'FUT-000002', 'FUT-000004', 'FUT-000005',
             'FUT-000006', 'FUT-000007', 'FUT-000008', 'FUT-000010',
+            'FUT-000120',
         })
-        self.assertEqual(result['total'],8)
+        self.assertEqual(result['total'],9)
         self.assertEqual(len(result['added']),len(rows))
         self.assertEqual(f.seed(self.s,rows,'2026-10-02T15:01:00+00:00')['added'],[])
 

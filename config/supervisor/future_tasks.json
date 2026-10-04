@@ -158,5 +158,24 @@
     ],
     "dependencies": [],
     "risk": "routine"
+  },
+  {
+    "id": "FUT-000120",
+    "project": "AADI",
+    "title": "Reject duplicate keys in offline ERP manifest JSON",
+    "prompt": "Add a strict offline JSON loader for the ERP candidate manifest that rejects duplicate object keys at any nesting depth before check() runs. Use it for the CLI manifest read. Preserve check(manifest) and the pinned manifest behavior; no live ERP access or source mutation. Add focused regression coverage in the admitted test file. Verify duplicate root and nested keys raise controlled ValueError, and the pinned manifest still produces the existing PASS/NOT_RUN result.",
+    "scope_id": "aadi-erp-validation",
+    "priority": 2,
+    "evidence": [
+      "tools/check_erp_candidate.py",
+      "tests/test_development_erp.py"
+    ],
+    "acceptance": [
+      "Duplicate root and nested JSON keys raise ValueError before checking",
+      "Pinned manifest still produces the existing PASS/NOT_RUN result",
+      "check(manifest) remains compatible and input is unchanged"
+    ],
+    "dependencies": [],
+    "risk": "routine"
   }
 ]
