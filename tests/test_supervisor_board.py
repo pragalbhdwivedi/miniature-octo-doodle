@@ -269,6 +269,7 @@ class SupervisorBoardTests(unittest.TestCase):
         self.assertEqual(task['pr_url'],fields['pr_url'])
         self.assertFalse(task['progress']['tests_passed'])
         self.assertFalse(task['progress']['review_passed'])
+        self.assertFalse(task['progress']['draft_recorded'])
         self.assertIn('Source validation failed',task['error'])
         docs=board.documents(self.s)
         self.assertIn('SUP\\-000002',docs['completed_supervisor_tasks.md'])

@@ -128,7 +128,8 @@ def _projection(job, meta):
             'tests_passed':tests.get('passed') if type(tests.get('passed')) is bool else None,
             'test_count':tests.get('test_count') if type(tests.get('test_count')) is int and tests['test_count']>=0 else None,
             'progress':{'candidate_recorded':bool(coding), 'tests_passed':tests.get('passed') is True,
-                        'review_passed':review.get('verdict')=='pass', 'draft_recorded':bool(url)},
+                        'review_passed':review.get('verdict')=='pass',
+                        'draft_recorded':bool(url) and not externally_merged},
             'source_sha':_safe(job.get('source_sha'),64)}
 
 
