@@ -44,6 +44,8 @@ admission; generating another task does not grant that authority.
   future pool falls below ten, at most once per hour. Malformed or ambiguous
   inference retains evidence for recovery instead of repeatedly spending tokens.
 
+At intake, a proposed scope hint is checked against the registered writable files. The classifier must approve that exact hint or hold the request; a path present only as read-only context does not make the scope writable. A hint never registers a new scope or authorizes work by itself.
+
 Planning conservatively reserves two stages (proposal and independent review) against the same daily cloud-work cap. Exhausted
 subscription quotas wait for their observed reset; they do not silently consume
 OpenAI API capacity for planning. Coding retains the existing configured local

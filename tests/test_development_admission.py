@@ -93,6 +93,15 @@ class DevelopmentAdmissionTests(unittest.TestCase):
         self.assertEqual(self.admit()['state'],'no_intake');self.chat.assert_called_once()
         self.assertEqual(json.loads(self.catalog.read_text()),[])
 
+    def test_suggested_scope_requires_independent_writable_scope_match(self):
+        self.state['supervision']['intake'][0]['scope_hint']='validation'
+        self.chat.return_value={'profile':'none','reason':'The suggested profile cannot edit the required source.'}
+        self.assertEqual(self.admit()['state'],'needs_scope')
+        prompt=self.chat.call_args.args[1][0]['content']
+        self.assertIn('"suggested_profile": "validation"',prompt)
+        self.assertIn('write_paths; paths alone may be read-only context',prompt)
+        self.assertEqual(json.loads(self.catalog.read_text()),[])
+
     def test_held_gemini_attempt_does_not_reserve_coder_across_projects(self):
         snapshot=self.data()
         snapshot['jobs'].append({'id':'held-gateway','state':'blocked','child_id':'claim',
