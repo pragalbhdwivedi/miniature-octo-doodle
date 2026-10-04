@@ -58,6 +58,7 @@ class ReconciliationTests(unittest.TestCase):
         self.assertEqual(task['state'],'completed')
         self.assertEqual(task['review_state'],'merged_external')
         self.assertEqual(task['error'],'Source validation failed; no replay.')
+        self.assertFalse(task['progress']['draft_recorded'])
 
     def test_stale_revision_has_no_effect(self):
         original=copy.deepcopy(self.state)

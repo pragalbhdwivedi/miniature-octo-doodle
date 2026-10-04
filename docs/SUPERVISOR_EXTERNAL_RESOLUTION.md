@@ -16,10 +16,11 @@ test result, publication record, source SHA or earlier history/evidence.
 
 The board projects this externally resolved task as `completed` with
 `merged_external` review state, a link to PR #59, and the original `blocked`
-state and error visible alongside it. The original attempt's test/review flags
-remain false. The worker still sees its underlying blocked job and cannot replay
-it. A repeat apply fails closed; a later genuine correction would expose the
-new job state rather than hide it behind this external resolution.
+state and error visible alongside it. The original attempt's test, review and
+worker-draft flags remain false. The worker still sees its underlying blocked
+job and cannot replay it. A repeat apply fails closed; a later genuine
+correction would expose the new job state rather than hide it behind this
+external resolution.
 
 An operator runs the script only from the protected control environment:
 
