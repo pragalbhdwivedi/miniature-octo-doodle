@@ -7,8 +7,12 @@ read-only permission, disabled checkout credential persistence, concurrency and
 job timeouts. A successful `main` push validation publishes an exact-commit,
 checksummed source archive for operator promotion. Pull requests cannot publish
 one. No runner deploys to the live VM or receives deployment credentials.
-Local validation and the first GitHub run are separate evidence; live promotion
-and production checks remain pending. See [CI/CD operations](CI_CD.md).
+TESTED: repository validator, PowerShell configuration guards, Compose syntax,
+workflow YAML and exact-commit archive inventory passed locally. The Windows
+Python suite passed 608 tests with 12 expected skips. GitHub PR run
+`37165849455` passed every validation step; its source-bundle job correctly
+skipped on the PR. Publication of a bundle on a merged `main` push, live
+promotion and production checks remain pending. See [CI/CD operations](CI_CD.md).
 
 ## Policy task recovery, 3 October 2026
 
