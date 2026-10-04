@@ -1,5 +1,18 @@
 # Build Status
 
+## Supervisor task reconciliation - 4 October 2026
+
+SUP-000016's failed Gemini candidate remains blocked in the durable worker
+ledger, with attempt 0 and its four historical states/evidence unchanged.
+Reviewed operator fix PR #59 merged at `c6a4f24`. PRs #60/#61 added and
+corrected an operator-only external-resolution projection; exact-head CI and
+focused tests passed. A guarded one-time apply at board revision 784 appended
+audit event 790 and produced revision 785. Current board/readback shows the
+task completed externally with PR #59, while the original error and false
+worker test/review/draft flags remain visible. The generated completed-task
+document refreshed. [Procedure and evidence](SUPERVISOR_EXTERNAL_RESOLUTION.md).
+No model replay, Jev activation or live gateway deployment occurred.
+
 ## Deterministic route type recovery, 4 October 2026
 
 IMPLEMENTED IN BRANCH: Recover the retained SUP-000016/#53 request on current

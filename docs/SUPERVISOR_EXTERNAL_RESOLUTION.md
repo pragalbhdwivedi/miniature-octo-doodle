@@ -34,3 +34,24 @@ and generated supervisor documents. If the preview identity or board revision
 differs, stop and inspect the current ledger; do not replay the model or edit
 the generated Markdown. This is bookkeeping for reviewed development code,
 not a live Jev activation or production deployment.
+
+## Executed reconciliation, 4 October 2026
+
+The operator preview at board revision 784 matched the exact source SHA,
+blocked-history digest, retained failure receipt SHA-256
+`d385cf056607575cc552cd85a16b032dbf38655f79f9036705bf2275a763f7eb`,
+and merged PR #59 (`c6a4f24226c49751f8ab12e9f9f7429e5aacb057`). The guarded
+apply advanced the board to revision 785 and appended audit event 790. The
+operator script read back the unchanged worker job and failed evidence. The
+subsequent projection fix in PR #61 left all three original worker-progress
+flags false. The latest readback showed `completed` / `merged_external` in the
+public board, while the underlying job remained `blocked`, attempt 0, with no
+publication. The generated completed-task Markdown linked PR #59 and retained
+the original error; the active-task document no longer listed SUP-000016.
+
+PR #60 passed 188 supervisor tests (one skip) and exact-head CI run
+`37192424296`; PR #61 passed its 19 focused tests and exact-head CI run
+`37192710776`. Both are merged to `main`. Only the supervisor board module
+and one-time operator script were installed on the control VM, with the prior
+board module retained for rollback. No model call, candidate replay, provider
+configuration, Jev activation or live gateway deployment occurred.
