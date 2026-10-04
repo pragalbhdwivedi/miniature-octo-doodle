@@ -97,18 +97,32 @@ def _projection(job, meta):
     url = pr.get('url', '')
     if not isinstance(url, str) or not re.fullmatch(r'https://github\.com/pragalbhdwivedi/(aadi|miniature-octo-doodle)/pull/[1-9][0-9]*', url):
         url = ''
+    external = meta.get('external_resolution')
+    externally_merged = (job.get('state') == 'blocked' and isinstance(external, dict)
+        and external.get('kind') == 'operator_merged_pr'
+        and external.get('source_sha') == job.get('source_sha')
+        and external.get('failed_evidence_digest') == (meta.get('history') or [{}])[-1].get('evidence_digest')
+        and re.fullmatch(r'https://github\.com/pragalbhdwivedi/(aadi|miniature-octo-doodle)/pull/[1-9][0-9]*',
+                         str(external.get('url', ''))) is not None
+        and re.fullmatch(r'[0-9a-f]{40}', str(external.get('merge_sha', ''))) is not None)
+    if externally_merged:
+        url = external['url']
     confidence, reason = _confidence(coding)
     reviewer_confidence, reviewer_reason = _confidence(review)
     return {'id':meta['id'], 'key':_safe(job['id'],128), 'project':_project(job),
-            'title':_safe(job.get('title'),300), 'state':_safe(job.get('state','unknown'),80),
+            'title':_safe(job.get('title'),300),
+            'state':'completed' if externally_merged else _safe(job.get('state','unknown'),80),
             'owner':_safe(job.get('owner','unassigned'),80), 'coder_model':_model(coding),
             'reviewer_model':_model(review), 'coder_confidence':confidence,
             'reviewer_confidence':reviewer_confidence,
             'confidence_reason':reason+' Reviewer: '+reviewer_reason,
             'attempt':job.get('attempt',0), 'priority':meta['priority'], 'paused':meta['paused'],
             'pr_url':url, 'pr_number':int(url.rsplit('/',1)[1]) if url else None,
-            'review_state':meta.get('review_state','not_reviewed'),
+            'review_state':'merged_external' if externally_merged else meta.get('review_state','not_reviewed'),
             'review_note':_safe(meta.get('review_note'),2000), 'reviewed_at':meta.get('reviewed_at'),
+            'resolution_note':_safe(external.get('note'),500) if externally_merged else '',
+            'resolution_merge_sha':external['merge_sha'] if externally_merged else '',
+            'original_state':_safe(job.get('state'),80) if externally_merged else '',
             'created_at':meta['created_at'], 'updated_at':meta['updated_at'],
             'prompt':_safe(job.get('prompt'),1200), 'error':_safe(job.get('error'),600),
             'tests_passed':tests.get('passed') if type(tests.get('passed')) is bool else None,
@@ -184,6 +198,54 @@ def _observe(board,job,meta,at,actor,initial=False):
         _event(board,at,actor,meta['id'],'transition',
                previous+' -> '+str(job.get('state','unknown'))+'; evidence '+evidence_digest)
     return True
+
+
+def record_operator_merge(s, *, expected_revision, task_id, job_id, source_sha,
+                          failed_evidence_digest, failed_receipt_sha256,
+                          pr_url, head_sha, merge_sha, note, now=None):
+    """Link a separately verified merge; never rehabilitate a failed worker attempt.
+
+    This is an operator-only reducer, deliberately absent from the web/MCP RPC.
+    The caller verifies GitHub and the retained failure receipt before invoking it.
+    """
+    if (type(expected_revision) is not int or not re.fullmatch(r'SUP-[0-9]{6}', task_id)
+            or not re.fullmatch(r'[a-z0-9-]{1,64}', job_id)
+            or any(re.fullmatch(r'[0-9a-f]{40}', value or '') is None
+                   for value in (source_sha, head_sha, merge_sha))
+            or any(re.fullmatch(r'[0-9a-f]{64}', value or '') is None
+                   for value in (failed_evidence_digest, failed_receipt_sha256))
+            or not re.fullmatch(r'https://github\.com/pragalbhdwivedi/(aadi|miniature-octo-doodle)/pull/[1-9][0-9]*', pr_url or '')
+            or not isinstance(note, str) or not 10 <= len(note) <= 500):
+        raise ValueError('Invalid operator resolution evidence')
+    at=_instant(now).isoformat()
+    resolution={'kind':'operator_merged_pr','url':pr_url,'head_sha':head_sha,
+                'merge_sha':merge_sha,'source_sha':source_sha,
+                'failed_evidence_digest':failed_evidence_digest,
+                'failed_receipt_sha256':failed_receipt_sha256,'note':note,
+                'verified_at':at,'actor':'Codex operator integration'}
+    def change(candidate):
+        board=_ensure(candidate,at)
+        if board['revision']!=expected_revision:
+            raise ConflictError('Supervisor revision changed; refresh before reconciliation')
+        job=next((j for j in candidate['ongoing']['jobs'] if j['id']==job_id),None)
+        meta=board['tasks'].get(task_id)
+        if (not job or not meta or board['by_key'].get(job_id)!=task_id
+                or job.get('supervisor_id')!=task_id or job.get('state')!='blocked'
+                or job.get('source_sha')!=source_sha or job.get('publication')
+                or (candidate['ongoing'].get('lease') or {}).get('job_id')==job_id
+                or not meta.get('history') or meta['history'][-1]['state']!='blocked'
+                or meta['history'][-1]['evidence_digest']!=failed_evidence_digest):
+            raise ValueError('Original blocked attempt does not match its retained evidence')
+        if meta.get('external_resolution'):
+            raise ConflictError('External resolution already recorded')
+        meta['external_resolution']=resolution
+        meta['updated_at']=at
+        meta['observed']=_projection(job,meta)
+        _event(board,at,'Codex operator integration',task_id,'external_resolution',
+               'Merged operator PR '+pr_url+' at '+merge_sha+'; original blocked attempt and receipts retained.')
+        return {'task_id':task_id,'state':'completed','original_state':'blocked',
+                'pr_url':pr_url,'merge_sha':merge_sha,'revision':board['revision']}
+    return _transaction(s,change)
 
 
 def _transaction(s, operation):
@@ -389,7 +451,10 @@ def _public(s, now=None, limit=200):
         job=live.get(meta['key'])
         task=_projection(job,meta) if job else copy.deepcopy(meta.get('observed',{}))
         if not job: task.update(state='retained_missing',error='Catalog entry missing; historical evidence retained.')
-        else:task.update(_execution_projection(job,o,meta['paused'],instant))
+        else:
+            task.update(_execution_projection(job,o,meta['paused'],instant))
+            if task['state']=='completed' and task.get('original_state')=='blocked':
+                task['display_state']='completed'
         tasks.append(task)
     for item in board.get('intake',[]):
         if item.get('state')=='admitted':continue
@@ -439,7 +504,8 @@ def documents(s):
     def task_text(task):
         fields=('project','key','state','owner','created_at','updated_at','attempt','priority','paused',
                 'coder_model','coder_confidence','reviewer_model','reviewer_confidence','confidence_reason',
-                'review_state','review_note','reviewed_at','pr_url','prompt','error')
+                'review_state','review_note','reviewed_at','pr_url','resolution_note',
+                'resolution_merge_sha','original_state','prompt','error')
         return '## '+_md(task['id'])+' — '+_md(task['title'])+'\n\n'+'\n'.join(
             '- '+key.replace('_',' ').capitalize()+': '+_md(task.get(key,'unknown')) for key in fields)+'\n'
     groups={'future_supervisor_tasks.md':('Future supervisor tasks',[t for t in data['tasks'] if t['state'] in ('queued','planned')]),
