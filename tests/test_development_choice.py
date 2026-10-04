@@ -23,6 +23,17 @@ class DevelopmentChoiceTests(unittest.TestCase):
             }
         }
 
+    def test_deterministic_route_requires_string_before_membership(self):
+        for value in (None, 123, True, ["coding-standard"],
+                      {"route": "coding-standard"}, object()):
+            for calibrated in (False, True):
+                with self.subTest(value=value, calibrated=calibrated):
+                    self.assertEqual(
+                        select_route(self.valid_decision, self.allowed, value,
+                                     calibrated=calibrated),
+                        (None, "invalid_deterministic_route"),
+                    )
+
     def test_calibrated_rejects_invalid_thresholds(self):
         invalid_thresholds = [
             True,

@@ -55,6 +55,8 @@ def normalize_choice(response, allowed, *, in_domain=False):
 def select_route(decision, allowed, deterministic, *, calibrated=False, threshold=0.9):
     if not validate_catalogue(allowed):
         raise ValueError("Catalogue must be a nonempty list/tuple/set/frozenset of unique nonempty string IDs")
+    if type(deterministic) is not str:
+        return None, "invalid_deterministic_route"
     if deterministic not in allowed:
         raise ValueError("Deterministic route must already be allowed")
     if not calibrated:
