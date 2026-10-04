@@ -241,6 +241,57 @@ class SupervisorBoardTests(unittest.TestCase):
             with self.assertRaises(ValueError):board.action(self.s,request,now=self.at)
             self.assertEqual(self.s,before)
 
+    def test_operator_merge_resolves_display_without_rewriting_failed_attempt(self):
+        job=self.s['ongoing']['jobs'][1]
+        job.update(state='blocked',error='Source validation failed; no replay.',
+                   coding={'proposal':'invalid original candidate'},tests={'passed':False})
+        board.record(self.s,now=self.at)
+        meta=self.s['supervision']['tasks']['SUP-000002']
+        digest=meta['history'][-1]['evidence_digest']
+        original_job=copy.deepcopy(job)
+        original_history=copy.deepcopy(meta['history'])
+        original_evidence=copy.deepcopy(self.s['supervision']['evidence'][digest])
+        revision=self.s['supervision']['revision']
+        fields={'expected_revision':revision,'task_id':'SUP-000002','job_id':'gateway-one',
+                'source_sha':'b'*40,'failed_evidence_digest':digest,'failed_receipt_sha256':'f'*64,
+                'pr_url':'https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/59',
+                'head_sha':'c'*40,'merge_sha':'d'*40,
+                'note':'Operator fix merged after the original candidate failed validation.'}
+        result=board.record_operator_merge(self.s,now=self.at,**fields)
+        self.assertEqual(result['state'],'completed')
+        self.assertEqual(job,original_job)
+        self.assertEqual(meta['history'],original_history)
+        self.assertEqual(self.s['supervision']['evidence'][digest],original_evidence)
+        task=next(t for t in board.snapshot(self.s)['tasks'] if t['id']=='SUP-000002')
+        self.assertEqual((task['state'],task['display_state'],task['original_state']),
+                         ('completed','completed','blocked'))
+        self.assertEqual(task['review_state'],'merged_external')
+        self.assertEqual(task['pr_url'],fields['pr_url'])
+        self.assertFalse(task['progress']['tests_passed'])
+        self.assertFalse(task['progress']['review_passed'])
+        self.assertIn('Source validation failed',task['error'])
+        docs=board.documents(self.s)
+        self.assertIn('SUP\\-000002',docs['completed_supervisor_tasks.md'])
+        self.assertNotIn('SUP\\-000002',docs['active_supervisor_tasks.md'])
+        self.assertEqual(self.s['supervision']['events'][-1]['action'],'external_resolution')
+        after=copy.deepcopy(self.s)
+        with self.assertRaises(board.ConflictError):
+            board.record_operator_merge(self.s,now=self.at,**fields)
+        self.assertEqual(self.s,after)
+
+    def test_operator_merge_rejects_wrong_failed_evidence_atomically(self):
+        job=self.s['ongoing']['jobs'][1]
+        job.update(state='blocked',tests={'passed':False})
+        board.record(self.s,now=self.at)
+        before=copy.deepcopy(self.s)
+        with self.assertRaises(ValueError):
+            board.record_operator_merge(self.s,expected_revision=self.s['supervision']['revision'],
+                task_id='SUP-000002',job_id='gateway-one',source_sha='b'*40,
+                failed_evidence_digest='0'*64,failed_receipt_sha256='f'*64,
+                pr_url='https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/59',
+                head_sha='c'*40,merge_sha='d'*40,note='Original candidate was invalid.',now=self.at)
+        self.assertEqual(self.s,before)
+
 
 if __name__=='__main__':
     unittest.main()
