@@ -1,8 +1,16 @@
 # Build Status
 
+## Deterministic route type recovery, 4 October 2026
+
+IMPLEMENTED IN BRANCH: Recover the retained SUP-000016/#53 request on current
+`main` after its saved candidate failed source validation. `select_route` now
+returns a stable error tuple for a non-string deterministic route before checking
+catalogue membership. The failed generated patch and test receipt remain intact;
+no model call was repeated. Tests and integration are recorded separately.
+
 ## CI and source delivery, 4 October 2026
 
-IMPLEMENTED IN BRANCH: The existing GitHub Actions validation now has explicit
+MERGED: The existing GitHub Actions validation now has explicit
 read-only permission, disabled checkout credential persistence, concurrency and
 job timeouts. A successful `main` push validation publishes an exact-commit,
 checksummed source archive for operator promotion. Pull requests cannot publish
@@ -11,8 +19,9 @@ TESTED: repository validator, PowerShell configuration guards, Compose syntax,
 workflow YAML and exact-commit archive inventory passed locally. The Windows
 Python suite passed 608 tests with 12 expected skips. GitHub PR run
 `37165849455` passed every validation step; its source-bundle job correctly
-skipped on the PR. Publication of a bundle on a merged `main` push, live
-promotion and production checks remain pending. See [CI/CD operations](CI_CD.md).
+skipped on the PR. The first merged-`main` run `37188572429` passed and published
+the expected checksummed source artifact for commit `fe7e3ed`; live promotion and
+production checks remain pending. See [CI/CD operations](CI_CD.md).
 
 ## Policy task recovery, 3 October 2026
 
