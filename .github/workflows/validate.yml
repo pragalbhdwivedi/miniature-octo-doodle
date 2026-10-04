@@ -4,11 +4,21 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   repository-safety:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install validation dependencies
         run: pip install -r requirements-ci.txt
@@ -49,3 +59,33 @@ jobs:
           pwsh -File scripts/render-config.ps1
           trap 'rm -f .env' EXIT
           docker compose config --quiet
+
+  source-bundle:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: repository-safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Package validated main commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p dist
+          archive="gatewayai-source-${GITHUB_SHA}.tar.gz"
+          git archive --format=tar HEAD | gzip -n > "dist/$archive"
+          (cd dist && sha256sum "$archive" > "$archive.sha256")
+          (cd dist && sha256sum --check "$archive.sha256")
+
+      - name: Publish source bundle for operator promotion
+        uses: actions/upload-artifact@v4
+        with:
+          name: gatewayai-source-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0

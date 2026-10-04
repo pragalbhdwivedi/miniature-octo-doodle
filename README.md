@@ -136,6 +136,10 @@ Use `.env` locally. Only `.env.example` belongs in Git.
 
 Docker Compose is the first operational target. Kubernetes definitions are maintained in parallel for later use, but the project must not require both environments to run simultaneously.
 
+Pull requests and pushes run [CI validation and source delivery](docs/CI_CD.md).
+Validated `main` commits produce checksummed source bundles for operator-controlled
+promotion to the live Compose VM.
+
 ## Status
 
 Phase 1 is validated and merged through PR #6. Phase 2 adds deterministic
