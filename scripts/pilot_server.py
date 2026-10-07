@@ -18,6 +18,14 @@ import pilot_views as views
 import pilot_answers as answers
 
 
+def encode_rpc(value):
+    """Lossless wire encoding within the worker's existing one-MiB cap."""
+    wire=json.dumps(value,ensure_ascii=False,allow_nan=False,separators=(',',':'))
+    if len(wire.encode('utf-8'))+1>1048576:
+        raise ValueError('Compact RPC response exceeds worker transport limit')
+    return wire
+
+
 class Store(controller_state.Store):
     def query(self, sql):
         result = subprocess.run(self.argv, input=("SET statement_timeout='10s'; SET lock_timeout='3s'; SET search_path=pg_catalog;\n"+sql).encode(), capture_output=True, timeout=20)
@@ -246,13 +254,13 @@ def main():
         request=json.loads(raw)
         if request.get('action')=='ongoing_future_archive':
             import supervisor_future_archive
-            print(json.dumps(supervisor_future_archive.run(store,request,config.get('supervisor_archive',{}))))
+            print(encode_rpc(supervisor_future_archive.run(store,request,config.get('supervisor_archive',{}))))
             return
         if request.get('action') in ('ongoing_archive','ongoing_archive_history'):
             import supervisor_archive_operator
-            print(json.dumps(supervisor_archive_operator.run(store,request,config.get('supervisor_archive',{}))))
+            print(encode_rpc(supervisor_archive_operator.run(store,request,config.get('supervisor_archive',{}))))
             return
-        print(json.dumps(store.mutate(lambda s:state.rpc(s,request))));return
+        print(encode_rpc(store.mutate(lambda s:state.rpc(s,request))));return
     if args.action=='status': print(json.dumps(state.snapshot(store.read()['value'])));return
     bot=telegram.validate_config(telegram.d.private_json(Path(dispatch['telegram_approval_config'])))
     offset_path=Path(dispatch['runtime'])/'telegram-offset.json'

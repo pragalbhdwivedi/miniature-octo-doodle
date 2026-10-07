@@ -35,6 +35,29 @@ differs, stop and inspect the current ledger; do not replay the model or edit
 the generated Markdown. This is bookkeeping for reviewed development code,
 not a live Jev activation or production deployment.
 
+## Releasing the retained local file claim
+
+External completion can satisfy intake admission without rewriting the failed
+worker job. Admission verifies the saved job/SUP identity, source SHA, attempt,
+final blocked-history digest and operator merge record. Other blocked or changed
+attempts continue to hold overlapping files. The local coordinator independently
+checks unclosed claims, so the original local claim must also be reconciled.
+
+`scripts/release_sup_000016_claim.py --config <protected-worker-config>` previews
+that one claim. Applying requires `--apply --expected-revision <preview-revision>`.
+It takes both worker locks, verifies PR #59 and the original failure receipt,
+requires no controller lease, and backs up the local coordination database.
+The transaction stores the complete original row and operator resolution in
+`external_claim_releases` before changing only the local claim state to `closed`.
+Packet, result, error, token and all receipt files remain retained; the server job
+remains blocked at attempt 0. No coder, reviewer or publisher runs in this command.
+Newly admitted work uses a fresh source snapshot and its own attempt/evidence.
+
+Operator RPC responses now use compact UTF-8 JSON with the same one-MiB worker
+transport cap, including the terminating newline. No fields, history or receipts
+are discarded. Oversized compact responses fail explicitly and still require
+verified archival or a separately reviewed transport change.
+
 ## Executed reconciliation, 4 October 2026
 
 The operator preview at board revision 784 matched the exact source SHA,

@@ -8,6 +8,7 @@ import re
 from pathlib import Path
 import coder_coordination as coordination
 import ongoing_github as github
+from supervisor_board import externally_resolved
 
 SCHEMA={'type':'object','properties':{'profile':{'type':'string'},'reason':{'type':'string'}},
         'required':['profile','reason'],'additionalProperties':False}
@@ -90,6 +91,7 @@ def admit_intake(observer, board, state, now):
         # A held attempt retains its files, not its coder. Only a legacy dual
         # claim or overlapping paths in the same repository prevent admission.
         if any(j.get('child_id') and j.get('state') in ('blocked','needs_owner') and
+               not externally_resolved(j,board['supervision']) and
                (j.get('owner','dual') == 'dual' or
                 (j.get('repository',github.REPOSITORY)==scope['repository'] and
                  {p.casefold() for p in j.get('write_paths',j.get('paths',[]))} &

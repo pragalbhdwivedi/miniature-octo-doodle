@@ -1,5 +1,22 @@
 # Build Status
 
+## Supervisor cycle recovery - 8 October 2026
+
+IMPLEMENTED: Lossless compact UTF-8 RPC encoding within the unchanged one-MiB
+worker transport cap. The observed board exceeded that cap by 110 bytes before
+compaction. Responses that remain oversized fail without dropping audit data.
+Intake can recognize an identity-bound externally merged failed attempt; other
+overlapping blocked claims still hold. An operator-only local claim release
+backs up the database and retains the entire original row in an append-only
+release audit, changing only its local claim state. Server failed jobs and their
+attempt/history/receipts stay unchanged.
+
+TESTED: 22 pilot transport tests, 13 admission tests and three local claim-release
+tests passed, including stale revisions, running claims, changed source/attempts,
+Unicode size limits and full original-row preservation. Repository security/YAML
+validation passed. Live deployment and queue progression are separate acceptance
+steps; the control ingress socket remains subject to the operator execution policy.
+
 ## Supervisor task reconciliation - 4 October 2026
 
 SUP-000016's failed Gemini candidate remains blocked in the durable worker

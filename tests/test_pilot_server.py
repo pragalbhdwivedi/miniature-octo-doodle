@@ -40,6 +40,18 @@ class FakeStore(server.Store):
 
 
 class PilotServerTests(unittest.TestCase):
+    def test_rpc_compacts_large_board_without_dropping_audit_or_unicode(self):
+        value={'events':[{'sequence':i,'detail':'Saved evidence · '+('x'*64)} for i in range(8800)]}
+        self.assertGreater(len(json.dumps(value).encode()),1048576)
+        wire=server.encode_rpc(value)
+        self.assertLessEqual(len(wire.encode('utf-8'))+1,1048576)
+        self.assertEqual(json.loads(wire),value)
+
+    def test_rpc_rejects_oversized_utf8_and_nonfinite_values(self):
+        for value in ({'evidence':'x'*1048576},{'evidence':'é'*524288},{'score':float('nan')}):
+            with self.subTest(value_type=next(iter(value))):
+                with self.assertRaises(ValueError):server.encode_rpc(value)
+
     def test_local_questions_remain_available_after_coding_deadline(self):
         value=state.make_state('a'*40)
         value['batch']['deadline']=(datetime.now(timezone.utc)-timedelta(minutes=1)).isoformat()
