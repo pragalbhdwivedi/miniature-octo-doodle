@@ -18,7 +18,8 @@ def rebind(state,*,expected_revision,old_sha,new_sha,paths_sha256):
         if (ledger['revision']!=expected_revision or ongoing.get('lease')
                 or job.get('supervisor_id')!=TASK or job.get('source_sha')!=old_sha
                 or job.get('state')!='blocked' or job.get('blocked_stage')!='admit'
-                or job.get('attempt')!=0 or job.get('child_id')
+                or job.get('attempt') not in (0,1) or job.get('child_id')
+                or (job.get('attempt')==1 and job.get('recovery')!='Operator fresh-source admission; original pre-inference failure retained')
                 or any(job.get(k) for k in ('coding','tests','review','publication'))
                 or any(re.fullmatch('[a-f0-9]{40}',s or '') is None for s in (old_sha,new_sha))
                 or old_sha==new_sha or re.fullmatch('[a-f0-9]{64}',paths_sha256 or '') is None):

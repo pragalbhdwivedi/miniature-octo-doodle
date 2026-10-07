@@ -3,9 +3,12 @@ import copy
 from pathlib import Path
 import sys
 import unittest
+from types import SimpleNamespace
+from unittest.mock import Mock
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 import rebind_sup_000023 as operator
 import supervisor_board as board
+import ongoing_worker
 
 
 class RebindTests(unittest.TestCase):
@@ -30,7 +33,7 @@ class RebindTests(unittest.TestCase):
         self.assertEqual(self.state['ongoing']['jobs'][0]['state'],'queued')
 
     def test_stale_revision_or_existing_model_evidence_cannot_rebind(self):
-        for updates in ({'child_id':'child'},{'coding':{'candidate':'saved'}},{'attempt':1},{'state':'ready_test'}):
+        for updates in ({'child_id':'child'},{'coding':{'candidate':'saved'}},{'attempt':2},{'state':'ready_test'}):
             with self.subTest(updates=updates):
                 candidate=copy.deepcopy(self.state);candidate['ongoing']['jobs'][0].update(updates)
                 before=copy.deepcopy(candidate)
@@ -39,6 +42,19 @@ class RebindTests(unittest.TestCase):
         before=copy.deepcopy(self.state)
         with self.assertRaises(ValueError):operator.rebind(self.state,**{**self.fields,'expected_revision':-1})
         self.assertEqual(self.state,before)
+
+    def test_first_source_recovery_admits_without_a_nonexistent_repair_child(self):
+        job={'id':operator.JOB,'attempt':1,'title':'Trust flags','prompt':'Validate boolean flags',
+             'parent_issue':3,'owner':'gemini','operation':'development_change','paths':['gateway/jev.py'],
+             'write_paths':['gateway/jev.py'],'transport':'cli',
+             'recovery':'Operator fresh-source admission; original pre-inference failure retained'}
+        coordinator=SimpleNamespace(status=Mock(return_value={'tasks':[]}),close=Mock(),admit=Mock())
+        worker=SimpleNamespace(spec=Mock(),coordinator=coordinator,
+            publisher=SimpleNamespace(ensure_issue=Mock(return_value={'number':1})),child=lambda j:'new-child')
+        result=ongoing_worker.Worker.admit(worker,{'job':job},None)
+        self.assertEqual(result['child_id'],'new-child');coordinator.close.assert_not_called()
+        coordinator.status.return_value={'tasks':[{'id':'ongoing-'+operator.JOB+'-a0','state':'blocked'}]}
+        with self.assertRaises(ValueError):ongoing_worker.Worker.admit(worker,{'job':job},None)
 
 
 if __name__=='__main__':unittest.main()

@@ -214,7 +214,11 @@ class Worker:
         j=work['job'];self.spec(j)
         if j['attempt']:
             previous='ongoing-'+j['id']+'-a'+str(j['attempt']-1)
-            self.coordinator.close(previous,'Bounded automatic repair after failed tests/review; saved evidence retained.')
+            if j.get('recovery')=='Operator fresh-source admission; original pre-inference failure retained':
+                if j['attempt']!=1 or any(t['id']==previous for t in self.coordinator.status()['tasks']):
+                    raise ValueError('Pre-inference source recovery requires an absent previous child')
+            else:
+                self.coordinator.close(previous,'Bounded automatic repair after failed tests/review; saved evidence retained.')
         issue=self.publisher.ensure_issue(j['id'],j['title'],j['prompt']+'\n\nRelated backlog: #'+str(j['parent_issue'])+'\nAssigned owner: '+j['owner']+'. Draft PR only; no integration or deployment.')
         prompt=(j['prompt']+' Preserve all existing AST nodes. Add one or two focused test methods only. '
             'Read-only context paths are not editable. Return complete replacement of the writable test file only. '
