@@ -48,7 +48,7 @@ class PilotServerTests(unittest.TestCase):
         self.assertEqual(json.loads(wire),value)
 
     def test_rpc_rejects_oversized_utf8_and_nonfinite_values(self):
-        for value in ({'evidence':'x'*1048576},{'evidence':'é'*524288},{'score':float('nan')}):
+        for value in ({'evidence':'x'*1900000},{'evidence':'é'*950000},{'score':float('nan')}):
             with self.subTest(value_type=next(iter(value))):
                 with self.assertRaises(ValueError):server.encode_rpc(value)
 

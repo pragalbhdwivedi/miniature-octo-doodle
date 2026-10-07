@@ -16,6 +16,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import rpc_wire
 import tempfile
 import threading
 import time
@@ -136,7 +137,7 @@ class Remote:
         code, stdout, _ = self.runner(self.command, data=json.dumps(request).encode(), timeout=30, limit=1024*1024)
         if code:
             raise WorkerError('Controller transport failed; reservation remains held')
-        response = json.loads(stdout)
+        response = rpc_wire.decode(stdout)
         if not isinstance(response, dict) or response.get('error'):
             raise WorkerError('Controller rejected request')
         return response

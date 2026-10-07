@@ -2,9 +2,32 @@
 
 ## Supervisor cycle recovery - 8 October 2026
 
-IMPLEMENTED: Lossless compact UTF-8 RPC encoding within the unchanged one-MiB
-worker transport cap. The observed board exceeded that cap by 110 bytes before
-compaction. Responses that remain oversized fail without dropping audit data.
+DEPLOYED AND TESTED: PRs #63, #64, #65, #67 and #68 merged after CI.
+Reviewed server/Windows modules were installed with verified hashes and rollback
+copies. The live board response fell below the unchanged one-MiB cap. The
+guarded SUP-000016 local claim release saved its original row in a release audit
+and backed up the database. Server attempt 0, four history entries and failure
+receipt hash remain unchanged; the board still shows completed/merged_external.
+
+SUP-000023's pre-inference admission failures remain retained. The operator
+verified that all six admitted files were byte-identical at old/current commits,
+confirmed coordinator child absence under both worker locks, and recorded each
+source refresh. Attempt 1 admitted on `44cb3f9`, produced a Gemini candidate,
+passed 29 isolated tests and passed independent GPT review. Its normal publisher
+created [draft PR #69](https://github.com/pragalbhdwivedi/miniature-octo-doodle/pull/69).
+Final state is draft_ready; no candidate merge or deployment is claimed. The next
+worker check returned idle with zero model calls; four needs-scope requests and
+the saved failed planning result remain held.
+The initial full Windows suite passed 620 tests with 12 platform skips; later
+focused recovery tests and CI passed for the final fixes. No optional installs
+or downloads occurred. The control page still returns HTTP 502: its enabled
+ingress socket is inactive and the execution policy rejected starting it.
+
+IMPLEMENTED: Lossless compact UTF-8 RPC encoding and size/hash-verified bounded
+compression within the unchanged one-MiB worker transport cap and existing
+1.9-MB controller storage ceiling. The initial board exceeded the wire cap by
+110 bytes; later audit growth left only 146 bytes after compaction, motivating
+the lossless fallback. Over-limit or invalid responses fail without dropping audit data.
 Intake can recognize an identity-bound externally merged failed attempt; other
 overlapping blocked claims still hold. An operator-only local claim release
 backs up the database and retains the entire original row in an append-only
@@ -14,8 +37,8 @@ attempt/history/receipts stay unchanged.
 TESTED: 22 pilot transport tests, 13 admission tests and three local claim-release
 tests passed, including stale revisions, running claims, changed source/attempts,
 Unicode size limits and full original-row preservation. Repository security/YAML
-validation passed. Live deployment and queue progression are separate acceptance
-steps; the control ingress socket remains subject to the operator execution policy.
+validation passed. The live acceptance described above is separate from control
+ingress restoration, which remains subject to the operator execution policy.
 
 ## Supervisor task reconciliation - 4 October 2026
 
