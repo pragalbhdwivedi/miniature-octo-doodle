@@ -53,10 +53,14 @@ Packet, result, error, token and all receipt files remain retained; the server j
 remains blocked at attempt 0. No coder, reviewer or publisher runs in this command.
 Newly admitted work uses a fresh source snapshot and its own attempt/evidence.
 
-Operator RPC responses now use compact UTF-8 JSON with the same one-MiB worker
-transport cap, including the terminating newline. No fields, history or receipts
-are discarded. Oversized compact responses fail explicitly and still require
-verified archival or a separately reviewed transport change.
+Operator RPC responses use compact UTF-8 JSON with the same one-MiB worker
+transport cap, including the terminating newline. If compact JSON exceeds that
+cap, a `zlib-json-v1` envelope carries the complete response with its exact
+decoded byte count and SHA-256. The client bounds decompression to the declared
+size and existing 1.9-MB controller storage ceiling, and rejects truncation,
+trailing compressed data, invalid envelopes and hash/size mismatches. No fields,
+history or receipts are discarded. Incompressible over-limit responses and
+decoded content beyond the storage ceiling still fail explicitly.
 
 On 8 October the release applied at revision 836. The local row's packet, result,
 error and token were verified unchanged; only its claim state became closed.

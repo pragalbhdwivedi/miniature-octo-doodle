@@ -23,9 +23,11 @@ focused recovery tests and CI passed for the final fixes. No optional installs
 or downloads occurred. The control page still returns HTTP 502: its enabled
 ingress socket is inactive and the execution policy rejected starting it.
 
-IMPLEMENTED: Lossless compact UTF-8 RPC encoding within the unchanged one-MiB
-worker transport cap. The observed board exceeded that cap by 110 bytes before
-compaction. Responses that remain oversized fail without dropping audit data.
+IMPLEMENTED: Lossless compact UTF-8 RPC encoding and size/hash-verified bounded
+compression within the unchanged one-MiB worker transport cap and existing
+1.9-MB controller storage ceiling. The initial board exceeded the wire cap by
+110 bytes; later audit growth left only 146 bytes after compaction, motivating
+the lossless fallback. Over-limit or invalid responses fail without dropping audit data.
 Intake can recognize an identity-bound externally merged failed attempt; other
 overlapping blocked claims still hold. An operator-only local claim release
 backs up the database and retains the entire original row in an append-only

@@ -16,14 +16,12 @@ import controller_telegram as telegram
 import pilot_state as state
 import pilot_views as views
 import pilot_answers as answers
+import rpc_wire
 
 
 def encode_rpc(value):
     """Lossless wire encoding within the worker's existing one-MiB cap."""
-    wire=json.dumps(value,ensure_ascii=False,allow_nan=False,separators=(',',':'))
-    if len(wire.encode('utf-8'))+1>1048576:
-        raise ValueError('Compact RPC response exceeds worker transport limit')
-    return wire
+    return rpc_wire.encode(value)
 
 
 class Store(controller_state.Store):
