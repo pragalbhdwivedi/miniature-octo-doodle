@@ -119,6 +119,35 @@ class DevelopmentAdmissionTests(unittest.TestCase):
         self.assertEqual(admission.admit_intake(self.observer,snapshot,{},self.now)['state'],'no_intake')
         self.assertEqual(json.loads(self.catalog.read_text()),[])
 
+    def resolved_snapshot(self):
+        snapshot=self.data()
+        held={'id':'held-aadi','supervisor_id':'SUP-000016','state':'blocked','attempt':0,
+            'child_id':'claim','source_sha':'b'*40,'repository':'pragalbhdwivedi/aadi',
+            'owner':'gemini','write_paths':['src/app.py']}
+        snapshot['jobs'].append(held)
+        snapshot['supervision']['by_key']['held-aadi']='SUP-000016'
+        snapshot['supervision']['tasks']['SUP-000016']={'history':[
+            {'state':'blocked','attempt':0,'evidence_digest':'c'*64}],
+            'external_resolution':{'kind':'operator_merged_pr','source_sha':'b'*40,
+                'failed_evidence_digest':'c'*64,'failed_receipt_sha256':'d'*64,
+                'merge_sha':'e'*40,'url':'https://github.com/pragalbhdwivedi/aadi/pull/99'}}
+        return snapshot
+
+    def test_external_merge_releases_admission_without_changing_failed_job(self):
+        snapshot=self.resolved_snapshot();before=copy.deepcopy(snapshot['jobs'][-1])
+        result=admission.admit_intake(self.observer,snapshot,{},self.now)
+        self.assertEqual(result['state'],'admitted')
+        self.assertEqual(snapshot['jobs'][-1],before)
+
+    def test_changed_attempt_or_external_evidence_keeps_file_claim(self):
+        for field,value in (('attempt',1),('source_sha','f'*40),('supervisor_id','SUP-000015')):
+            with self.subTest(field=field):
+                snapshot=self.resolved_snapshot();snapshot['jobs'][-1][field]=value
+                self.assertEqual(admission.admit_intake(self.observer,snapshot,{},self.now)['state'],'no_intake')
+        snapshot=self.resolved_snapshot()
+        snapshot['supervision']['tasks']['SUP-000016']['external_resolution']['failed_evidence_digest']='f'*64
+        self.assertEqual(admission.admit_intake(self.observer,snapshot,{},self.now)['state'],'no_intake')
+
     def test_pause_skips_classification_and_priority_survives_admission(self):
         item=self.state['supervision']['intake'][0];item.update(paused=True,priority=5)
         self.assertEqual(self.admit()['state'],'no_intake');self.chat.assert_not_called()

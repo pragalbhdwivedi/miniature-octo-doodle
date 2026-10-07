@@ -88,6 +88,25 @@ def _model(evidence):
     return _safe(route.get('model', evidence.get('model', 'unknown')), 160)
 
 
+def externally_resolved(job, board):
+    """Only the identity-bound operator merge releases a held admission scope."""
+    meta=board.get('tasks',{}).get(job.get('supervisor_id'),{})
+    external=meta.get('external_resolution')
+    history=meta.get('history') or [{}]
+    return (job.get('state')=='blocked' and isinstance(external,dict)
+        and board.get('by_key',{}).get(job.get('id'))==job.get('supervisor_id')
+        and external.get('kind')=='operator_merged_pr'
+        and external.get('source_sha')==job.get('source_sha')
+        and history[-1].get('state')=='blocked'
+        and history[-1].get('attempt')==job.get('attempt')
+        and external.get('failed_evidence_digest')==history[-1].get('evidence_digest')
+        and re.fullmatch(r'[0-9a-f]{64}',str(external.get('failed_evidence_digest',''))) is not None
+        and re.fullmatch(r'[0-9a-f]{64}',str(external.get('failed_receipt_sha256',''))) is not None
+        and re.fullmatch(r'[0-9a-f]{40}',str(external.get('merge_sha',''))) is not None
+        and re.fullmatch(r'https://github\.com/pragalbhdwivedi/(aadi|miniature-octo-doodle)/pull/[1-9][0-9]*',
+                         str(external.get('url',''))) is not None)
+
+
 def _projection(job, meta):
     coding = job.get('coding') if isinstance(job.get('coding'), dict) else {}
     review = job.get('review') if isinstance(job.get('review'), dict) else {}

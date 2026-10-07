@@ -39,7 +39,8 @@ def rpc(s,r):
     board.ensure(s)
     action=r['action']
     if action=='ongoing_board_data':return {'jobs':copy.deepcopy(s['ongoing']['jobs']),'supervision':copy.deepcopy(s['supervision']),
-        'ongoing':{k:copy.deepcopy(s['ongoing'][k]) for k in ('enabled','calls','day','policy')}}
+        'ongoing':{**{k:copy.deepcopy(s['ongoing'][k]) for k in ('enabled','calls','day','policy')},
+                   'lease_active':bool(s['ongoing'].get('lease'))}}
     if action=='ongoing_intake_hold':
         item=next(i for i in s['supervision']['intake'] if i['id']==r['task_id'])
         if item['state']=='needs_scope':return {'ok':True}
