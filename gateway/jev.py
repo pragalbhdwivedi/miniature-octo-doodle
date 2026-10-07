@@ -33,6 +33,8 @@ def normalize_choice(response, allowed, *, in_domain=False):
 
     in_domain comes from the evaluator's labelled domain, never the model.
     """
+    if type(in_domain) is not bool:
+        return None
     if not validate_catalogue(allowed):
         return None
     try:
@@ -59,7 +61,7 @@ def select_route(decision, allowed, deterministic, *, calibrated=False, threshol
         return None, "invalid_deterministic_route"
     if deterministic not in allowed:
         raise ValueError("Deterministic route must already be allowed")
-    if not calibrated:
+    if calibrated is not True:
         return deterministic, "live_calibration_pending"
     if (type(threshold) not in (int, float) or isinstance(threshold, bool)
             or not 0 <= threshold <= 1 or not math.isfinite(threshold)):

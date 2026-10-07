@@ -76,6 +76,32 @@ class DevelopmentChoiceTests(unittest.TestCase):
         self.assertEqual(route, self.deterministic)
         self.assertEqual(reason, "live_calibration_pending")
 
+    def test_calibrated_requires_strict_true(self):
+        for truthy in (1, "True", [True], {"calibrated": True}):
+            with self.subTest(truthy=truthy):
+                route, reason = select_route(
+                    self.valid_decision,
+                    self.allowed,
+                    self.deterministic,
+                    calibrated=truthy,
+                    threshold=0.9,
+                )
+                self.assertEqual(route, self.deterministic)
+                self.assertEqual(reason, "live_calibration_pending")
+
+    def test_in_domain_requires_strict_bool(self):
+        for invalid in (None, 1, 0, "True", "False", [True]):
+            with self.subTest(invalid=invalid):
+                self.assertIsNone(normalize_choice(self.valid_wire_response, self.allowed, in_domain=invalid))
+        
+        valid = normalize_choice(self.valid_wire_response, self.allowed, in_domain=True)
+        self.assertIsNotNone(valid)
+        self.assertTrue(valid["in_domain"])
+        
+        valid_false = normalize_choice(self.valid_wire_response, self.allowed, in_domain=False)
+        self.assertIsNotNone(valid_false)
+        self.assertFalse(valid_false["in_domain"])
+
     def test_calibrated_valid_threshold_boundaries_and_route_selection(self):
         route, reason = select_route(
             self.valid_decision,
