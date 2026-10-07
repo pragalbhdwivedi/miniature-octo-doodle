@@ -58,6 +58,25 @@ transport cap, including the terminating newline. No fields, history or receipts
 are discarded. Oversized compact responses fail explicitly and still require
 verified archival or a separately reviewed transport change.
 
+On 8 October the release applied at revision 836. The local row's packet, result,
+error and token were verified unchanged; only its claim state became closed.
+The original server job remains blocked at attempt 0 with four history entries
+and receipt hash `d385cf056607575cc552cd85a16b032dbf38655f79f9036705bf2275a763f7eb`.
+The board continues to project it as completed/merged_external.
+
+The next routing task, SUP-000023, had never reached a coder during its admission
+failures. `scripts/rebind_sup_000023.py` is an operator-only CAS for that exact
+task, requiring a fresh revision, no lease/child/model evidence, and an audit
+entry containing the complete original failed job. Under Windows worker locks,
+the operator verifies child absence and exact equality of all admitted files
+across old/new commits, refreshes the clean source, and updates only the pinned
+source in its retained local catalog. Its first coder attempt is attempt 1;
+ordinary model repairs still require reconciliation of their existing child.
+Readback on current source `44cb3f9` showed successful admission, a candidate,
+29 passing isolated tests and an independent passing review, followed by draft
+PR #69 and draft_ready status. The next worker tick was idle with zero model calls. SUP-000016 was
+not replayed or reclassified as a successful worker attempt.
+
 ## Executed reconciliation, 4 October 2026
 
 The operator preview at board revision 784 matched the exact source SHA,
