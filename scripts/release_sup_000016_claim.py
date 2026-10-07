@@ -43,7 +43,8 @@ def release(coordinator,snapshot,*,apply=False,expected_revision=None):
         if not row:raise ValueError('Original local claim is missing')
         before=dict(row)
         packet=json.loads(row['packet'])
-        if (packet.get('repository')!=original.REPO or packet.get('owner')!='gemini'
+        if (packet.get('repository') not in (original.REPO,'https://github.com/'+original.REPO)
+                or packet.get('branch')!='main' or packet.get('owner')!='gemini'
                 or packet.get('source',{}).get('sha')!=original.SOURCE
                 or set(packet.get('write_paths',[]))!=set(job.get('write_paths',[]))):
             raise ValueError('Local packet differs from original failed claim')

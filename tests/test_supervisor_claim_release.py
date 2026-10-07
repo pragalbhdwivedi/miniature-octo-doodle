@@ -26,7 +26,7 @@ class ReleaseTests(unittest.TestCase):
                 with db:yield db
             finally:db.close()
         self.coordinator=SimpleNamespace(connect=connect)
-        self.packet={'repository':original.REPO,'owner':'gemini','source':{'sha':original.SOURCE},
+        self.packet={'repository':'https://github.com/'+original.REPO,'branch':'main','owner':'gemini','source':{'sha':original.SOURCE},
                      'write_paths':['gateway/jev.py']}
         with connect() as db:
             db.execute('CREATE TABLE tasks(id TEXT PRIMARY KEY,state TEXT,packet TEXT,result TEXT,error TEXT)')
@@ -72,6 +72,16 @@ class ReleaseTests(unittest.TestCase):
         self.snapshot['jobs'][0]['source_sha']='f'*40
         with self.assertRaises(ValueError):operator.release(self.coordinator,self.snapshot,apply=True,expected_revision=44)
         self.assertEqual(self.row(),before)
+
+    def test_foreign_repository_or_branch_cannot_release_claim(self):
+        for field,value in (('repository','https://example.com/'+original.REPO),('branch','other')):
+            with self.subTest(field=field):
+                packet={**self.packet,field:value}
+                with self.coordinator.connect() as db:
+                    db.execute('UPDATE tasks SET packet=?',(json.dumps(packet),))
+                before=self.row()
+                with self.assertRaises(ValueError):operator.release(self.coordinator,self.snapshot,apply=True,expected_revision=44)
+                self.assertEqual(self.row(),before)
 
 
 if __name__=='__main__':unittest.main()
