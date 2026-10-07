@@ -10,8 +10,6 @@ import json
 from pathlib import Path
 import urllib.request
 
-import controller_telegram as telegram
-from pilot_server import Store
 import supervisor_board as board
 
 
@@ -98,6 +96,10 @@ def run(store, *, apply=False, expected_revision=None):
 
 
 def main():
+    # The Linux database adapter is needed only by this command, not by the
+    # Windows claim operator importing the immutable evidence and GitHub checks.
+    import controller_telegram as telegram
+    from pilot_server import Store
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--apply', action='store_true')
