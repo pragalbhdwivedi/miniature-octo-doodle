@@ -386,7 +386,7 @@ the private AADI handover and local artifacts, never this public repository.
 | Ollama | PARTIAL | Native Windows 0.35.0 loopback/cloud-disabled; VM reverse tunnel and LiteLLM bridge pass; next-logon/reboot persistence unverified |
 | Local model | PARTIAL | Existing Qwen3 instruct plus 15 GB Devstral coding and 2.5 GB Qwen3 thinking; both new aliases pass through WebUI/LiteLLM; production quality and laptop-off availability unvalidated |
 | OmniRoute | NOT STARTED | Optional |
-| OpenViking | PARTIAL | VM9125 v0.4.22 loopback-only; public-main timed sync and three bounded exact-SHA hits live-tested; operator controller advisory read and stale fallback passed; paid reviewed run, private data and clean-host restore pending |
+| OpenViking | PARTIAL | VM9125 v0.4.22 public sync plus paid retrieved-context reviewer call passed; five WebUI admin text chats mirror to a separate account with isolation/deletion tests; encrypted clean-guest restore/search passed on VM9127; derived-memory deletion, quality and NAS/site-loss recovery pending |
 | Graphify (Phase 9) | PARTIAL | VM9125 public code-only AST/SQL index: 580 nodes, 1,191 edges; live same-run build, fresh-Git query and exact-plan advisory preview passed; automatic controller use/quality evaluation pending |
 | Isolated coding worker | COMPLETE | Bounded operator scope: isolation, gateway coding/budgets and live draft PR #16 passed; token provisioning scope remains operator-owned |
 | Agent Controller | PARTIAL | Planner, durable dispatch, independent review, one repair and gated draft publication live-tested; AADI acceptance pending |
@@ -636,6 +636,55 @@ floor and controller/production boundaries intact.
   Python lacks PyYAML. A fresh branch clone on VM9125 with its existing PyYAML
   ran all 130 tests successfully (three expected skips) and the repository
   YAML/core-security validator passed. No laptop package was installed.
+
+## Phase 9 private capture, reviewer and clean-guest restore - 1 October 2026
+
+- The owner chose automatic capture for all chats of the existing WebUI admin
+  account. A dedicated OpenViking account and root-only key were provisioned.
+  The first read-only SQLite sync mirrored five saved active text branches; the
+  repeat was a no-op. All five sessions held 60 messages in total, with zero
+  commits and zero extracted memories. The two-minute VM systemd timer is active and its oneshot
+  service returned success. No cloud prompt injection or long-term extraction
+  was enabled.
+- A real mirrored session returned owner 200, public operator 404, root data
+  key 403 and anonymous 401. A synthetic separate-account acceptance passed
+  owner-only selection, no-op repeat, changed-chat replacement and WebUI-chat
+  deletion yielding OpenViking session 404. A public matched resource returned
+  200 to the public operator and 404 to the private key; the private account's
+  search of that public prefix returned zero hits. These are raw-session and
+  public-resource isolation checks, not extracted-memory isolation proof.
+- A root-only $1 one-shot reservation preceded a real LiteLLM reviewer call
+  with three exact-main OpenViking public excerpts. At main SHA
+  `3e8672b8412d2084fbd145bf6f42cb842ad90ffd`, the synthetic correct
+  candidate returned `approve`, zero findings, 3,662 total tokens and a
+  $0.453800 conservative debit. The full worker and publication pipeline was
+  not part of this probe. Root-only receipts are on VM9125.
+- After a brief consistent stop of only the OpenViking Compose pair, a 243 MiB
+  AES-256 encrypted archive was copied outside Git/OneDrive to the protected
+  laptop `creds` folder. The source pair restarted healthy and both public and
+  private sync timers were active. SHA-256 source, laptop and VM9127 archive
+  copies matched:
+  `a3e5e5d634b1bd8c28ff1df71820a0a2ead96dfd78c8987ffa80fcb6f1c0a184`.
+  GPG authentication and tar listing passed before extraction on clean Ubuntu
+  VM9127. Its pinned recovery Compose has one internal Docker network, no
+  published port or provider network, and `restart: no`.
+- VM9127 restored OpenViking v0.4.22 health and the 274 MB local
+  `nomic-embed-text` model. Authenticated public search returned three hits
+  from the archived exact-main index. All five private chat session records
+  were present; a restored one returned owner 200, public operator 404, root
+  403 and anonymous 401. Proxmox guest agent, jump-host SSH and effective
+  `PasswordAuthentication no` passed. Test containers were stopped afterward;
+  18 GiB free remained after removing temporary encrypted transfer copies,
+  above the 15 GiB critical threshold but below the
+  25 GiB warning threshold. VM inventory is in ignored `VM_NOTES/9127-*.md`
+  and Proxmox Notes. This proves clean-guest data portability across separate
+  Proxmox nodes; both VMs use the same SMB_NAS backend, so NAS/site-loss
+  recovery and Phase 5 full-core cutover remain unvalidated.
+- Laptop C: free space was 12.8 GiB after retaining the 243 MiB protected
+  encrypted backup, below this repository's 15 GiB critical threshold. No
+  further laptop installation or model download was attempted; validation used
+  existing WSL Python/PyYAML. This storage gate requires cleanup before any
+  optional installation.
 
 ## Initial laptop local model checkpoint - 1 October 2026 (superseded above)
 
